@@ -1,0 +1,12 @@
+# Virtual environments & environment variables
+.venv/
+backend/.venv/
+backend/.env
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Pytest / test cache
+.pytest_cache/
