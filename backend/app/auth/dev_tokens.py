@@ -9,25 +9,25 @@ from .models import AuthenticatedUser
 DEV_USERS: dict[str, AuthenticatedUser] = {
     "archer": AuthenticatedUser(
         subject="dev-archer-001",
-        email="archer.local@goldpath.test",
+        email="archer.local@example.com",
         name="Local Archer",
         roles=["archer"],
     ),
     "coach": AuthenticatedUser(
         subject="dev-coach-001",
-        email="coach.local@goldpath.test",
+        email="coach.local@example.com",
         name="Local Coach",
         roles=["coach"],
     ),
     "guardian": AuthenticatedUser(
         subject="dev-guardian-001",
-        email="guardian.local@goldpath.test",
+        email="guardian.local@example.com",
         name="Local Guardian",
         roles=["guardian"],
     ),
     "admin": AuthenticatedUser(
         subject="dev-admin-001",
-        email="admin.local@goldpath.test",
+        email="admin.local@example.com",
         name="Local Admin",
         roles=["admin"],
     ),
