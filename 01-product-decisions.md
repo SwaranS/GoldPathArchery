@@ -90,7 +90,7 @@ Confirmed product direction:
 - Optional profile listings are visible only to signed-in users.
 - User profiles include a "Stay out of Search" toggle. When selected, the user is excluded from user searches and discovery listings.
 - Under-16 athlete profiles are always excluded from searches/listings; this setting cannot make them discoverable.
-- Athletes aged 16+ and coaches may choose whether to appear in listings. The default setting for eligible users remains to be agreed.
+- Athletes aged 16+ and coaches may choose whether to appear in listings. "Stay out of Search" is off by default for eligible new accounts, so they are discoverable by signed-in users unless they enable it. Under-16 athlete profiles remain excluded regardless of the default.
 - Search visibility does not grant access to private training data or change existing coaching relationships and permissions.
 
 - An athlete aged 16+ chooses each connected coach's plan access. For athletes under 16, the parent managing the junior profile makes that choice.
@@ -203,6 +203,7 @@ These are review suggestions, not commitments:
 | 21 October 2026 | D05 | Confirmed immediate loss of athlete-data access when coaching ends, with separate access to the coach's own proposals and authored revisions. | Product owner |
 | 21 October 2026 | D05 | Confirmed that the athlete retains access to the coach's original contributions after the coaching relationship ends. | Product owner |
 | 21 October 2026 | D05 | Confirmed signed-in-only listings and a "Stay out of Search" profile toggle; under-16 profiles are always excluded. | Product owner |
+| 21 October 2026 | D05 | Confirmed "Stay out of Search" is off by default for eligible new accounts; under-16 athlete profiles remain excluded. | Product owner |
 | 21 October 2026 | D12 | Replaced blanket permanent retention with deletion or genuine anonymisation on explicit account closure. | Product owner |
 
 ## Completion checklist
@@ -215,7 +216,8 @@ These are review suggestions, not commitments:
 - [x] Confirm immediate relationship-end revocation with a separate coach contribution history.
 - [x] Confirm the athlete retains their history of the coach's original contributions.
 - [x] Confirm signed-in-only listings, "Stay out of Search" control and mandatory exclusion of under-16 profiles.
-- [ ] Confirm default visibility, hidden-user invitations, detailed coach edit scope, conflict handling and contribution-history details.
+- [x] Confirm "Stay out of Search" is off by default for eligible new accounts; under-16 exclusions still apply.
+- [ ] Confirm hidden-user invitations, detailed coach edit scope, conflict handling and contribution-history details.
 - [x] Confirm junior editing threshold: 16; ages 14–15 are view-only.
 - [ ] Confirm verification and parent/junior transition rules.
 - [ ] Confirm initial scoring formats and totals versus individual-arrow entry.
