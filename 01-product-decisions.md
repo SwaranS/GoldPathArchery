@@ -31,7 +31,7 @@ Club, state and team memberships are future scope. Payments, competition registr
 | D08 | Testing budget | EUR 45 per month on Azure. Cost planning must include the application, database, email, backups and monitoring. The production budget is separate and not yet agreed. | Confirmed for testing |
 | D09 | Pilot date | Set after the MVP scope is agreed and estimated. No committed launch date yet. | Deferred |
 | D10 | Main return value | Know what to train today, record practice quickly and review progress with coaches. Parents record practice for juniors with view-only access. | Proposed |
-| D11 | Scoring | Both indoor and outdoor scoring are essential. Exact round formats and logging detail remain to be agreed. | Partial |
+| D11 | Scoring | Both indoor and outdoor scoring are essential. Arrow-by-arrow scores with arrow numbers when scoring a round are required in MVP; totals-only entry is insufficient. Supported formats and the precise arrow-numbering model remain to be agreed. | Partial |
 | D12 | Leaving, account deletion and retention | On confirmed account closure/deletion, remove access and delete or genuinely anonymise user-related data. Attempt anonymisation only where identity cannot reasonably be recovered; delete data that cannot be sufficiently anonymised unless a documented retention obligation applies. Permanent retention of identifiable or merely renamed records is not the policy. Operational timescales, export and backup expiry remain to be agreed. | Partial |
 | D13 | Hosting | Azure, in Europe. Specific region and services will be selected after requirements and budget review. | Confirmed direction |
 | D14 | Pilot success | Assess core-journey completion without assistance, repeat weekly use, logging activity and participant feedback. Targets below are proposed. | Proposed |
@@ -145,15 +145,31 @@ A read-only login is a product permission, not a substitute for a lawful basis f
 
 Reference: [Irish DPC guidance on children's data and parental consent](https://www.dataprotection.ie/sites/default/files/uploads/2023-04/DPC_ChildrensData_ParentalConsent.pdf).
 
-## D11 — Scoring detail to confirm
+## D11 — Arrow-by-arrow scoring
 
-Proposed MVP starting point:
-- Session/round totals rather than individual-arrow entry.
-- Record indoor/outdoor, distance, round/format, arrows shot, total score and applicable maximum.
-- Support more than one round in a session.
-- Compare scores only within compatible formats.
+Confirmed product direction:
+- Indoor and outdoor scoring are essential.
+- When scoring a round, users must be able to record each arrow's individual score with its arrow number.
+- Arrow-by-arrow entry and arrow numbers are essential first-release features, not optional later enhancements.
+- A totals-only approach does not meet this requirement.
+- Existing access rules apply: athletes aged 16+ can enter scores; a parent manages entry for an under-16 athlete. Coach access to score editing remains separately defined.
 
-The product owner must specify the initial supported rounds, whether double rounds are needed and whether individual-arrow entry is essential. Indoor/outdoor alone does not define score validation.
+Proposed MVP behaviour:
+- Organise a round into numbered ends with a configured number of arrows per end.
+- Track shot sequence (end number and position within the end) independently of any physical arrow identifier.
+- Calculate end subtotals and running round totals from individual scores.
+- Support corrections to individual entries and distinguish unrecorded arrows from misses.
+- Validate each score, including X and miss where supported, against the selected scoring format.
+- Preserve arrow-level data for progress analysis and weekly AI recommendations.
+
+Still to decide:
+- Does "arrow number" mean shot sequence, the identifying number on the physical arrow shaft, or both? Do not assume physical arrow identity from shot order.
+- Which indoor/outdoor rounds are supported initially, including arrows per end and score rules?
+- Are double rounds and multiple rounds in a session required?
+- Are target-face plotting and physical-arrow equipment analysis required in MVP or later?
+- How are partial rounds, score corrections and any coach score-editing permissions handled?
+
+The earlier proposed totals-only MVP approach is superseded. The scoring interaction should be reviewed before implementation.
 
 ## D12 — Account closure and anonymisation
 
@@ -204,6 +220,7 @@ These are review suggestions, not commitments:
 | 21 October 2026 | D05 | Confirmed that the athlete retains access to the coach's original contributions after the coaching relationship ends. | Product owner |
 | 21 October 2026 | D05 | Confirmed signed-in-only listings and a "Stay out of Search" profile toggle; under-16 profiles are always excluded. | Product owner |
 | 21 October 2026 | D05 | Confirmed "Stay out of Search" is off by default for eligible new accounts; under-16 athlete profiles remain excluded. | Product owner |
+| 21 October 2026 | D11 | Confirmed arrow-by-arrow scores with arrow numbers as essential first-release functionality; supersedes the totals-only proposal. | Product owner |
 | 21 October 2026 | D12 | Replaced blanket permanent retention with deletion or genuine anonymisation on explicit account closure. | Product owner |
 
 ## Completion checklist
@@ -220,7 +237,8 @@ These are review suggestions, not commitments:
 - [ ] Confirm hidden-user invitations, detailed coach edit scope, conflict handling and contribution-history details.
 - [x] Confirm junior editing threshold: 16; ages 14–15 are view-only.
 - [ ] Confirm verification and parent/junior transition rules.
-- [ ] Confirm initial scoring formats and totals versus individual-arrow entry.
+- [x] Confirm arrow-by-arrow scoring with arrow numbers is essential in MVP.
+- [ ] Confirm arrow-number meaning, initial scoring formats, double rounds and correction rules.
 - [ ] Confirm retention operations and closure timescales.
 - [ ] Accept or revise D10, D14 and D15 proposals.
 - [ ] Identify pilot participants; keep D09 deferred until scope estimation.
