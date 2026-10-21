@@ -3,7 +3,7 @@
 **Status:** Initial concept · Starting from scratch
 
 **1. Purpose**  
-GoldPathArchery will help archers follow structured training plans, record their practice and understand their progress. It will also give coaches a straightforward way to guide their athletes.
+GoldPathArchery will help archers follow structured training plans, record their practice and understand their progress. It will also give coaches a straightforward way to guide their athletes. On
 
 **2. Problem to solve**  
 Training information is often spread across notebooks, spreadsheets and messages. Archers struggle to connect their daily practice with longer-term goals, while coaches have limited visibility between coaching sessions.
