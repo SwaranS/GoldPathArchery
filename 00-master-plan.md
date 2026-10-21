@@ -1,31 +1,41 @@
-# GoldPathArchery master plan
+# GoldPathArchery — Product Brief
 
-## Purpose
+**Status:** Initial concept · Starting from scratch
 
-GoldPathArchery is a planned platform to support archers and coaches in planning training, recording performance, and working toward athlete goals.
+**1. Purpose**  
+GoldPathArchery will help archers follow structured training plans, record their practice and understand their progress. It will also give coaches a straightforward way to guide their athletes.
 
-This document provides the high-level project roadmap and documentation map. Scope, priorities, and delivery dates are TBD.
+**2. Problem to solve**  
+Training information is often spread across notebooks, spreadsheets and messages. Archers struggle to connect their daily practice with longer-term goals, while coaches have limited visibility between coaching sessions.
 
-## Documentation map
+**3. Target users**  
+The initial audience will be individual recurve archers and coaches working with a small number of athletes. Parents may manage or support junior archers’ accounts. Support for clubs and other bow types may follow later.
 
-- [High-level requirements](01-high-level-requirements.md): what the platform must provide, with open decisions identified.
-- [Detailed requirements](requirements/README.md): future workflows, permissions, business rules, and acceptance criteria.
-- [Architecture](architecture/README.md): future design decisions based on agreed requirements.
-- [Implementation](implementation/README.md): future delivery plans and implementation guidance.
+**4. Main user journeys**
 
-## Project stages
+- An archer registers, sets a goal and creates a basic profile.
+- An archer views a weekly plan with clear session instructions.
+- An archer records arrows shot, scores and session feedback.
+- A coach assigns or adjusts a plan for an athlete.
+- An archer and their coach review training history and progress.
 
-1. Agree the purpose, users, and high-level scope.
-2. Develop detailed requirements and resolve open decisions, including youth controls, privacy, and GDPR obligations.
-3. Define and review architecture against the agreed requirements.
-4. Agree delivery priorities and an implementation plan.
-5. Build, validate, and refine the platform against agreed acceptance criteria.
+**5. First release — essential scope**  
+A public homepage explaining the service; secure accounts; archer profiles; weekly training plans; session logging; basic progress summaries; and administration tools. Users must have appropriate control over who can access their training information.
 
-Stage completion criteria, ownership, release scope, and timelines are TBD. The listed capabilities do not imply that all will be included in the first release.
+**6. Outside the first release**  
+Online payments, competition registration, equipment sales, video analysis, social feeds, native mobile apps and automatic AI coaching.
 
-## Documentation principles
+**7. Business model**  
+Start with a free pilot involving a small group of archers and coaches. Consider paid subscriptions after gathering feedback. Pricing and subscription features are undecided.
 
-- Keep high-level requirements focused on user and platform needs.
-- Record implementation choices in architecture and implementation documents.
-- Mark unresolved decisions as TBD; expand them in the relevant detailed documents when agreed.
-- Keep this plan concise and update links as lower-level documents are added.
+**8. Experience and brand**  
+The service should feel encouraging, professional and easy to use on a phone at the range. Session instructions and logging should be quick to find. Use clear language and authentic archery photography.
+
+**9. Constraints and assumptions**  
+One person will initially manage the service. Hosting costs should remain modest; the monthly budget is undecided. No previous code or architecture is assumed. Junior accounts, parent access and privacy requirements need to be defined before implementation.
+
+**10. Launch and success criteria**  
+Launch a private pilot before opening registration publicly. The pilot should demonstrate that users can view plans and log sessions without assistance, coaches can review their athletes’ activity, and access permissions work correctly. Measure repeat weekly use and collect feedback before expanding.
+
+**11. Decisions still needed**  
+Who is the primary customer: the archer, parent or coach? Who creates the training plans? Will juniors use their own accounts? What is the launch budget and target date? Which single capability will make the service worth returning to?

@@ -1,1 +1,0 @@
-"""Authentication support for GoldPathArchery."""

@@ -1,1 +1,0 @@
-"""GoldPathArchery backend application."""
