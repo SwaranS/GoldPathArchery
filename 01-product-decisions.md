@@ -26,7 +26,7 @@ Club, state and team memberships are future scope. Payments, competition registr
 | D03 | Reusable templates | A reusable template library is outside version one. System-created plans still need a defined distribution and personal-copy model. | Confirmed |
 | D04 | Multiple coaches | An athlete can have multiple coaches, including a physio and an archery technical coach. Exact permissions per relationship remain to be defined. | Partial |
 | D05 | Coach relationships and discovery | Coaches and athletes can invite, accept or reject one another. Both may choose whether to be listed. Listing audience, junior restrictions and access after a relationship ends remain to be defined. | Partial |
-| D06 | Junior access | Below 14, a parent creates an account and manages a linked child athlete profile. From age 14, the junior may have a login with view-only access to their own training information; the parent continues to manage edits. No automatic grant of editing rights or removal of parental involvement at 14. | Partial — later editing threshold and verification process pending |
+| D06 | Junior access | Below 14, a parent creates an account and manages a linked child athlete profile. At ages 14–15, the junior may have a login with view-only access to their own training information; the parent continues to manage edits. From age 16, the athlete can edit their own training data through the agreed account transition. | Partial — age thresholds confirmed; verification and parent-access transition pending |
 | D07 | Pilot participants | Juniors are included. Participant numbers, coaches and recruitment arrangements remain to be confirmed. | Partial |
 | D08 | Testing budget | EUR 45 per month on Azure. Cost planning must include the application, database, email, backups and monitoring. The production budget is separate and not yet agreed. | Confirmed for testing |
 | D09 | Pilot date | Set after the MVP scope is agreed and estimated. No committed launch date yet. | Deferred |
@@ -71,15 +71,16 @@ Confirm these rules before treating them as requirements.
 
 Confirmed product direction:
 - Under 14: the parent manages a child athlete profile; no independent child login.
-- From 14: a junior login can view that athlete's assigned plans, session history and progress.
-- View-only means no changes to training data, no logging, no plan sharing and no management of coach relationships.
-- The parent continues to enter logs and make permitted changes. Coaches may act only within their separately agreed permissions.
+- Ages 14–15: a junior login can view that athlete's assigned plans, session history and progress.
+- From 16: the athlete can edit their own training data, including recording sessions and adapting personal plans within the agreed athlete permissions. This does not grant coach, plan-manager or administrator authority.
+- At ages 14–15, view-only means no changes to training data, no logging, no plan sharing and no management of coach relationships.
+- Until the age-16 transition, the parent continues to enter logs and make permitted changes. Coaches may act only within their separately agreed permissions.
 - Reaching 14 does not automatically remove parental access.
 
 Proposed design implication: retain one stable athlete profile and link the junior's login to it, rather than duplicating or moving training records. Account security and privacy requests need separate handling from read-only training permissions.
 
 Still to decide:
-- At what age or approved transition can the athlete edit their own training data?
+- How is the confirmed age-16 editing transition activated and verified?
 - How are age and guardian authority verified, and how is the junior login activated?
 - Which actions remain available to parents after greater independence is granted?
 
@@ -137,13 +138,15 @@ These are review suggestions, not commitments:
 |---|---|---|---|
 | 21 October 2026 | D01–D08, D11–D13 | Recorded product-owner answers; unresolved details remain visible. | Product owner |
 | 21 October 2026 | D06 | Revised age-14 junior access to viewing only; parent continues to manage edits. | Product owner |
+| 21 October 2026 | D06 | Confirmed editing rights from age 16; ages 14–15 remain view-only. Parent access after transition remains unresolved. | Product owner |
 | 21 October 2026 | D12 | Replaced blanket permanent retention with deletion or genuine anonymisation on explicit account closure. | Product owner |
 
 ## Completion checklist
 
 - [ ] Confirm System Plan Manager role and personal-copy/sharing rules.
 - [ ] Confirm coach permissions, listing audience and relationship termination rules.
-- [ ] Confirm junior editing threshold and parent/junior transition rules.
+- [x] Confirm junior editing threshold: 16; ages 14–15 are view-only.
+- [ ] Confirm verification and parent/junior transition rules.
 - [ ] Confirm initial scoring formats and totals versus individual-arrow entry.
 - [ ] Confirm retention operations and closure timescales.
 - [ ] Accept or revise D10, D14 and D15 proposals.
