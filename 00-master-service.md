@@ -26,7 +26,7 @@ A public homepage explaining the service; secure accounts; archer profiles; week
 Online payments, competition registration, equipment sales, video analysis, social feeds, native mobile apps and automatic AI coaching.
 
 **7. Business model**  
-Start with a free pilot involving a small group of archers and coaches. Consider paid subscriptions after gathering feedback. Pricing and subscription features are undecided.
+Start with a free pilot involving a small group of archers and coaches. 
 
 **8. Experience and brand**  
 The service should feel encouraging, professional and easy to use on a phone at the range. Session instructions and logging should be quick to find. Use clear language and authentic archery photography.
