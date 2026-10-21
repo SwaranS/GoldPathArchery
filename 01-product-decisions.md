@@ -97,10 +97,11 @@ Confirmed product direction:
 - Ending a coaching relationship immediately revokes the coach's access to the athlete's active plans, logs, scores, feedback and historical records.
 - The coach can still access a separate contribution history containing their own proposals and authored revisions. This is not access to the athlete's full historical plan or later activity.
 - The contribution record must exclude unrelated athlete data and later changes by the athlete, parent, AI or other coaches.
+- The athlete retains access to the coach's original contributions in their own training history after the relationship ends, subject to existing athlete/parent access and account-closure rules.
 
 Proposed contribution-history details:
 - Preserve a dated record of each coach-authored proposal or revision, identifying its author and the content contributed.
-- Keep the athlete's own record of received coaching contributions available under the athlete's access rules after the relationship ends.
+
 - Historical proposal records are read-only; they cannot be used to edit or reopen the former athlete's plan.
 - Show proposal status only as captured while access was active; do not expose subsequent athlete actions after termination.
 - Retain only the coach's contributed instructions rather than copying the athlete's full plan, logs or private context.
@@ -195,6 +196,7 @@ These are review suggestions, not commitments:
 | 21 October 2026 | D02 | Confirmed that sharing creates an independent copy owned by the receiving archer, subject to existing age and access rules. | Product owner |
 | 21 October 2026 | D04/D05 | Confirmed athlete/parent selection of each connected coach's plan access: view-only by default, with editing explicitly granted and revocable. | Product owner |
 | 21 October 2026 | D05 | Confirmed immediate loss of athlete-data access when coaching ends, with separate access to the coach's own proposals and authored revisions. | Product owner |
+| 21 October 2026 | D05 | Confirmed that the athlete retains access to the coach's original contributions after the coaching relationship ends. | Product owner |
 | 21 October 2026 | D12 | Replaced blanket permanent retention with deletion or genuine anonymisation on explicit account closure. | Product owner |
 
 ## Completion checklist
@@ -205,6 +207,7 @@ These are review suggestions, not commitments:
 - [ ] Confirm weekly review details, validation, edit preservation and shared-copy receipt/activation.
 - [x] Confirm per-coach plan access: view-only by default; eligible athlete/parent grants or revokes editing.
 - [x] Confirm immediate relationship-end revocation with a separate coach contribution history.
+- [x] Confirm the athlete retains their history of the coach's original contributions.
 - [ ] Confirm detailed coach edit scope, conflict handling, listing audience and contribution-history details.
 - [x] Confirm junior editing threshold: 16; ages 14–15 are view-only.
 - [ ] Confirm verification and parent/junior transition rules.
