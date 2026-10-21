@@ -31,7 +31,7 @@ Club, state and team memberships are future scope. Payments, competition registr
 | D08 | Testing budget | EUR 45 per month on Azure. Cost planning must include the application, database, email, backups and monitoring. The production budget is separate and not yet agreed. | Confirmed for testing |
 | D09 | Pilot date | Set after the MVP scope is agreed and estimated. No committed launch date yet. | Deferred |
 | D10 | Main return value | Know what to train today, record practice quickly and review progress with coaches. Parents record practice for juniors with view-only access. | Proposed |
-| D11 | Scoring | Both indoor and outdoor scoring are essential. Arrow-by-arrow scores with arrow numbers when scoring a round are required in MVP; totals-only entry is insufficient. Supported formats and the precise arrow-numbering model remain to be agreed. | Partial |
+| D11 | Scoring | Both indoor and outdoor scoring are essential. Arrow-by-arrow scoring is required in MVP; totals-only entry is insufficient. Each score may optionally include the physical arrow identifier, such as the number on its shaft. Supported formats remain to be agreed. | Partial |
 | D12 | Leaving, account deletion and retention | On confirmed account closure/deletion, remove access and delete or genuinely anonymise user-related data. Attempt anonymisation only where identity cannot reasonably be recovered; delete data that cannot be sufficiently anonymised unless a documented retention obligation applies. Permanent retention of identifiable or merely renamed records is not the policy. Operational timescales, export and backup expiry remain to be agreed. | Partial |
 | D13 | Hosting | Azure, in Europe. Specific region and services will be selected after requirements and budget review. | Confirmed direction |
 | D14 | Pilot success | Assess core-journey completion without assistance, repeat weekly use, logging activity and participant feedback. Targets below are proposed. | Proposed |
@@ -149,8 +149,10 @@ Reference: [Irish DPC guidance on children's data and parental consent](https://
 
 Confirmed product direction:
 - Indoor and outdoor scoring are essential.
-- When scoring a round, users must be able to record each arrow's individual score with its arrow number.
-- Arrow-by-arrow entry and arrow numbers are essential first-release features, not optional later enhancements.
+- When scoring a round, users must be able to record each arrow's individual score.
+- Arrow-by-arrow entry is essential first-release functionality.
+- An optional physical arrow identifier, such as shaft #7, may be associated with each scored shot. This is what the product owner means by arrow number; it is distinct from shot order.
+- Users can score a complete round without entering physical arrow identifiers. An omitted identifier does not mean a missing score or a miss.
 - A totals-only approach does not meet this requirement.
 - Existing access rules apply: athletes aged 16+ can enter scores; a parent manages entry for an under-16 athlete. Coach access to score editing remains separately defined.
 
@@ -163,10 +165,10 @@ Proposed MVP behaviour:
 - Preserve arrow-level data for progress analysis and weekly AI recommendations.
 
 Still to decide:
-- Does "arrow number" mean shot sequence, the identifying number on the physical arrow shaft, or both? Do not assume physical arrow identity from shot order.
+- How are optional physical arrow identifiers entered: free entry, selection from an equipment list, or both?
 - Which indoor/outdoor rounds are supported initially, including arrows per end and score rules?
 - Are double rounds and multiple rounds in a session required?
-- Are target-face plotting and physical-arrow equipment analysis required in MVP or later?
+- Are target-face plotting and analysis by physical arrow identifier required in MVP or later? Optional identifier capture itself is already agreed.
 - How are partial rounds, score corrections and any coach score-editing permissions handled?
 
 The earlier proposed totals-only MVP approach is superseded. The scoring interaction should be reviewed before implementation.
@@ -221,6 +223,7 @@ These are review suggestions, not commitments:
 | 21 October 2026 | D05 | Confirmed signed-in-only listings and a "Stay out of Search" profile toggle; under-16 profiles are always excluded. | Product owner |
 | 21 October 2026 | D05 | Confirmed "Stay out of Search" is off by default for eligible new accounts; under-16 athlete profiles remain excluded. | Product owner |
 | 21 October 2026 | D11 | Confirmed arrow-by-arrow scores with arrow numbers as essential first-release functionality; supersedes the totals-only proposal. | Product owner |
+| 21 October 2026 | D11 | Clarified that arrow number means physical arrow identifier and is optional per shot; individual arrow scores remain required. This supersedes the earlier requirement for mandatory arrow numbers. | Product owner |
 | 21 October 2026 | D12 | Replaced blanket permanent retention with deletion or genuine anonymisation on explicit account closure. | Product owner |
 
 ## Completion checklist
@@ -237,8 +240,8 @@ These are review suggestions, not commitments:
 - [ ] Confirm hidden-user invitations, detailed coach edit scope, conflict handling and contribution-history details.
 - [x] Confirm junior editing threshold: 16; ages 14–15 are view-only.
 - [ ] Confirm verification and parent/junior transition rules.
-- [x] Confirm arrow-by-arrow scoring with arrow numbers is essential in MVP.
-- [ ] Confirm arrow-number meaning, initial scoring formats, double rounds and correction rules.
+- [x] Confirm required arrow-by-arrow scoring and optional physical arrow identifier capture in MVP.
+- [ ] Confirm identifier entry method, initial scoring formats, double rounds and correction rules.
 - [ ] Confirm retention operations and closure timescales.
 - [ ] Accept or revise D10, D14 and D15 proposals.
 - [ ] Identify pilot participants; keep D09 deferred until scope estimation.
