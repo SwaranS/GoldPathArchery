@@ -25,7 +25,7 @@ Club, state and team memberships are future scope. Payments, competition registr
 | D02 | Plan creation and adaptation | AI takes the lead in creating personalised training plans. Eligible athletes, parents managing junior profiles and authorised coaches can edit the athlete's plan. Human authorship or mandatory coach approval is not the default workflow. AI recommends weekly changes based on completed training and available feedback; an eligible user accepts changes before they update the active plan. Sharing creates an independent copy owned by the receiving archer, subject to their age and access permissions. | Partial |
 | D03 | Reusable templates | A reusable template library is outside version one. Shared AI-generated plans become independent copies owned by their receiving archers. | Confirmed |
 | D04 | Multiple coaches | An athlete can have multiple coaches, including a physio and an archery technical coach. The athlete aged 16+ or parent managing the junior profile chooses plan access separately for each connected coach: view-only by default, with plan-editing permission explicitly granted and revocable. Detailed edit scope and conflict handling remain to be defined. | Partial |
-| D05 | Coach relationships and discovery | Coaches and athletes can invite, accept or reject one another. Both may choose whether to be listed. Listing audience, junior restrictions and access after a relationship ends remain to be defined. | Partial |
+| D05 | Coach relationships and discovery | Coaches and athletes can invite, accept or reject one another. Both may choose whether to be listed. Ending a relationship immediately removes the coach's access to the athlete's plans and history. The coach retains a separate record of their own proposals and authored revisions, without continued athlete-data access. Listing audience and junior restrictions remain to be defined. | Partial |
 | D06 | Junior access | Below 14, a parent creates an account and manages a linked child athlete profile. At ages 14–15, the junior may have a login with view-only access to their own training information; the parent continues to manage edits. From age 16, the athlete can edit their own training data through the agreed account transition. | Partial — age thresholds confirmed; verification and parent-access transition pending |
 | D07 | Pilot participants | Juniors are included. Participant numbers, coaches and recruitment arrangements remain to be confirmed. | Partial |
 | D08 | Testing budget | EUR 45 per month on Azure. Cost planning must include the application, database, email, backups and monitoring. The production budget is separate and not yet agreed. | Confirmed for testing |
@@ -94,12 +94,24 @@ Confirmed product direction:
 - Ages 14–15 cannot grant or revoke coach permissions.
 - These permissions do not grant authority over another athlete or another coach's private notes.
 - Parent authority after the age-16 transition remains subject to the separate transition decision.
+- Ending a coaching relationship immediately revokes the coach's access to the athlete's active plans, logs, scores, feedback and historical records.
+- The coach can still access a separate contribution history containing their own proposals and authored revisions. This is not access to the athlete's full historical plan or later activity.
+- The contribution record must exclude unrelated athlete data and later changes by the athlete, parent, AI or other coaches.
+
+Proposed contribution-history details:
+- Preserve a dated record of each coach-authored proposal or revision, identifying its author and the content contributed.
+- Keep the athlete's own record of received coaching contributions available under the athlete's access rules after the relationship ends.
+- Historical proposal records are read-only; they cannot be used to edit or reopen the former athlete's plan.
+- Show proposal status only as captured while access was active; do not expose subsequent athlete actions after termination.
+- Retain only the coach's contributed instructions rather than copying the athlete's full plan, logs or private context.
+- Apply D12 deletion/anonymisation rules to contributions too. Coach authorship does not exempt athlete-related personal information from account-closure processing.
+- Retention periods, identity labels, content redaction and exact proposal-history fields remain to be agreed.
 
 Proposed MVP behaviour:
 - Access starts only after an invitation is accepted by the eligible account holder or guardian.
 - Being labelled a physio or technical coach alone grants no additional access. Detailed access to profile fields, logs and other records remains to be defined separately from plan access.
 - Coaches do not automatically gain access to another coach's private notes.
-- Either eligible party may end a relationship. Subsequent access to the athlete's private data is revoked, including historical records.
+- Either eligible party may end a relationship; the immediate revocation and separate contribution-history rules above apply.
 - A personal copy of a plan already shared is distinct from continuing access to the originating athlete's data.
 - Listing is opt-in and limited to signed-in eligible users. Junior profiles are not listed.
 - A parent handles coaching invitations for a junior whose access is view-only.
@@ -182,6 +194,7 @@ These are review suggestions, not commitments:
 | 21 October 2026 | D02 | Confirmed weekly AI recommendations based on completed training and feedback, with eligible-user acceptance before changes update the active plan. | Product owner |
 | 21 October 2026 | D02 | Confirmed that sharing creates an independent copy owned by the receiving archer, subject to existing age and access rules. | Product owner |
 | 21 October 2026 | D04/D05 | Confirmed athlete/parent selection of each connected coach's plan access: view-only by default, with editing explicitly granted and revocable. | Product owner |
+| 21 October 2026 | D05 | Confirmed immediate loss of athlete-data access when coaching ends, with separate access to the coach's own proposals and authored revisions. | Product owner |
 | 21 October 2026 | D12 | Replaced blanket permanent retention with deletion or genuine anonymisation on explicit account closure. | Product owner |
 
 ## Completion checklist
@@ -191,7 +204,8 @@ These are review suggestions, not commitments:
 - [x] Confirm shared copies belong to the receiving archer and are independent of the original.
 - [ ] Confirm weekly review details, validation, edit preservation and shared-copy receipt/activation.
 - [x] Confirm per-coach plan access: view-only by default; eligible athlete/parent grants or revokes editing.
-- [ ] Confirm detailed coach edit scope, conflict handling, listing audience and relationship termination rules.
+- [x] Confirm immediate relationship-end revocation with a separate coach contribution history.
+- [ ] Confirm detailed coach edit scope, conflict handling, listing audience and contribution-history details.
 - [x] Confirm junior editing threshold: 16; ages 14–15 are view-only.
 - [ ] Confirm verification and parent/junior transition rules.
 - [ ] Confirm initial scoring formats and totals versus individual-arrow entry.
