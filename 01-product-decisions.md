@@ -25,7 +25,7 @@ Club, state and team memberships are future scope. Payments, competition registr
 | D02 | Plan creation and adaptation | AI takes the lead in creating personalised training plans. Eligible athletes, parents managing junior profiles and authorised coaches can edit the athlete's plan. Human authorship or mandatory coach approval is not the default workflow. AI recommends weekly changes based on completed training and available feedback; an eligible user accepts changes before they update the active plan. Sharing creates an independent copy owned by the receiving archer, subject to their age and access permissions. | Partial |
 | D03 | Reusable templates | A reusable template library is outside version one. Shared AI-generated plans become independent copies owned by their receiving archers. | Confirmed |
 | D04 | Multiple coaches | An athlete can have multiple coaches, including a physio and an archery technical coach. The athlete aged 16+ or parent managing the junior profile chooses plan access separately for each connected coach: view-only by default, with plan-editing permission explicitly granted and revocable. Detailed edit scope and conflict handling remain to be defined. | Partial |
-| D05 | Coach relationships and discovery | Coaches and athletes can invite, accept or reject one another. Both may choose whether to be listed. Ending a relationship immediately removes the coach's access to the athlete's plans and history. The coach retains a separate record of their own proposals and authored revisions, without continued athlete-data access. Listing audience and junior restrictions remain to be defined. | Partial |
+| D05 | Coach relationships and discovery | Coaches and athletes can invite, accept or reject one another. Both may choose whether to be listed. Ending a relationship immediately removes the coach's access to the athlete's plans and history. The coach retains a separate record of their own proposals and authored revisions, without continued athlete-data access. Listings are visible only to signed-in users. Profiles include a "Stay out of Search" toggle that excludes the user from discovery when selected. Under-16 athlete profiles are always excluded. | Partial |
 | D06 | Junior access | Below 14, a parent creates an account and manages a linked child athlete profile. At ages 14–15, the junior may have a login with view-only access to their own training information; the parent continues to manage edits. From age 16, the athlete can edit their own training data through the agreed account transition. | Partial — age thresholds confirmed; verification and parent-access transition pending |
 | D07 | Pilot participants | Juniors are included. Participant numbers, coaches and recruitment arrangements remain to be confirmed. | Partial |
 | D08 | Testing budget | EUR 45 per month on Azure. Cost planning must include the application, database, email, backups and monitoring. The production budget is separate and not yet agreed. | Confirmed for testing |
@@ -87,6 +87,12 @@ This introduces AI plan generation into MVP scope. The other project documents w
 
 Confirmed product direction:
 - Multiple coaches and mutual invitations are required.
+- Optional profile listings are visible only to signed-in users.
+- User profiles include a "Stay out of Search" toggle. When selected, the user is excluded from user searches and discovery listings.
+- Under-16 athlete profiles are always excluded from searches/listings; this setting cannot make them discoverable.
+- Athletes aged 16+ and coaches may choose whether to appear in listings. The default setting for eligible users remains to be agreed.
+- Search visibility does not grant access to private training data or change existing coaching relationships and permissions.
+
 - An athlete aged 16+ chooses each connected coach's plan access. For athletes under 16, the parent managing the junior profile makes that choice.
 - Connected coaches have view-only plan access by default. Editing requires an explicit grant for that athlete.
 - Permission is set separately for each coach and can be revoked without ending the coaching relationship.
@@ -101,7 +107,6 @@ Confirmed product direction:
 
 Proposed contribution-history details:
 - Preserve a dated record of each coach-authored proposal or revision, identifying its author and the content contributed.
-
 - Historical proposal records are read-only; they cannot be used to edit or reopen the former athlete's plan.
 - Show proposal status only as captured while access was active; do not expose subsequent athlete actions after termination.
 - Retain only the coach's contributed instructions rather than copying the athlete's full plan, logs or private context.
@@ -114,7 +119,7 @@ Proposed MVP behaviour:
 - Coaches do not automatically gain access to another coach's private notes.
 - Either eligible party may end a relationship; the immediate revocation and separate contribution-history rules above apply.
 - A personal copy of a plan already shared is distinct from continuing access to the originating athlete's data.
-- Listing is opt-in and limited to signed-in eligible users. Junior profiles are not listed.
+- Define how hidden users can exchange direct invitations without appearing in search; this flow remains to be agreed.
 - A parent handles coaching invitations for a junior whose access is view-only.
 
 Confirm the proposed rules above before treating them as requirements; the confirmed per-coach plan-access model is already agreed.
@@ -197,6 +202,7 @@ These are review suggestions, not commitments:
 | 21 October 2026 | D04/D05 | Confirmed athlete/parent selection of each connected coach's plan access: view-only by default, with editing explicitly granted and revocable. | Product owner |
 | 21 October 2026 | D05 | Confirmed immediate loss of athlete-data access when coaching ends, with separate access to the coach's own proposals and authored revisions. | Product owner |
 | 21 October 2026 | D05 | Confirmed that the athlete retains access to the coach's original contributions after the coaching relationship ends. | Product owner |
+| 21 October 2026 | D05 | Confirmed signed-in-only listings and a "Stay out of Search" profile toggle; under-16 profiles are always excluded. | Product owner |
 | 21 October 2026 | D12 | Replaced blanket permanent retention with deletion or genuine anonymisation on explicit account closure. | Product owner |
 
 ## Completion checklist
@@ -208,7 +214,8 @@ These are review suggestions, not commitments:
 - [x] Confirm per-coach plan access: view-only by default; eligible athlete/parent grants or revokes editing.
 - [x] Confirm immediate relationship-end revocation with a separate coach contribution history.
 - [x] Confirm the athlete retains their history of the coach's original contributions.
-- [ ] Confirm detailed coach edit scope, conflict handling, listing audience and contribution-history details.
+- [x] Confirm signed-in-only listings, "Stay out of Search" control and mandatory exclusion of under-16 profiles.
+- [ ] Confirm default visibility, hidden-user invitations, detailed coach edit scope, conflict handling and contribution-history details.
 - [x] Confirm junior editing threshold: 16; ages 14–15 are view-only.
 - [ ] Confirm verification and parent/junior transition rules.
 - [ ] Confirm initial scoring formats and totals versus individual-arrow entry.
