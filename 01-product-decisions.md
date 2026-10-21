@@ -22,7 +22,7 @@ Club, state and team memberships are future scope. Payments, competition registr
 | ID | Topic | Current decision | Status |
 |---|---|---|---|
 | D01 | Primary customers | Coaches and athletes. Future releases may add club, state and team memberships with access to defined sets of data. | Confirmed |
-| D02 | Plan creation and adaptation | AI takes the lead in creating personalised training plans. Eligible athletes, parents managing junior profiles and authorised coaches can edit the athlete's plan. Human authorship or mandatory coach approval is not the default workflow. Sharing remains required, with exact semantics pending. | Partial |
+| D02 | Plan creation and adaptation | AI takes the lead in creating personalised training plans. Eligible athletes, parents managing junior profiles and authorised coaches can edit the athlete's plan. Human authorship or mandatory coach approval is not the default workflow. AI recommends weekly changes based on completed training and available feedback; an eligible user accepts changes before they update the active plan. Sharing remains required, with exact semantics pending. | Partial |
 | D03 | Reusable templates | A reusable template library is outside version one. AI-generated plans still need a defined ownership and sharing model. | Confirmed |
 | D04 | Multiple coaches | An athlete can have multiple coaches, including a physio and an archery technical coach. Exact permissions per relationship remain to be defined. | Partial |
 | D05 | Coach relationships and discovery | Coaches and athletes can invite, accept or reject one another. Both may choose whether to be listed. Listing audience, junior restrictions and access after a relationship ends remain to be defined. | Partial |
@@ -47,6 +47,19 @@ Confirmed product direction:
 - A mandatory human author or coach-approval step is not the default plan-creation workflow. Exceptions for incomplete inputs or plans that fail validation remain to be defined.
 - The earlier proposed human System Plan Manager publishing role is superseded as the primary plan creator. Whether any separate content-management role is needed remains open.
 - Users can share plans; the sharing mechanism still needs agreement.
+- AI reviews completed training and available feedback weekly and recommends adjustments to upcoming sessions.
+- Weekly recommendations require acceptance by an eligible athlete aged 16+, a parent managing the junior profile, or a coach with the necessary plan-editing permission before changing the active plan.
+- Ages 14–15 can view recommendations but cannot accept changes.
+- Until accepted, the active plan remains unchanged. Completed-session history is preserved.
+
+Proposed weekly review details:
+- Consider actual versus planned arrow volume, session completion, comparable scores, recorded effort, training notes and known schedule or competition changes where available.
+- Explain each proposed change and its supporting observations; show current and proposed sessions together.
+- Treat missing logs as unknown rather than assuming the athlete did not train.
+- Preserve human edits and highlight any proposed changes to edited sessions.
+- Review the current plan version when applying accepted changes so newer human edits are not silently overwritten.
+- If evidence is insufficient, explain the uncertainty and recommend retaining the plan or requesting missing information rather than inventing progress.
+- Weekly review timing, partial acceptance and rejection behaviour remain to be defined.
 
 Proposed MVP behaviour:
 - Generate a personal plan from the athlete's goals, experience, current training volume, schedule, range access and competition dates.
@@ -62,7 +75,8 @@ Proposed MVP behaviour:
 
 Still to decide:
 - Which AI provider or external service will generate plans? No provider or integration is selected.
-- When should AI regenerate a plan: only on request, on a scheduled review, or in response to logged activity?
+- What day/time should weekly recommendations be prepared, and can users request an additional review?
+- Can users accept individual recommendations, reject them, or edit them before applying?
 - Which active-plan edits can each coach make, and how are conflicting edits handled?
 - Are the proposed personal-copy and sharing rules accepted?
 
@@ -156,12 +170,14 @@ These are review suggestions, not commitments:
 | 21 October 2026 | D06 | Revised age-14 junior access to viewing only; parent continues to manage edits. | Product owner |
 | 21 October 2026 | D06 | Confirmed editing rights from age 16; ages 14–15 remain view-only. Parent access after transition remains unresolved. | Product owner |
 | 21 October 2026 | D02 | Confirmed AI-led personalised plan creation with human editing; supersedes the proposed human-first publishing workflow and the original MVP exclusion for AI plan generation. | Product owner |
+| 21 October 2026 | D02 | Confirmed weekly AI recommendations based on completed training and feedback, with eligible-user acceptance before changes update the active plan. | Product owner |
 | 21 October 2026 | D12 | Replaced blanket permanent retention with deletion or genuine anonymisation on explicit account closure. | Product owner |
 
 ## Completion checklist
 
 - [x] Confirm AI as the primary plan creator, with eligible athlete, parent and coach editing.
-- [ ] Confirm AI regeneration, validation, edit preservation and personal-copy/sharing rules.
+- [x] Confirm weekly AI recommendations with eligible-user acceptance before plan updates.
+- [ ] Confirm weekly review details, validation, edit preservation and personal-copy/sharing rules.
 - [ ] Confirm coach permissions, listing audience and relationship termination rules.
 - [x] Confirm junior editing threshold: 16; ages 14–15 are view-only.
 - [ ] Confirm verification and parent/junior transition rules.
