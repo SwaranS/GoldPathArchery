@@ -72,6 +72,8 @@ Confirmed product direction:
 - Activating a different plan while one is active shows a replacement warning before the user confirms. On confirmation, the new plan becomes active and the former plan becomes inactive.
 - Replacing the active plan preserves the former plan, completed-session records, scores and decision history.
 - The user and system can adapt the existing active plan based on the athlete's completed training and feedback; a new plan is not required for routine adjustments.
+- If another person or an accepted system update has changed the plan since editing began, warn the editor before saving conflicting changes. Do not silently overwrite either person's work.
+- The same conflict protection applies when accepting AI recommendations against a changed plan. The detailed resolution interaction will be defined during design.
 - User edits follow existing athlete/parent/coach permissions. System-generated changes follow the agreed Plan Manager review and eligible-user acceptance process.
 - Changes to either plan do not alter the other, and the sender gains no access to the recipient's data through sharing.
 - The recipient's copy follows the existing age and access rules: ages 14–15 remain view-only, with an eligible parent or authorised coach managing edits.
@@ -120,7 +122,7 @@ Still to decide:
 - Map the confirmed training-data access categories to exact fields during detailed permissions design. Private notes and account-security information remain excluded.
 - Which AI provider or external service will generate plans? No provider or integration is selected.
 - What time/timezone should apply to the user-selected review day, how should review-day changes affect pending reviews, and can users request an additional review?
-- What is the detailed scope of coach plan-editing permission, and how are conflicting edits handled? Per-coach view versus edit selection is confirmed.
+- What is the detailed scope of coach plan-editing permission and the conflict-resolution interaction? Per-coach view/edit selection and warnings against silent overwrites are confirmed.
 - Define future-dated activation behaviour so only one plan is active at any time. Replacement of an active plan requires a warning and user confirmation.
 
 AI-assisted generation under the human System Plan Manager is in MVP scope. The other project documents will be reconciled only after this product decision document is completed.
@@ -396,6 +398,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 | 22 October 2026 | D06 | Confirmed private-pilot registration uses entered date of birth and a parent/guardian declaration, without manual administrator verification. | Product owner |
 | 22 October 2026 | D06 | Confirmed interim parent access at age 16 is view-only until the athlete chooses viewing, editing or no access; previously revoked access is not restored. | Product owner |
 | 22 October 2026 | D11 | Confirmed equipment archiving: bows/arrows no longer used are excluded from new selection while past sessions and scores retain their equipment details. | Product owner |
+| 22 October 2026 | D02/D04 | Confirmed conflicting plan edits trigger a warning rather than silently overwriting work; this includes applying AI recommendations to a changed plan. | Product owner |
 
 ## Completion checklist
 
@@ -421,7 +424,8 @@ Historical entries record earlier decisions; the latest clarification and curren
 - [x] Confirm signed-in-only listings, "Stay out of Search" control and mandatory exclusion of under-16 profiles.
 - [x] Confirm "Stay out of Search" is off by default for eligible new accounts; under-16 exclusions still apply.
 - [x] Confirm all invitation links are private; hidden users (or managing parents for under-16s) initiate connections, with recipient acceptance required.
-- [ ] Confirm invitation expiry/verification, detailed coach edit scope, conflict handling and contribution-history details.
+- [x] Confirm warnings for conflicting plan edits and no silent overwrite, including application of AI recommendations.
+- [ ] Confirm invitation expiry/verification, detailed coach edit scope, conflict-resolution interaction and contribution-history details.
 - [x] Confirm junior editing threshold: 16; ages 14–15 are view-only.
 - [x] Confirm athletes aged 16+ choose and can change parent access: view-only, editing or none.
 - [x] Confirm no manual administrator verification of parent/child relationships or age transitions for the private pilot.
