@@ -177,7 +177,9 @@ Confirm the proposed rules above before treating them as requirements; the confi
 Confirmed product direction:
 - Under 14: the parent manages a child athlete profile; no independent child login.
 - Manual administrator verification of parent/child relationships or age transitions is not required for the private pilot.
-- This decision removes the proposed manual verification step; the self-service declaration, account confirmation and age-transition mechanism remains to be designed.
+- Private-pilot registration uses the entered date of birth to determine age-based access, and a declaration by the managing parent that they are the child's parent or guardian.
+- These are self-declared details, not independently verified identity or guardian status.
+- The date-of-birth entry and parent/guardian declaration replace the proposed manual administrator check for the private pilot. Account confirmation and age-transition activation mechanics remain to be designed.
 - Ages 14–15: a junior login can view that athlete's assigned plans, session history and progress.
 - From 16: the athlete can edit their own training data, including recording sessions and adapting personal plans within the agreed athlete permissions. This does not grant coach, plan-manager or administrator authority.
 - At ages 14–15, view-only means no changes to training data, no logging, no plan sharing and no management of coach relationships.
@@ -193,7 +195,7 @@ Proposed design implication: retain one stable athlete profile and link the juni
 
 Still to decide:
 - How is the confirmed age-16 editing transition activated and verified?
-- What self-service declaration/account-confirmation mechanism is used for age and guardian relationships, and how is the junior login activated? No manual administrator verification is required for the pilot.
+- How are accounts confirmed and junior logins activated? Entered date of birth and parent/guardian declaration are confirmed for pilot registration.
 - How is the parent-access choice presented at the age-16 transition, and what access applies while awaiting the athlete's choice? The athlete's right to choose viewing/editing/no access is confirmed.
 
 A read-only login is a product permission, not a substitute for a lawful basis for processing children's data. In Ireland, the digital age of consent is 16 where an online service relies on consent. The proposed age-14 viewing threshold does not by itself establish independent consent.
@@ -385,6 +387,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 | 22 October 2026 | D02 | Confirmed assigned/covering Plan Manager training-data visibility, excluding private coach notes and account-security information. A separate private-data debugging/support view is deferred to future scope. | Product owner |
 | 22 October 2026 | D06/D12 | Confirmed managing parents may export/request closure for under-16 profiles; control passes to the athlete at 16 and is separate from continued parent viewing/editing access. | Product owner |
 | 22 October 2026 | D06 | Confirmed manual administrator verification of parent/child relationships and age transitions is not required for the private pilot; self-service mechanics remain for design. | Product owner |
+| 22 October 2026 | D06 | Confirmed private-pilot registration uses entered date of birth and a parent/guardian declaration, without manual administrator verification. | Product owner |
 
 ## Completion checklist
 
@@ -414,7 +417,8 @@ Historical entries record earlier decisions; the latest clarification and curren
 - [x] Confirm junior editing threshold: 16; ages 14–15 are view-only.
 - [x] Confirm athletes aged 16+ choose and can change parent access: view-only, editing or none.
 - [x] Confirm no manual administrator verification of parent/child relationships or age transitions for the private pilot.
-- [ ] Define self-service age/guardian declarations, account confirmation, transition activation and interim parent access.
+- [x] Confirm entered date of birth and parent/guardian declaration for private-pilot registration.
+- [ ] Define account confirmation, transition activation and interim parent access.
 - [x] Confirm scoring supports recurve, compound and barebow at launch.
 - [x] Confirm indoor 30-arrow, 60-arrow and double 60-arrow formats.
 - [x] Confirm outdoor 720 and double 720, with valid saved 36-arrow training results.
