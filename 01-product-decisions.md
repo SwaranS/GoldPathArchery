@@ -179,6 +179,8 @@ Confirmed product direction:
 - Physical arrow identifiers are selected only from the athlete's saved arrows; free-text/manual identifier entry is not available while scoring.
 - Users can save arrows in named sets, such as indoor and outdoor sets.
 - An athlete profile can hold multiple saved bows.
+- Each saved bow can store sight marks for different distances, with distance units recorded, for lookup at the range.
+- Sight marks are optional and apply to bows using a sight; barebow equipment does not require them.
 - Users can select which saved bow and arrow set they use for a session or round, including using bow X one day and bow Y the next.
 - Selecting equipment for a new session or round must not change the equipment recorded against earlier activity.
 - Selecting an arrow remains optional. Users without saved arrows can still score a round without physical identifiers.
@@ -280,6 +282,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 | 22 October 2026 | D11 | Confirmed both numeric keypad scoring and target-face plotting for launch. | Product owner |
 | 22 October 2026 | D11 | Confirmed physical arrow selection from the athlete's saved arrows only; identifier selection remains optional and manual identifier entry during scoring is excluded. | Product owner |
 | 22 October 2026 | D11 | Confirmed named saved arrow sets and multiple bows per athlete profile, with equipment selected per session/round and historical selections preserved. | Product owner |
+| 22 October 2026 | D11 | Confirmed optional sight marks by bow and distance for range lookup. | Product owner |
 
 ## Completion checklist
 
@@ -309,6 +312,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 - [x] Confirm score entry and correction remain controlled by the eligible athlete/managing parent; coaches and Plan Managers cannot edit scores.
 - [x] Confirm optional physical arrow identifiers are selected from saved arrows only.
 - [x] Confirm named saved arrow sets, multiple bows per profile and equipment selection per session/round.
+- [x] Confirm optional distance-specific sight marks stored against each bow.
 - [ ] Confirm equipment details/retirement, scoring-format details and correction-history rules.
 - [ ] Confirm retention operations and closure timescales.
 - [ ] Accept or revise D10, D14 and D15 proposals.
