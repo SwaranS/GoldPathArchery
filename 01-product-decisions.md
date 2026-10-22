@@ -22,7 +22,7 @@ Club, state and team memberships are future scope. Payments, competition registr
 | ID | Topic | Current decision | Status |
 |---|---|---|---|
 | D01 | Primary customers | Coaches and athletes. Future releases may add club, state and team memberships with access to defined sets of data. | Confirmed |
-| D02 | Plan creation and adaptation | The System Plan Manager is a human who uses AI and software to generate personalised training plans; AI can lead the drafting process under that person's direction. Eligible athletes, parents managing junior profiles and authorised coaches can edit the athlete's plan. The System Plan Manager's review/publication responsibilities remain to be defined; approval by the athlete's own coach is not mandatory by default. AI recommends weekly changes based on completed training and available feedback; an eligible user accepts changes before they update the active plan. Sharing creates an independent copy owned by the receiving archer, subject to their age and access permissions. | Partial |
+| D02 | Plan creation and adaptation | The System Plan Manager is a human who uses AI and software to generate personalised training plans; AI can lead the drafting process under that person's direction. Eligible athletes, parents managing junior profiles and authorised coaches can edit the athlete's plan. One or more human Plan Managers review and publish initial plans and review weekly AI change recommendations before releasing them for eligible-user acceptance; approval by the athlete's own coach is not mandatory by default. AI recommends weekly changes based on completed training and available feedback; an eligible user accepts changes before they update the active plan. Sharing creates an independent copy owned by the receiving archer, subject to their age and access permissions. | Partial |
 | D03 | Reusable templates | A reusable template library is outside version one. Shared AI-generated plans become independent copies owned by their receiving archers. | Confirmed |
 | D04 | Multiple coaches | An athlete can have multiple coaches, including a physio and an archery technical coach. The athlete aged 16+ or parent managing the junior profile chooses plan access separately for each connected coach: view-only by default, with plan-editing permission explicitly granted and revocable. Detailed edit scope and conflict handling remain to be defined. | Partial |
 | D05 | Coach relationships and discovery | Coaches and athletes can invite, accept or reject one another. Both may choose whether to be listed. Ending a relationship immediately removes the coach's access to the athlete's plans and history. The coach retains a separate record of their own proposals and authored revisions, without continued athlete-data access. Listings are visible only to signed-in users. Profiles include a "Stay out of Search" toggle that excludes the user from discovery when selected. Under-16 athlete profiles are always excluded. | Partial |
@@ -40,12 +40,15 @@ Club, state and team memberships are future scope. Payments, competition registr
 ## D02 — Human System Plan Manager with AI-assisted generation
 
 Confirmed product direction:
-- The System Plan Manager is a human who uses AI and software to generate personalised shooting plans.
+- System Plan Managers are humans who use AI and software to generate personalised shooting plans. Multiple people may hold this role.
+- Plan Managers are involved at both stages: reviewing and publishing initial plans, and reviewing weekly AI change recommendations before releasing them to the athlete/parent/authorised coach.
 - AI takes the lead in drafting under the System Plan Manager's direction; the role is not an autonomous AI agent.
 - Athletes aged 16+ may edit their own plans.
 - Parents managing junior profiles and authorised coaches may edit the athlete's plan within their agreed permissions.
 - Ages 14–15 remain view-only; this decision does not expand junior editing rights.
-- The System Plan Manager's exact review, publication and athlete-data access responsibilities remain to be defined. This clarification does not automatically require the athlete's own coach to approve every plan.
+- Plan Manager review is part of both stages, rather than an exception-only workflow. The athlete's own coach is not required to approve every plan unless separately agreed.
+- Releasing reviewed weekly recommendations does not apply them automatically: eligible-user acceptance is still required. Plan Manager status alone does not grant authority to accept changes on an athlete's behalf.
+- Plan Manager athlete-data access and allocation of work between multiple managers remain to be defined.
 - This restores the human System Plan Manager role and supersedes the earlier wording that removed that role.
 - Sharing creates a separate, independent copy owned by the receiving archer.
 - Changes to either plan do not alter the other, and the sender gains no access to the recipient's data through sharing.
@@ -76,7 +79,7 @@ Proposed MVP behaviour:
 - Include AI usage costs when evaluating the EUR 45 monthly testing budget.
 
 Still to decide:
-- Does the System Plan Manager review and publish every initial plan, or manage generation rules with review only when needed?
+- How are initial plans and weekly reviews assigned between multiple Plan Managers, including cover when a manager is unavailable?
 - What athlete information can the System Plan Manager access, and for which athletes?
 - Which AI provider or external service will generate plans? No provider or integration is selected.
 - What day/time should weekly recommendations be prepared, and can users request an additional review?
@@ -230,13 +233,14 @@ Historical entries record earlier decisions; the latest clarification and curren
 | 21 October 2026 | D11 | Confirmed arrow-by-arrow scores with arrow numbers as essential first-release functionality; supersedes the totals-only proposal. | Product owner |
 | 21 October 2026 | D11 | Clarified that arrow number means physical arrow identifier and is optional per shot; individual arrow scores remain required. This supersedes the earlier requirement for mandatory arrow numbers. | Product owner |
 | 21 October 2026 | D12 | Replaced blanket permanent retention with deletion or genuine anonymisation on explicit account closure. | Product owner |
-
 | 22 October 2026 | D02 | Clarified that the System Plan Manager is a human using AI/software to generate plans. Supersedes earlier wording removing the human role; publication/review duties remain open. | Product owner |
+| 22 October 2026 | D02 | Confirmed human Plan Manager involvement at initial-plan and weekly-recommendation stages; multiple managers supported. Weekly changes still require eligible-user acceptance. | Product owner |
 
 ## Completion checklist
 
 - [x] Confirm a human System Plan Manager uses AI/software to generate plans, with eligible athlete, parent and coach editing.
-- [ ] Confirm System Plan Manager review/publication responsibilities and athlete-data access.
+- [x] Confirm multiple human Plan Managers review initial plans and weekly AI recommendations before release.
+- [ ] Confirm Plan Manager athlete-data access, work assignment and cover.
 - [x] Confirm weekly AI recommendations with eligible-user acceptance before plan updates.
 - [x] Confirm shared copies belong to the receiving archer and are independent of the original.
 - [ ] Confirm weekly review details, validation, edit preservation and shared-copy receipt/activation.
