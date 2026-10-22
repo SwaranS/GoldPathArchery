@@ -225,6 +225,10 @@ Confirmed product direction:
 - Both entry methods record the same underlying arrow scores; physical arrow identifiers remain optional.
 - An optional physical arrow identifier, such as shaft #7, may be associated with each scored shot. This is what the product owner means by arrow number; it is distinct from shot order.
 - Physical arrow identifiers are selected only from the athlete's saved arrows; free-text/manual identifier entry is not available while scoring.
+- Launch includes analysis by saved physical arrow: show each arrow's average score for a selected day or user-selected date range.
+- Calculate a physical arrow's average from recorded scores explicitly linked to that saved arrow, and display the number of scored shots used.
+- Do not infer physical arrow identity from shot order. Scores without an identifier remain in overall scoring statistics but are excluded from physical-arrow averages.
+- Keep arrows with the same displayed number in different saved sets distinct. Archived arrows retain their historical analysis.
 - Users can save arrows in named sets, such as indoor and outdoor sets.
 - An athlete profile can hold multiple saved bows.
 - Users can archive saved bows and physical arrows that are no longer used.
@@ -265,7 +269,7 @@ Still to decide:
 - Which details are required for saved bows and arrows, and how are equipment edits represented over time? Archiving and preservation of historical equipment records are confirmed.
 - Which distances, target faces, arrows per end and bow-specific scoring rules apply to the confirmed indoor/outdoor formats?
 - Indoor double 60-arrow and outdoor double 720 rounds are confirmed. Which other combinations of rounds within a session are required?
-- Is analysis by physical arrow identifier required in MVP or later? Numeric entry, target-face plotting and optional identifier capture are confirmed for launch.
+- Define filtering/grouping for comparable scoring conditions, such as bow, distance, target face and round format, so physical-arrow averages are interpreted in context. Day/date-range physical-arrow averages are confirmed for launch.
 - How should a user mark a partial training round as finished without completing its full scheduled arrow count? Saving and resuming any unfinished round is confirmed.
 - Define the correction interaction for plotted shots so target position and recorded score remain consistent. Post-completion athlete/parent score corrections with history are confirmed.
 
@@ -399,6 +403,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 | 22 October 2026 | D06 | Confirmed interim parent access at age 16 is view-only until the athlete chooses viewing, editing or no access; previously revoked access is not restored. | Product owner |
 | 22 October 2026 | D11 | Confirmed equipment archiving: bows/arrows no longer used are excluded from new selection while past sessions and scores retain their equipment details. | Product owner |
 | 22 October 2026 | D02/D04 | Confirmed conflicting plan edits trigger a warning rather than silently overwriting work; this includes applying AI recommendations to a changed plan. | Product owner |
+| 22 October 2026 | D11 | Confirmed launch analysis of average score per saved physical arrow for a selected day or date range, based on explicitly identified shots and showing sample counts. Identifier capture remains optional. | Product owner |
 
 ## Completion checklist
 
@@ -441,6 +446,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 - [x] Confirm numeric keypad entry and target-face plotting are both required at launch.
 - [x] Confirm score entry and correction remain controlled by the eligible athlete/managing parent; coaches and Plan Managers cannot edit scores.
 - [x] Confirm optional physical arrow identifiers are selected from saved arrows only.
+- [x] Confirm launch analysis shows average score and sample count per saved physical arrow for a selected day or date range.
 - [x] Confirm named saved arrow sets, multiple bows per profile and equipment selection per session/round.
 - [x] Confirm optional distance-specific sight marks stored against each bow.
 - [x] Confirm athlete/parent score corrections after round completion, with original/corrected values, editor and time retained.
