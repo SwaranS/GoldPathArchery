@@ -35,7 +35,7 @@ Club, state and team memberships are future scope. Payments, competition registr
 | D12 | Leaving, account deletion and retention | On confirmed account closure/deletion, remove access and delete or genuinely anonymise user-related data. Attempt anonymisation only where identity cannot reasonably be recovered; delete data that cannot be sufficiently anonymised unless a documented retention obligation applies. Permanent retention of identifiable or merely renamed records is not the policy. Operational timescales, export and backup expiry remain to be agreed. | Partial |
 | D13 | Hosting | Azure, in Europe. Specific region and services will be selected after requirements and budget review. | Confirmed direction |
 | D14 | Pilot success | Assess core-journey completion without assistance, repeat weekly use, logging activity and participant feedback. Targets below are proposed. | Proposed |
-| D15 | Session feedback | Start with completion status, actual arrows, optional score, perceived effort and a short training note. No dedicated diagnosis, treatment or injury-record fields in MVP unless separately agreed. | Proposed |
+| D15 | Session feedback | Sessions support completed, partially completed and skipped status, actual arrows shot, optional perceived effort (1–10) and optional notes. Scores are linked through the scoring feature. Sensitive health-record fields remain outside the agreed feedback scope. | Confirmed core fields; non-shooting/rest-day details pending |
 
 ## D02 — Human System Plan Manager with AI-assisted generation
 
@@ -249,7 +249,7 @@ References:
 - [Irish DPC: storage limitation and retention](https://dataprotection.ie/en/faqs/responsibilities-data-controllers/how-long-should-personal-data-be-held-meet-obligations-imposed-gdpr)
 - [Irish DPC: anonymisation and pseudonymisation](https://www.dataprotection.ie/en/dpc-guidance/anonymisation-pseudonymisation)
 
-## D14/D15 — Proposed pilot and feedback defaults
+## D14 — Proposed pilot defaults
 
 These are review suggestions, not commitments:
 - Pilot: 5–10 athlete profiles, at least 2 coaches and at least 1 parent-managed junior.
@@ -258,10 +258,23 @@ These are review suggestions, not commitments:
 - At least 60% of athlete profiles have weekly recorded activity in 3 of the 4 weeks, including parent-entered activity.
 - No unresolved critical access-control or data-loss defects at release.
 - Collect feedback from each participating role.
-- Required logging: session status and actual arrow count for shooting sessions.
-- Optional logging: round score, perceived effort on a defined scale and a short training note.
-- Confirm handling of rest days, skipped sessions and exercise-only sessions.
-- Do not assume a short free-text note cannot contain sensitive information; explain its intended training use and restrict access.
+
+## D15 — Session feedback
+
+Confirmed product direction:
+- Sessions support completed, partially completed and skipped status.
+- Record actual arrows shot for shooting sessions separately from planned arrows.
+- Perceived effort is optional, on a 1–10 scale.
+- Training notes are optional.
+- Scores are linked through the scoring feature rather than a second independent score field.
+- Session feedback supports weekly AI recommendations and Plan Manager review within the agreed access rules.
+
+Proposed details still to settle:
+- An unlogged session remains unknown rather than automatically becoming skipped.
+- Support non-shooting activities and rest days without requiring arrow counts.
+- Define labels for the effort scale so users apply it consistently.
+- Preserve the latest actual training information without modifying the originally planned targets.
+- No dedicated diagnosis, treatment or injury-record fields are assumed in MVP. Free-text notes still require appropriate access restrictions.
 
 ## Decision record
 
@@ -299,6 +312,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 | 22 October 2026 | D11 | Confirmed athlete/parent corrections after round completion for input errors, with original/corrected values, editor and timestamp preserved and totals recalculated. | Product owner |
 | 22 October 2026 | D06 | Confirmed athlete control of linked-parent access from age 16: view-only, editing or none, with subsequent changes/revocation allowed. | Product owner |
 | 22 October 2026 | D05 | Confirmed private invitation links and hidden-user-controlled initiation of connections, with managing parents acting for under-16 athletes and recipient acceptance before access. | Product owner |
+| 22 October 2026 | D15 | Confirmed completed/partially completed/skipped statuses, actual arrows shot, optional effort (1–10), optional notes and scores linked through scoring. | Product owner |
 
 ## Completion checklist
 
@@ -334,6 +348,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 - [x] Confirm athlete/parent score corrections after round completion, with original/corrected values, editor and time retained.
 - [ ] Confirm equipment details/retirement, scoring-format details and plotted-shot correction behaviour.
 - [ ] Confirm retention operations and closure timescales.
-- [ ] Accept or revise D10, D14 and D15 proposals.
+- [x] Confirm D15 statuses, actual arrows, optional effort (1–10), optional notes and linked scoring.
+- [ ] Confirm rest-day/non-shooting logging details and accept or revise D10/D14 proposals.
 - [ ] Identify pilot participants; keep D09 deferred until scope estimation.
 - [ ] Mark this document approved before propagating decisions to documents 02–07.
