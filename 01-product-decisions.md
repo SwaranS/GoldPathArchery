@@ -41,6 +41,9 @@ Club, state and team memberships are future scope. Payments, competition registr
 
 Confirmed product direction:
 - System Plan Managers are humans who use AI and software to generate personalised shooting plans. Multiple people may hold this role.
+- The default plan duration is 12 weeks.
+- Plan duration is configurable for shorter or longer periods, up to a maximum of one year.
+- Weekly AI recommendations and Plan Manager review continue throughout the selected plan duration.
 - Plan Managers are involved at both stages: reviewing and publishing initial plans, and reviewing weekly AI change recommendations before releasing them to the athlete/parent/authorised coach.
 - AI takes the lead in drafting under the System Plan Manager's direction; the role is not an autonomous AI agent.
 - Athletes aged 16+ may edit their own plans.
@@ -83,6 +86,7 @@ Proposed MVP behaviour:
 
 Still to decide:
 - Who can create, change and end Plan Manager assignments, and how are cover durations set?
+- Who can change plan duration, and how should a duration change affect existing future sessions? The 12-week default and one-year maximum are confirmed.
 - Which athlete data fields can an assigned or covering Plan Manager access? Assignment-only access is confirmed.
 - Which AI provider or external service will generate plans? No provider or integration is selected.
 - What day/time should weekly recommendations be prepared, and can users request an additional review?
@@ -245,6 +249,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 | 22 October 2026 | D02 | Confirmed human Plan Manager involvement at initial-plan and weekly-recommendation stages; multiple managers supported. Weekly changes still require eligible-user acceptance. | Product owner |
 | 22 October 2026 | D11 | Confirmed athlete/parent control of score entry and corrections; coach plan-editing and Plan Manager permissions do not grant score editing. | Product owner |
 | 22 October 2026 | D02 | Confirmed Plan Managers see only assigned athletes; other managers require explicit reassignment or temporary cover. | Product owner |
+| 22 October 2026 | D02 | Confirmed a default 12-week plan duration, configurable for shorter or longer periods up to one year, with weekly reviews throughout. | Product owner |
 
 ## Completion checklist
 
@@ -252,6 +257,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 - [x] Confirm multiple human Plan Managers review initial plans and weekly AI recommendations before release.
 - [x] Confirm Plan Manager access is limited to assigned athletes, with explicit reassignment or temporary cover.
 - [ ] Confirm Plan Manager data-field scope and who administers assignments/cover.
+- [x] Confirm default plan duration of 12 weeks, configurable up to one year.
 - [x] Confirm weekly AI recommendations with eligible-user acceptance before plan updates.
 - [x] Confirm shared copies belong to the receiving archer and are independent of the original.
 - [ ] Confirm weekly review details, validation, edit preservation and shared-copy receipt/activation.
