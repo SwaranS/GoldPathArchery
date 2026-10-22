@@ -260,8 +260,10 @@ Confirmed intent: attempt to anonymise all user-related data on leaving/deleting
 
 Confirmed export requirement:
 - Users can download their training data, including plans, session logs and scores, before deleting their account.
+- Provide CSV files for analysis and a readable PDF summary as export options.
+- CSV score exports include individual arrow scores and optional saved-arrow identifiers where recorded; the PDF is a readable summary rather than a replacement for detailed CSV data.
 - Export is offered as an option before closure; downloading it is not a requirement for deletion.
-- Exports follow existing access permissions. Junior/guardian export authorisation details and file formats remain to be defined.
+- Exports follow existing access permissions. Junior/guardian export authorisation details remain to be defined; CSV and PDF formats are confirmed.
 
 Proposed operating rules:
 1. Treat leaving as an explicit closure request; sign-out, inactivity or ending a coaching relationship alone does not trigger deletion.
@@ -273,7 +275,7 @@ Proposed operating rules:
 7. Define closure-processing deadlines and finite backup retention. Restoring a backup must not permanently reintroduce deleted accounts or data.
 8. Keep any required retained records restricted, purpose-limited and subject to an agreed expiry.
 
-Still to decide: export format, processing deadline, backup expiry, inactive-account policy and what anonymous statistics have a useful purpose. No guarantee is made that every detailed record can safely be retained.
+Still to decide: processing deadline, backup expiry, inactive-account policy and what anonymous statistics have a useful purpose. No guarantee is made that every detailed record can safely be retained.
 
 References:
 - [Irish DPC: storage limitation and retention](https://dataprotection.ie/en/faqs/responsibilities-data-controllers/how-long-should-personal-data-be-held-meet-obligations-imposed-gdpr)
@@ -356,6 +358,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 | 22 October 2026 | D07/D14 | Confirmed a four-week pilot with 5–10 athletes, at least two coaches and at least one parent-managed junior. Success targets remain proposed. | Product owner |
 | 22 October 2026 | D14 | Removed proposed pilot success targets. The pilot gathers feedback and identifies improvements without formal criteria or pass/fail assessment. | Product owner |
 | 22 October 2026 | D12 | Confirmed users can download plans, session logs and scores before deleting their account; export is optional rather than a deletion prerequisite. | Product owner |
+| 22 October 2026 | D12 | Confirmed CSV files for analysis and a readable PDF summary as training-data export options. | Product owner |
 
 ## Completion checklist
 
@@ -396,7 +399,8 @@ Historical entries record earlier decisions; the latest clarification and curren
 - [x] Confirm athlete/parent score corrections after round completion, with original/corrected values, editor and time retained.
 - [ ] Confirm equipment details/retirement, scoring-format details and plotted-shot correction behaviour.
 - [x] Confirm users can export plans, session logs and scores before account deletion.
-- [ ] Confirm export formats/authorisation, retention operations and closure timescales.
+- [x] Confirm CSV exports for analysis and a readable PDF summary.
+- [ ] Confirm export authorisation, retention operations and closure timescales.
 - [x] Confirm D15 statuses, actual arrows, optional effort (1–10), optional notes and linked scoring.
 - [x] Confirm basic non-shooting sessions with completion/feedback and no required arrow count; detailed tracking deferred.
 - [x] Confirm calendar entries marked "Rest Day" with no required logging.
