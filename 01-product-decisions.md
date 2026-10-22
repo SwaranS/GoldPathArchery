@@ -35,7 +35,7 @@ Club, state and team memberships are future scope. Payments, competition registr
 | D12 | Leaving, account deletion and retention | On confirmed account closure/deletion, remove access and delete or genuinely anonymise user-related data. Attempt anonymisation only where identity cannot reasonably be recovered; delete data that cannot be sufficiently anonymised unless a documented retention obligation applies. Permanent retention of identifiable or merely renamed records is not the policy. Operational timescales, export and backup expiry remain to be agreed. | Partial |
 | D13 | Hosting | Azure, in Europe. Specific region and services will be selected after requirements and budget review. | Confirmed direction |
 | D14 | Pilot success | Assess core-journey completion without assistance, repeat weekly use, logging activity and participant feedback. Targets below are proposed. | Proposed |
-| D15 | Session feedback | Sessions support completed, partially completed and skipped status, actual arrows shot, optional perceived effort (1–10) and optional notes. Scores are linked through the scoring feature. Sensitive health-record fields remain outside the agreed feedback scope. | Confirmed core fields; non-shooting/rest-day details pending |
+| D15 | Session feedback | Sessions support completed, partially completed and skipped status, actual arrows shot, optional perceived effort (1–10) and optional notes. Scores are linked through the scoring feature. Sensitive health-record fields remain outside the agreed feedback scope. | Confirmed core fields and basic non-shooting support; rest-day details pending |
 
 ## D02 — Human System Plan Manager with AI-assisted generation
 
@@ -268,10 +268,13 @@ Confirmed product direction:
 - Training notes are optional.
 - Scores are linked through the scoring feature rather than a second independent score field.
 - Session feedback supports weekly AI recommendations and Plan Manager review within the agreed access rules.
+- Plans include basic non-shooting sessions, such as strength, mobility and mental practice, at launch.
+- Non-shooting sessions use a simple activity title/type, brief instructions, completion status and the existing optional effort/notes fields. No arrow count is required.
+- Keep non-shooting details basic in MVP; detailed exercise prescriptions, sets/repetitions, weights and specialised tracking are future extensions.
 
 Proposed details still to settle:
 - An unlogged session remains unknown rather than automatically becoming skipped.
-- Support non-shooting activities and rest days without requiring arrow counts.
+- Define rest-day presentation and logging; basic non-shooting sessions without required arrow counts are confirmed.
 - Define labels for the effort scale so users apply it consistently.
 - Preserve the latest actual training information without modifying the originally planned targets.
 - No dedicated diagnosis, treatment or injury-record fields are assumed in MVP. Free-text notes still require appropriate access restrictions.
@@ -313,6 +316,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 | 22 October 2026 | D06 | Confirmed athlete control of linked-parent access from age 16: view-only, editing or none, with subsequent changes/revocation allowed. | Product owner |
 | 22 October 2026 | D05 | Confirmed private invitation links and hidden-user-controlled initiation of connections, with managing parents acting for under-16 athletes and recipient acceptance before access. | Product owner |
 | 22 October 2026 | D15 | Confirmed completed/partially completed/skipped statuses, actual arrows shot, optional effort (1–10), optional notes and scores linked through scoring. | Product owner |
+| 22 October 2026 | D15 | Confirmed basic non-shooting sessions for launch with completion and feedback, no required arrow count, and detailed tracking deferred to future releases. | Product owner |
 
 ## Completion checklist
 
@@ -349,6 +353,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 - [ ] Confirm equipment details/retirement, scoring-format details and plotted-shot correction behaviour.
 - [ ] Confirm retention operations and closure timescales.
 - [x] Confirm D15 statuses, actual arrows, optional effort (1–10), optional notes and linked scoring.
-- [ ] Confirm rest-day/non-shooting logging details and accept or revise D10/D14 proposals.
+- [x] Confirm basic non-shooting sessions with completion/feedback and no required arrow count; detailed tracking deferred.
+- [ ] Confirm rest-day logging details and accept or revise D10/D14 proposals.
 - [ ] Identify pilot participants; keep D09 deferred until scope estimation.
 - [ ] Mark this document approved before propagating decisions to documents 02–07.
