@@ -163,6 +163,7 @@ Reference: [Irish DPC guidance on children's data and parental consent](https://
 Confirmed product direction:
 - Indoor and outdoor scoring are essential.
 - Scoring supports recurve, compound and barebow at launch. Round and score validation must account for the selected bow type.
+- Indoor scoring supports 30-arrow rounds, 60-arrow rounds and double 60-arrow rounds (two 60-arrow rounds, 120 arrows overall). Distances, target faces and bow-specific score rules remain to be confirmed.
 - When scoring a round, users must be able to record each arrow's individual score.
 - Arrow-by-arrow entry is essential first-release functionality.
 - An optional physical arrow identifier, such as shaft #7, may be associated with each scored shot. This is what the product owner means by arrow number; it is distinct from shot order.
@@ -186,7 +187,7 @@ Proposed MVP behaviour:
 Still to decide:
 - How are optional physical arrow identifiers entered: free entry, selection from an equipment list, or both?
 - Which indoor/outdoor rounds are supported initially for recurve, compound and barebow, including arrows per end and score rules?
-- Are double rounds and multiple rounds in a session required?
+- Indoor double 60-arrow rounds are confirmed. Are outdoor double rounds and other multiple-round sessions required?
 - Are target-face plotting and analysis by physical arrow identifier required in MVP or later? Optional identifier capture itself is already agreed.
 - How are partial rounds and the athlete/parent score-correction history handled? Coach score editing is excluded.
 
@@ -252,6 +253,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 | 22 October 2026 | D02 | Confirmed Plan Managers see only assigned athletes; other managers require explicit reassignment or temporary cover. | Product owner |
 | 22 October 2026 | D02 | Confirmed a default 12-week plan duration, configurable for shorter or longer periods up to one year, with weekly reviews throughout. | Product owner |
 | 22 October 2026 | D11 | Confirmed launch scoring support for recurve, compound and barebow. | Product owner |
+| 22 October 2026 | D11 | Confirmed indoor 30-arrow, 60-arrow and double 60-arrow rounds (120 arrows overall). | Product owner |
 
 ## Completion checklist
 
@@ -272,6 +274,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 - [x] Confirm junior editing threshold: 16; ages 14–15 are view-only.
 - [ ] Confirm verification and parent/junior transition rules.
 - [x] Confirm scoring supports recurve, compound and barebow at launch.
+- [x] Confirm indoor 30-arrow, 60-arrow and double 60-arrow formats.
 - [x] Confirm required arrow-by-arrow scoring and optional physical arrow identifier capture in MVP.
 - [x] Confirm score entry and correction remain controlled by the eligible athlete/managing parent; coaches and Plan Managers cannot edit scores.
 - [ ] Confirm identifier entry method, initial scoring formats, double rounds and correction-history rules.
