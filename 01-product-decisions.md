@@ -34,7 +34,7 @@ Club, state and team memberships are future scope. Payments, competition registr
 | D11 | Scoring | Indoor and outdoor scoring for recurve, compound and barebow are essential at launch. Arrow-by-arrow scoring is required in MVP; totals-only entry is insufficient. Each score may optionally include the physical arrow identifier, such as the number on its shaft. Score entry and correction are controlled by the eligible athlete or managing parent; coaches and Plan Managers cannot edit scores. Supported formats remain to be agreed. | Partial |
 | D12 | Leaving, account deletion and retention | On confirmed account closure/deletion, remove access and delete or genuinely anonymise user-related data. Attempt anonymisation only where identity cannot reasonably be recovered; delete data that cannot be sufficiently anonymised unless a documented retention obligation applies. Permanent retention of identifiable or merely renamed records is not the policy. Operational timescales, export and backup expiry remain to be agreed. | Partial |
 | D13 | Hosting | Azure, in Europe. Specific region and services will be selected after requirements and budget review. | Confirmed direction |
-| D14 | Pilot success | Assess core-journey completion without assistance, repeat weekly use, logging activity and participant feedback. Targets below are proposed. | Proposed |
+| D14 | Pilot purpose | No formal success criteria, numeric targets or pass/fail assessment. Use the pilot to gather feedback and identify improvements. | Confirmed |
 | D15 | Session feedback | Sessions support completed, partially completed and skipped status, actual arrows shot, optional perceived effort (1–10) and optional notes. Scores are linked through the scoring feature. Sensitive health-record fields remain outside the agreed feedback scope. | Confirmed core fields, basic non-shooting sessions and Rest Day entries without required logging |
 
 ## D02 — Human System Plan Manager with AI-assisted generation
@@ -274,17 +274,13 @@ References:
 - [Irish DPC: storage limitation and retention](https://dataprotection.ie/en/faqs/responsibilities-data-controllers/how-long-should-personal-data-be-held-meet-obligations-imposed-gdpr)
 - [Irish DPC: anonymisation and pseudonymisation](https://www.dataprotection.ie/en/dpc-guidance/anonymisation-pseudonymisation)
 
-## D14 — Pilot scope and proposed success targets
+## D14 — Pilot scope and purpose
 
-Confirmed pilot scope:
-- 5–10 athletes, at least 2 coaches and at least 1 parent-managed junior.
+Confirmed product direction:
+- Pilot with 5–10 athletes, at least 2 coaches and at least 1 parent-managed junior.
 - Run the pilot for 4 weeks.
-
-Proposed success targets, awaiting confirmation:
-- At least 80% of pilot participants complete their role's core journey without assistance.
-- At least 60% of athlete profiles have weekly recorded activity in 3 of the 4 weeks, including parent-entered activity.
-- No unresolved critical access-control or data-loss defects at release.
-- Collect feedback from each participating role.
+- No formal pilot success criteria, numeric targets or pass/fail assessment.
+- Gather feedback, observe how participants use the service and identify improvements.
 
 ## D15 — Session feedback
 
@@ -353,6 +349,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 | 22 October 2026 | D02 | Confirmed shared plans arrive as inactive copies; the receiving eligible athlete/managing parent chooses a start date and activates them explicitly. | Product owner |
 | 22 October 2026 | D02 | Confirmed one active plan per athlete, warning before confirmed plan replacement, preserved history, and adaptation of the existing plan based on completed training under existing permissions/review rules. | Product owner |
 | 22 October 2026 | D07/D14 | Confirmed a four-week pilot with 5–10 athletes, at least two coaches and at least one parent-managed junior. Success targets remain proposed. | Product owner |
+| 22 October 2026 | D14 | Removed proposed pilot success targets. The pilot gathers feedback and identifies improvements without formal criteria or pass/fail assessment. | Product owner |
 
 ## Completion checklist
 
@@ -399,7 +396,8 @@ Historical entries record earlier decisions; the latest clarification and curren
 - [x] Confirm individual sessions/exercises can move to another day without a swap, under existing plan-editing permissions.
 - [x] Confirm moves onto Rest Days are allowed with warning and confirmation.
 - [ ] Confirm other scheduling conflicts, plan-boundary handling and started activities.
-- [ ] Accept or revise D10/D14 proposals.
+- [x] Confirm the pilot has no formal success criteria or pass/fail targets.
+- [ ] Accept or revise the D10 main-return-value proposal.
 - [x] Confirm four-week pilot with 5–10 athletes, at least two coaches and at least one parent-managed junior.
 - [ ] Identify specific pilot participants; keep D09 deferred until scope estimation.
 - [ ] Mark this document approved before propagating decisions to documents 02–07.
