@@ -185,6 +185,7 @@ Confirmed product direction:
 - The athlete can subsequently change or revoke that parent access.
 - View-only parent access permits no changes to plans, logs or scores. Parent editing access includes score entry/corrections within the agreed athlete/parent permissions.
 - Parent status alone does not override the athlete's age-16 access decision.
+- Export and profile-closure control passes from the managing parent to the athlete at 16, independently of any continued parent viewing/editing permission.
 
 Proposed design implication: retain one stable athlete profile and link the junior's login to it, rather than duplicating or moving training records. Account security and privacy requests need separate handling from read-only training permissions.
 
@@ -276,11 +277,15 @@ Confirmed export requirement:
 - Provide CSV files for analysis and a readable PDF summary as export options.
 - CSV score exports include individual arrow scores and optional saved-arrow identifiers where recorded; the PDF is a readable summary rather than a replacement for detailed CSV data.
 - Export is offered as an option before closure; downloading it is not a requirement for deletion.
-- Exports follow existing access permissions. Junior/guardian export authorisation details remain to be defined; CSV and PDF formats are confirmed.
+- Managing parents can export training data and request closure of an under-16 athlete's profile.
+- At age 16, export and profile-closure control passes to the athlete. A parent retaining viewing or editing access does not automatically retain export or closure authority.
+- Athletes aged 14–15 cannot independently export or close their profile under the current product permissions.
+- Closure of a child athlete profile is separate from closure of the managing parent's account and other linked athlete profiles.
+- CSV and PDF export formats are confirmed. Requester verification and transition activation details remain to be defined.
 
 Proposed operating rules:
 1. Treat leaving as an explicit closure request; sign-out, inactivity or ending a coaching relationship alone does not trigger deletion.
-2. Verify that the requester is authorised for the export or closure. The pre-deletion export option is confirmed above; junior and guardian authorisation rules require explicit definition.
+2. Verify the requester against the confirmed export/closure rules above: managing parent below 16, athlete from 16. Define verification mechanics before implementation.
 3. Implement the immediate access revocation and 30-day anonymisation target confirmed above.
 4. Assess all relevant records, including profiles, session histories, free text, relationships, identifiers, logs and any files.
 5. Do not treat changing a name to "Anonymous" as sufficient. Remove or generalise identifying details and linkages; prefer anonymous aggregate statistics where detailed histories could identify someone.
@@ -376,6 +381,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 | 22 October 2026 | D12 | Provisionally confirmed inactive accounts remain available until explicit closure; inactivity/retention policy will be investigated further in a future phase. | Product owner |
 | 22 October 2026 | D02 | Confirmed only system administrators can manage Plan Manager assignments, reassignment and temporary cover; managers cannot self-assign access. | Product owner |
 | 22 October 2026 | D02 | Confirmed assigned/covering Plan Manager training-data visibility, excluding private coach notes and account-security information. A separate private-data debugging/support view is deferred to future scope. | Product owner |
+| 22 October 2026 | D06/D12 | Confirmed managing parents may export/request closure for under-16 profiles; control passes to the athlete at 16 and is separate from continued parent viewing/editing access. | Product owner |
 
 ## Completion checklist
 
@@ -422,7 +428,8 @@ Historical entries record earlier decisions; the latest clarification and curren
 - [x] Confirm CSV exports for analysis and a readable PDF summary.
 - [x] Confirm anonymisation as the primary closure approach, immediate access revocation and completion within 30 days.
 - [x] Confirm inactivity alone does not close accounts for the initial release; review this provisional policy in future.
-- [ ] Confirm export/closure authorisation, backup expiry and remaining retention operations.
+- [x] Confirm managing parents control export/profile closure below 16; the athlete controls these from 16, regardless of continued parent viewing/editing access.
+- [ ] Confirm requester verification, backup expiry and remaining retention operations.
 - [x] Confirm D15 statuses, actual arrows, optional effort (1–10), optional notes and linked scoring.
 - [x] Confirm basic non-shooting sessions with completion/feedback and no required arrow count; detailed tracking deferred.
 - [x] Confirm calendar entries marked "Rest Day" with no required logging.
