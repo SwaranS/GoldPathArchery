@@ -58,6 +58,7 @@ Confirmed product direction:
 - Releasing reviewed weekly recommendations does not apply them automatically: eligible-user acceptance is still required. Plan Manager status alone does not grant authority to accept changes on an athlete's behalf.
 - Plan Managers can access only athletes explicitly assigned to them; the role does not grant access to all athletes.
 - Another Plan Manager gains access only through explicit reassignment or a temporary cover assignment.
+- Only system administrators can create, change or end Plan Manager assignments, reassign athletes between managers, or grant/revoke temporary cover. Plan Managers cannot assign themselves access.
 - Temporary cover access ends when the cover assignment ends; reassignment removes access based on the former assignment.
 - Assignment-scoped access does not grant score-editing rights or authority to accept weekly changes on the athlete's behalf. Exact accessible data fields and assignment-administration permissions remain to be defined.
 - This restores the human System Plan Manager role and supersedes the earlier wording that removed that role.
@@ -111,7 +112,7 @@ Proposed MVP behaviour:
 - Include AI usage costs when evaluating the EUR 45 monthly testing budget.
 
 Still to decide:
-- Who can create, change and end Plan Manager assignments, and how are cover durations set?
+- How are temporary cover durations set and enforced? Assignment administration is restricted to system administrators.
 - Who can change plan duration, and how should a duration change affect existing future sessions? The 12-week default and one-year maximum are confirmed.
 - Which athlete data fields can an assigned or covering Plan Manager access? Assignment-only access is confirmed.
 - Which AI provider or external service will generate plans? No provider or integration is selected.
@@ -370,13 +371,15 @@ Historical entries record earlier decisions; the latest clarification and curren
 | 22 October 2026 | D12 | Confirmed CSV files for analysis and a readable PDF summary as training-data export options. | Product owner |
 | 22 October 2026 | D12 | Confirmed anonymisation as the primary account-closure approach, immediate access revocation and a 30-day completion target. Backup expiry remains to be defined. | Product owner |
 | 22 October 2026 | D12 | Provisionally confirmed inactive accounts remain available until explicit closure; inactivity/retention policy will be investigated further in a future phase. | Product owner |
+| 22 October 2026 | D02 | Confirmed only system administrators can manage Plan Manager assignments, reassignment and temporary cover; managers cannot self-assign access. | Product owner |
 
 ## Completion checklist
 
 - [x] Confirm a human System Plan Manager uses AI/software to generate plans, with eligible athlete, parent and coach editing.
 - [x] Confirm multiple human Plan Managers review initial plans and weekly AI recommendations before release.
 - [x] Confirm Plan Manager access is limited to assigned athletes, with explicit reassignment or temporary cover.
-- [ ] Confirm Plan Manager data-field scope and who administers assignments/cover.
+- [x] Confirm only system administrators manage Plan Manager assignments, reassignment and temporary cover.
+- [ ] Confirm Plan Manager data-field scope and temporary-cover duration rules.
 - [x] Confirm default plan duration of 12 weeks, configurable up to one year.
 - [x] Confirm weekly AI recommendations with eligible-user acceptance before plan updates.
 - [x] Confirm shared copies belong to the receiving archer and are independent of the original.
