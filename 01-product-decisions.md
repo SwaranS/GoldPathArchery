@@ -176,6 +176,8 @@ Confirmed product direction:
 - Launch scoring supports both numeric keypad entry and plotting arrow positions by tapping the target face.
 - Both entry methods record the same underlying arrow scores; physical arrow identifiers remain optional.
 - An optional physical arrow identifier, such as shaft #7, may be associated with each scored shot. This is what the product owner means by arrow number; it is distinct from shot order.
+- Physical arrow identifiers are selected only from the athlete's saved arrows; free-text/manual identifier entry is not available while scoring.
+- Selecting an arrow remains optional. Users without saved arrows can still score a round without physical identifiers.
 - Users can score a complete round without entering physical arrow identifiers. An omitted identifier does not mean a missing score or a miss.
 - A totals-only approach does not meet this requirement.
 - Score entry and correction are controlled by the athlete or managing parent: athletes aged 16+ can enter and edit their own scores; a parent manages scoring for an under-16 athlete.
@@ -199,7 +201,7 @@ Proposed MVP behaviour:
 - Confirm the rules for each new format before enabling it. The exact format-management workflow will be defined during architecture/design.
 
 Still to decide:
-- How are optional physical arrow identifiers entered: free entry, selection from an equipment list, or both?
+- How are saved arrows created, organised into sets and retired while preserving identifiers on historical scores? Scoring selection from saved arrows only is confirmed.
 - Which distances, target faces, arrows per end and bow-specific scoring rules apply to the confirmed indoor/outdoor formats?
 - Indoor double 60-arrow and outdoor double 720 rounds are confirmed. Which other combinations of rounds within a session are required?
 - Is analysis by physical arrow identifier required in MVP or later? Numeric entry, target-face plotting and optional identifier capture are confirmed for launch.
@@ -272,6 +274,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 | 22 October 2026 | D11 | Confirmed outdoor 720 and double 720 formats; users may save 36-arrow training scores without completing a full round. | Product owner |
 | 22 October 2026 | D11 | Confirmed saving/resuming unfinished rounds and easy extension to future round formats such as 1440 and 900; these examples are not added to launch scope. | Product owner |
 | 22 October 2026 | D11 | Confirmed both numeric keypad scoring and target-face plotting for launch. | Product owner |
+| 22 October 2026 | D11 | Confirmed physical arrow selection from the athlete's saved arrows only; identifier selection remains optional and manual identifier entry during scoring is excluded. | Product owner |
 
 ## Completion checklist
 
@@ -299,7 +302,8 @@ Historical entries record earlier decisions; the latest clarification and curren
 - [x] Confirm required arrow-by-arrow scoring and optional physical arrow identifier capture in MVP.
 - [x] Confirm numeric keypad entry and target-face plotting are both required at launch.
 - [x] Confirm score entry and correction remain controlled by the eligible athlete/managing parent; coaches and Plan Managers cannot edit scores.
-- [ ] Confirm identifier entry method, initial scoring formats, double rounds and correction-history rules.
+- [x] Confirm optional physical arrow identifiers are selected from saved arrows only.
+- [ ] Confirm saved-arrow management, scoring-format details and correction-history rules.
 - [ ] Confirm retention operations and closure timescales.
 - [ ] Accept or revise D10, D14 and D15 proposals.
 - [ ] Identify pilot participants; keep D09 deferred until scope estimation.
