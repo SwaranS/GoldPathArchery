@@ -60,7 +60,10 @@ Confirmed product direction:
 - Another Plan Manager gains access only through explicit reassignment or a temporary cover assignment.
 - Only system administrators can create, change or end Plan Manager assignments, reassign athletes between managers, or grant/revoke temporary cover. Plan Managers cannot assign themselves access.
 - Temporary cover access ends when the cover assignment ends; reassignment removes access based on the former assignment.
-- Assignment-scoped access does not grant score-editing rights or authority to accept weekly changes on the athlete's behalf. Exact accessible data fields and assignment-administration permissions remain to be defined.
+- Assigned and temporarily covering Plan Managers can view the athlete's training profile, goals, availability, plans, scores and session feedback for plan generation and review.
+- This access excludes private coach notes and account-security information.
+- Assignment-scoped access does not grant score-editing rights or authority to accept weekly changes on the athlete's behalf.
+- A separate private-data view for debugging/support is a future feature. It is outside MVP scope and does not expand current Plan Manager or administrator access. Its permitted data, authorised roles and access controls will be defined before implementation.
 - This restores the human System Plan Manager role and supersedes the earlier wording that removed that role.
 - Sharing creates a separate, independent copy owned by the receiving archer.
 - Shared plans arrive as inactive copies. The receiving athlete aged 16+, or managing parent for an under-16 athlete, chooses a start date and explicitly activates the copy.
@@ -114,7 +117,7 @@ Proposed MVP behaviour:
 Still to decide:
 - How are temporary cover durations set and enforced? Assignment administration is restricted to system administrators.
 - Who can change plan duration, and how should a duration change affect existing future sessions? The 12-week default and one-year maximum are confirmed.
-- Which athlete data fields can an assigned or covering Plan Manager access? Assignment-only access is confirmed.
+- Map the confirmed training-data access categories to exact fields during detailed permissions design. Private notes and account-security information remain excluded.
 - Which AI provider or external service will generate plans? No provider or integration is selected.
 - What time/timezone should apply to the user-selected review day, how should review-day changes affect pending reviews, and can users request an additional review?
 - What is the detailed scope of coach plan-editing permission, and how are conflicting edits handled? Per-coach view versus edit selection is confirmed.
@@ -372,6 +375,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 | 22 October 2026 | D12 | Confirmed anonymisation as the primary account-closure approach, immediate access revocation and a 30-day completion target. Backup expiry remains to be defined. | Product owner |
 | 22 October 2026 | D12 | Provisionally confirmed inactive accounts remain available until explicit closure; inactivity/retention policy will be investigated further in a future phase. | Product owner |
 | 22 October 2026 | D02 | Confirmed only system administrators can manage Plan Manager assignments, reassignment and temporary cover; managers cannot self-assign access. | Product owner |
+| 22 October 2026 | D02 | Confirmed assigned/covering Plan Manager training-data visibility, excluding private coach notes and account-security information. A separate private-data debugging/support view is deferred to future scope. | Product owner |
 
 ## Completion checklist
 
@@ -379,7 +383,9 @@ Historical entries record earlier decisions; the latest clarification and curren
 - [x] Confirm multiple human Plan Managers review initial plans and weekly AI recommendations before release.
 - [x] Confirm Plan Manager access is limited to assigned athletes, with explicit reassignment or temporary cover.
 - [x] Confirm only system administrators manage Plan Manager assignments, reassignment and temporary cover.
-- [ ] Confirm Plan Manager data-field scope and temporary-cover duration rules.
+- [x] Confirm assigned/covering Plan Managers can view training profiles, goals, availability, plans, scores and session feedback, excluding private coach notes and account-security information.
+- [x] Record a separate private-data debugging/support view as future scope only.
+- [ ] Confirm temporary-cover duration rules and exact field mapping during detailed design.
 - [x] Confirm default plan duration of 12 weeks, configurable up to one year.
 - [x] Confirm weekly AI recommendations with eligible-user acceptance before plan updates.
 - [x] Confirm shared copies belong to the receiving archer and are independent of the original.
