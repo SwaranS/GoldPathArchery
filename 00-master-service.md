@@ -1,41 +1,39 @@
 # GoldPathArchery — Product Brief
 
-**Status:** Initial concept · Starting from scratch
+Status: Requirements baseline · 22 October 2026  
+Details: [Product decisions](01-product-decisions.md)
 
-**1. Purpose**  
-GoldPathArchery will help archers follow structured training plans, record their practice and understand their progress. It will also give coaches a straightforward way to guide their athletes. On
+## Purpose and audience
 
-**2. Problem to solve**  
-Training information is often spread across notebooks, spreadsheets and messages. Archers struggle to connect their daily practice with longer-term goals, while coaches have limited visibility between coaching sessions.
+Help recurve, compound and barebow athletes know what to train today, record practice quickly and review progress with coaches. Coaches and athletes are the primary users; parents manage younger athletes. Clubs, states and teams are future scope.
 
-**3. Target users**  
-The initial audience will be individual recurve archers and coaches working with a small number of athletes. Parents may manage or support junior archers’ accounts. Support for clubs and other bow types may follow later.
+## Core experience
 
-**4. Main user journeys**
+A human System Plan Manager uses AI/software to create and review a personalised plan. Plans default to 12 weeks and can span 1 day to 1 calendar year. Plan Managers review initial plans and weekly AI recommendations. Eligible athletes, managing parents and authorised coaches can edit plans. Weekly changes are applied only after eligible-user acceptance, with decision history retained.
 
-- An archer registers, sets a goal and creates a basic profile.
-- An archer views a weekly plan with clear session instructions.
-- An archer records arrows shot, scores and session feedback.
-- A coach assigns or adjusts a plan for an athlete.
-- An archer and their coach review training history and progress.
+Each athlete has one active plan. Shared plans become independent inactive copies owned by the recipient, who chooses a start date. Sessions can move individually, including onto Rest Days after a warning. Basic strength, mobility and mental practice are included.
 
-**5. First release — essential scope**  
-A public homepage explaining the service; secure accounts; archer profiles; weekly training plans; session logging; basic progress summaries; and administration tools. Users must have appropriate control over who can access their training information.
+## First release
 
-**6. Outside the first release**  
-Online payments, competition registration, equipment sales, video analysis, social feeds, native mobile apps and automatic AI coaching.
+- Secure accounts, profiles, goals, availability and multiple coach relationships.
+- Parent-managed profiles below 14; view-only junior logins at 14–15; athlete editing from 16.
+- Individual arrow scores through keypad or target plotting; optional identifiers selected from saved arrows.
+- Indoor 30/60/double-60-arrow formats; outdoor 720/double 720; saved partial training rounds and resumption.
+- Multiple bows, named arrow sets, sight marks, equipment archiving and per-arrow averages by day/date range.
+- Completion/partial/skipped feedback, actual arrows, optional effort 1–10 and notes.
+- Assigned Plan Manager access, administrator controls, private invitations and profile search controls.
+- CSV exports and PDF summaries; immediate access revocation on closure and anonymisation within 30 days.
 
-**7. Business model**  
-Start with a free pilot involving a small group of archers and coaches. 
+## Access and privacy
 
-**8. Experience and brand**  
-The service should feel encouraging, professional and easy to use on a phone at the range. Session instructions and logging should be quick to find. Use clear language and authentic archery photography.
+Under-16 profiles never appear in search. Eligible accounts are discoverable to signed-in users unless “Stay out of Search” is enabled. At 16, existing parent access becomes view-only until the athlete chooses viewing, editing or no access. Scoring is controlled by the athlete/managing parent, never coaches or Plan Managers.
 
-**9. Constraints and assumptions**  
-One person will initially manage the service. Hosting costs should remain modest; the monthly budget is undecided. No previous code or architecture is assumed. Junior accounts, parent access and privacy requirements need to be defined before implementation.
+## Boundaries
 
-**10. Launch and success criteria**  
-Launch a private pilot before opening registration publicly. The pilot should demonstrate that users can view plans and log sessions without assistance, coaches can review their athletes’ activity, and access permissions work correctly. Measure repeat weekly use and collect feedback before expanding.
+Payments, competition registration, equipment sales, video analysis, social feeds, native apps, reusable template libraries, team management, autonomous coaching outside the agreed plan workflow, detailed exercise tracking and private-data debugging views are future scope.
 
-**11. Decisions still needed**  
-Who is the primary customer: the archer, parent or coach? Who creates the training plans? Will juniors use their own accounts? What is the launch budget and target date? Which single capability will make the service worth returning to?
+## Pilot and operations
+
+Free private pilot: 5–10 athletes, at least two coaches and one parent-managed junior, over four weeks. Gather feedback without formal success targets or a pass/fail assessment. Ordinary software acceptance checks still apply.
+
+Azure in Europe; total testing budget EUR 45/month, including AI, database, email, storage, backups and monitoring. Architecture choices and cost validation are in 05. No prior code is assumed. Named participants, production budget, domain and release date are operational follow-ups, not unresolved feature requirements.

@@ -1,61 +1,73 @@
-# GoldPathArchery — Pilot and Production Release Checklist
+# GoldPathArchery — Release Checklist
 
-Status: Template; nothing checked means no completion claim  
-Related: [delivery plan](06-delivery-plan.md), [architecture](05-architecture.md)
+Status: Operational checklist; unchecked items are not completed claims  
+Updated: 22 October 2026 · [Architecture](05-architecture.md) · [Delivery](06-delivery-plan.md)
 
-## Product readiness
+The pilot gathers feedback without formal success criteria, numeric targets or pass/fail assessment. This checklist concerns software correctness and operating the service.
 
-- [ ] Pilot participants, included roles and success measures agreed.
-- [ ] MVP requirements and outstanding limitations reviewed.
-- [ ] Core journey tested with representative accounts on mobile.
-- [ ] Loading, empty, validation and error states reviewed.
-- [ ] Junior/guardian requirements completed before including juniors.
-- [ ] Support contact and feedback process established.
+## Product and access verification
 
-## Access and data
+- [ ] Implemented behaviours match R01–R19 and the selected scoring definitions.
+- [ ] Mobile/keypad/plotting and basic non-shooting/Rest Day journeys reviewed.
+- [ ] Under-14/no-login, 14–15/read-only and 16+ transitions work; parent default becomes viewing.
+- [ ] Self-declaration/email confirmation is clearly explained; no manual verification claimed.
+- [ ] Signed-in search excludes under-16/hidden profiles; invitation recipient/expiry/replay checks pass.
+- [ ] Per-coach view/edit grants do not permit actual log or score editing.
+- [ ] Manager scope, admin-only assignments and cover expiry enforced on each request.
+- [ ] Routine admin has no private-data support/debug view.
+- [ ] Relationship end revokes history access; separate authored contributions reveal no later athlete data.
+- [ ] One active plan, future activation and independent shared-copy ownership verified.
+- [ ] Session moves preserve started/completed actuals and warn for rest-day/conflict cases.
+- [ ] Recommendation original/review/decision/application histories retained; no silent conflicting write.
+- [ ] Partial/double scoring, blank versus miss, optional saved identifiers and correction totals pass.
+- [ ] Per-arrow averages/counts and compatible-condition grouping correct; archived equipment retained historically.
 
-- [ ] Sign-in, sign-out, verification and recovery work as designed.
-- [ ] Object-level access tests cover own, linked and unrelated records.
-- [ ] Revoked coach/guardian access is enforced on subsequent requests.
-- [ ] Administrator actions and support access follow the approved policy.
-- [ ] Production configuration contains no development credentials.
-- [ ] Data collection, retention, export and deletion procedures agreed.
-- [ ] Privacy information and applicable junior/guardian requirements reviewed for the actual service.
+## AI and scoring readiness
 
-## Operations
+- [ ] Planning guidance and configured load constraints reviewed by Plan Managers.
+- [ ] Generated output validated and reviewed before publication/release.
+- [ ] Provider/model/version, data handling, European processing suitability and cost recorded.
+- [ ] No private coach notes/account-security fields sent to AI; worker permissions rechecked.
+- [ ] Effective rulebook edition verified before official-labelled scoring presets are enabled.
+- [ ] Face geometry, compound indoor ten, symbols, line-cutters and multi-spot handling verified.
+- [ ] Failure/retry cases preserve the prior plan and entered scores; no duplicate generation/application.
 
-- [ ] Hosting region, service limits and monthly budget agreed.
-- [ ] Staging and production data/credentials are separated.
-- [ ] Automated deployment and required checks pass.
-- [ ] Production migrations validated against a representative environment.
-- [ ] Backup policy configured and a restore successfully rehearsed.
-- [ ] Recovery point/time targets documented.
-- [ ] Health monitoring and error alerts reach the responsible operator.
-- [ ] Logs exclude credentials and unnecessary personal information.
-- [ ] Application rollback and migration compatibility procedures rehearsed.
-- [ ] Domain ownership, DNS, HTTPS and renewal responsibility confirmed.
-- [ ] Email delivery configured and tested if used.
+## Data and operations
 
-## Release execution
+- [ ] Export CSV detail/PDF summary and role checks verified; downloads expire after 24 hours.
+- [ ] Closure revokes access immediately and completes anonymisation within 30 days.
+- [ ] Anonymisation inventory includes free text, AI payloads, contributions, histories, jobs and exports.
+- [ ] Under-16 child management is transferred or explicitly closed before parent-account closure.
+- [ ] Backup retention never exceeds 30 days; log/security retention jobs configured.
+- [ ] Restore rehearsed in isolation; closure suppression applied before access.
+- [ ] Pilot recovery targets RPO/RTO 24 hours documented and supported by the runbook.
+- [ ] Current actual processing/privacy arrangements reviewed, including junior data and provider handling.
+- [ ] Secrets/configuration, least-privilege credentials and privileged-role MFA configured.
+- [ ] Staging/production credentials and databases separated.
+- [ ] Costed Azure Europe configuration includes all services; testing total fits EUR 45 or shortfall is reported before provisioning.
+- [ ] Alerting, failed-job queue, generation limits and storage lifecycle enabled without sensitive log payloads.
+- [ ] Backward-compatible migrations and version rollback/restore procedures recorded.
 
-- [ ] Record release version/commit and known limitations.
-- [ ] Confirm migration and backup prerequisites.
-- [ ] Deploy the reviewed version.
-- [ ] Verify public homepage and authenticated core journey in production.
-- [ ] Verify access denial with an unrelated test account.
-- [ ] Confirm monitoring and error reporting after deployment.
-- [ ] Observe pilot feedback before expanding access.
+## Pilot and production execution
+
+- [ ] Identify operator/support contact and named pilot participants: 5–10 athletes, at least two coaches and one parent-managed junior.
+- [ ] Arrange four-week pilot dates and feedback channel; no business success scorecard.
+- [ ] Record production budget and approved hosting configuration before production provisioning.
+- [ ] Confirm domain ownership, DNS, HTTPS, email and renewal responsibility.
+- [ ] Record release commit/version, limitations and rollback version.
+- [ ] Deploy reviewed version; verify homepage, sign-in, plan and scoring with authorised test accounts.
+- [ ] Verify unrelated account is denied; verify closed account cannot sign in.
+- [ ] Confirm monitoring/backup jobs after deployment.
+- [ ] Gather feedback and prioritise fixes before expanding access.
 
 ## Release record
 
-| Field | Value |
+| Field | To be completed when executing release |
 |---|---|
-| Release owner | TBD |
-| Domain | TBD |
-| Version / commit | TBD |
-| Release date | TBD |
-| Pilot success targets | TBD |
-| Known limitations | TBD |
-| Rollback procedure / version | TBD |
-| Backup restore evidence | TBD |
-| Review outcome | TBD |
+| Operator/support | Name and contact |
+| Participants/dates | Actual pilot list and agreed dates |
+| Hosting/AI | Region, services, provider/model and cost evidence |
+| Domain/version | Actual domain and deployed commit |
+| Restore/rollback | Evidence and runbook reference |
+| Known limitations | Concrete limitations and issue links |
+| Release authorisation | Recorded approval for actual deployment |

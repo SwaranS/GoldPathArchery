@@ -1,44 +1,49 @@
 # GoldPathArchery — MVP Requirements
 
-Status: Draft for review  
-Sources: [Brief](00-master-plan.md), [decisions](01-product-decisions.md)
+Status: Requirements baseline · 22 October 2026  
+Sources: [Brief](00-master-service.md), [decisions](01-product-decisions.md), [scoring](09-scoring-and-equipment.md)
 
-The capability areas below come from the brief. Detailed behaviour is proposed until reviewed. Open decisions must not silently become implementation assumptions.
+## Capability and acceptance criteria
 
-## Requirements and acceptance criteria
+| ID | Capability | Required behaviour and acceptance |
+|---|---|---|
+| R01 | Public entry | Mobile homepage explains service; pilot access/sign-in routes work; no public athlete directory. |
+| R02 | Accounts | Email confirmation, sign-in/out, recovery and reauthentication for closure/export; expired credentials fail safely. Privileged manager/admin roles are assigned by administrators, never self-selected. |
+| R03 | Profiles/onboarding | Store stable athlete profile, declared birth date/timezone, goals, experience, current training volume, availability and range/equipment access. Reject missing essential planning inputs. |
+| R04 | Coaches/discovery | Multiple active links, default view-only plans, per-coach editing grants and immediate revocation. Search is signed-in-only; hidden and under-16 profiles never appear. Private seven-day invitations require matching verified recipient acceptance. Hidden users/parents initiate their connections. |
+| R05 | Managed AI plans | Assigned human manager requests/reviews AI draft, resolves validation and publishes; normal athlete coaches need not approve. Default 12 weeks, configurable 1 day–1 year. Failures retain last usable plan. |
+| R06 | Plan lifecycle | One active plan; future activation scheduled; replacement warning/confirmation; independent inactive shared copies with recipient start date. Preserve prior plan/log/score histories. |
+| R07 | Weekly recommendations | User-selectable review day/timezone; manager review before release; individual accept/edit/reject; full suggestion/review/decision/application history. Conflicting versions warn and cannot silently overwrite. |
+| R08 | Sessions | Multiple daily shooting/non-shooting sessions; Rest Day with no required log. Move individual unstarted sessions within plan; warn before rest-day/conflict overrides. Started work retains actual date. |
+| R09 | Logging | Completed/partial/skipped; actual arrows separate from plan; optional effort 1–10/notes. Missing log remains unknown. Non-shooting work requires no arrows. Support unplanned activity. |
+| R10 | Round scoring | Required individual scores through keypad and target plotting; saved-arrow IDs optional. All launch formats in 09; multiple/double rounds preserve components and totals; save/resume and finish-as-partial work. Blank differs from M. |
+| R11 | Corrections | Only athlete 16+ or editing parent may enter/correct actuals, including after completion. Old/new score, coordinates, actor and time retained; totals/analysis update; coaches/managers/AI denied. |
+| R12 | Equipment | Multiple bows, named arrow sets, per-arrow identity, optional sight marks. Selection uses owned active equipment; archiving preserves historical equipment revisions and analysis. |
+| R13 | Progress | Planned/actual volume and session status; per-physical-arrow average/count by day/range. Group compatible conditions; no-ID shots excluded only from physical-arrow averages. Corrections reflected. |
+| R14 | Junior transitions | Under-14 parent-managed; 14–15 view-only junior login; 16 editing/export/closure passes to athlete. Existing parent editing becomes viewing until athlete chooses; revoked access stays revoked. Pilot birth-date/declaration flow has no manual verification. |
+| R15 | Contribution history | Relationship end removes live/historical athlete access immediately; coach sees only own contribution snapshots, athlete retains received contributions. Exclude later athlete activity and other private notes; closure applies. |
+| R16 | Operations/admin | Administrator assigns managers/cover with expiry and audit. Assigned manager sees agreed training fields only; no score editing. Routine administrator has no private-data browsing/debug view. |
+| R17 | Export/closure | CSV detail/PDF summary, private expiring downloads, role/reauthentication checks. Immediate closure revocation; anonymisation within 30 days, delete where insufficient; linked child profiles handled explicitly. |
+| R18 | Retention/recovery | Daily backups expire by 30 days; restored data remains isolated until closure suppression applied. Operational logs 30 days, minimal security metadata 90 days; no personal-data immortality through history. |
+| R19 | Accessibility/reliability | Mobile and keyboard workflows, labels/contrast, visible errors and unsaved state, idempotent submissions. Plotting has equivalent numeric controls. Server checks every protected resource. |
 
-| ID | Capability | User story | Acceptance criteria |
-|---|---|---|---|
-| R01 | Public homepage | As a visitor, I can understand the service. | Explains audience and benefits; provides a clear pilot access or sign-in route; works on mobile. |
-| R02 | Accounts | As a user, I can securely access my account. | Supports the agreed registration/invitation flow, sign-in, sign-out and account recovery; invalid or expired credentials fail safely; protected pages require authentication. |
-| R03 | Archer profile | As an archer, I can maintain information needed for training. | Approved fields and goals can be saved and edited; invalid values are explained; other users cannot access the profile without permission. |
-| R04 | Coaching relationship | As an archer or authorised parent, I can control coach access. | Access requires the agreed authorisation flow; coach sees only linked athletes; ending the relationship prevents subsequent unauthorised access. Historical access follows D05. |
-| R05 | Weekly plans | As a coach, I can prepare and assign sessions. | Session includes date, purpose, instructions and agreed training targets; draft content is distinguishable from assigned content; athlete sees only assigned sessions. Self-created plans depend on D02. |
-| R06 | Session details | As an archer, I can understand today's practice. | Shows instructions, targets and current status; provides a route to logging; empty/rest days are clearly explained. |
-| R07 | Session logging | As an archer, I can record my practice. | Records agreed date, actual arrows, optional score and feedback; invalid values are rejected; repeat submission does not create duplicates; authorised edits remain associated with the correct session. |
-| R08 | Coach review | As a coach, I can review an athlete's progress. | Linked athletes' assigned plans and logs are visible; unlinked athletes are inaccessible through both UI and direct requests; missing logs are distinguishable from completed sessions. |
-| R09 | Progress summary | As an archer, I can see training activity over time. | Shows actual arrow totals and session completion for a selected period; planned and actual values are distinguished; scores are compared only within compatible formats; empty data is handled clearly. |
-| R10 | Administration | As an administrator, I can operate the pilot. | Approved account/support actions are available only to authorised administrators; sensitive actions are audited; routine administration does not imply unrestricted training-data access. |
-| R11 | Junior / parent support | As an authorised parent, I can support a junior. | Implement only after D06 and the permission model are approved; verify relationships; restrict access to linked juniors; test removal and transfer of access. Required if juniors enter the pilot. |
+## Critical cross-feature scenarios
 
-## Quality requirements
+1. Parent creates under-14 profile, enters training, invites coach and grants plan editing; coach cannot edit scores.
+2. At 14, accepted junior login can view but cannot mutate actuals or relationships through UI or direct requests.
+3. At 16, parent becomes viewing-only; athlete may grant editing but parent still cannot export/close.
+4. Manager without assignment cannot load athlete data; temporary cover expiry revokes access on the next request.
+5. Reviewed weekly change accepted against a newer plan version produces a conflict and no mutation.
+6. Shared copy activates in recipient context without sender logs/identity or access grants.
+7. Partial outdoor 36-arrow round saves/resumes; archive a referenced arrow and preserve old shots.
+8. Closing an athlete anonymises contributions/exports/audits as well as profile records; restore cannot resurrect the account.
 
-- Enforce object-level permissions on the server for every profile, plan and log.
-- Make core journeys usable on mobile with keyboard access, labelled fields and readable contrast.
-- Preserve entered form data when validation fails and show clear success/error feedback.
-- Separate staging and production credentials and data.
-- Record operational errors without exposing credentials or unnecessary personal data.
-- Define measurable performance and availability targets before pilot release.
-- Test critical journeys and permission boundaries before each release.
+## Planning safeguards and AI evaluation
 
-## Scoring decisions
+Use structured output matching a schema, deterministic constraint checks, reviewed instruction sources and synthetic cases across all bow types/ages. Scoring rules are computed by the application, not an LLM. Treat free text as data, not permission to change system rules. Record provider/model and generation version. Evaluate real plan usefulness with managers before pilot publication; never publish failed generation/validation.
 
-Confirm D11 before finalising log fields. Define maximum score, arrow count, distance, units and target-face rules for each supported format. Decide how partial rounds, multiple rounds on one date and unplanned sessions behave.
+## Scope and completion
 
-## Outside MVP
+All listed capabilities are launch scope. Detailed exercise tracking, teams, event registration, payments, native apps, automatic video analysis and private support-data views are deferred.
 
-Payments, competition registration, equipment sales, video analysis, social feeds, native mobile apps and automatic AI coaching.
-
-## Definition of done
-
-Acceptance criteria pass; relevant permission and validation checks pass; screens have been reviewed on mobile; migrations and operational documentation are updated where applicable; feature is available in staging for review.
+A feature is complete when its criteria and relevant access/conflict/correction cases pass in staging and documentation matches behaviour. These are software checks, not pilot business success criteria. The four-week pilot has no formal targets or pass/fail measure.

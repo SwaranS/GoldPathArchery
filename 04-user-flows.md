@@ -1,62 +1,78 @@
 # GoldPathArchery — User Flows and Screen Outline
 
-Status: Draft for review; text wireframes, not final visual designs  
-Dependencies: [requirements](02-mvp-requirements.md), [permissions](03-roles-and-permissions.md)
+Status: Implementation baseline · 22 October 2026  
+[Decisions](01-product-decisions.md) · [Permissions](03-roles-and-permissions.md)
 
-## Proposed navigation
+## Navigation
 
-Public: Home → Pilot access / Sign in.  
-Archer: This week, History, Progress, Profile.  
-Coach: Athletes, Athlete plan, Athlete history / progress.  
-Parent: Linked junior selector and approved views; dependent on D06.  
-Administrator: Separate restricted administration area.
+Public: Home, pilot access, sign in.  
+Athlete/parent: Today/Week, Plans, Score, History/Progress, Equipment, Profile/Connections. Parent has an explicit athlete selector.  
+Coach: Linked athletes, plan review/edit, proposals, own contribution history.  
+Plan Manager: Assigned athletes, draft/review queue, weekly review queue.  
+Administrator: Account status/roles, assignments/cover and operational job status.
 
-## Flow A — Onboarding
+Use the selected athlete's name prominently on edits and scoring. Role switching cannot silently change the target athlete.
 
-Visitor reads homepage → follows the agreed invitation/registration route → verifies account as required → completes approved profile fields → sees the next useful action.
+## A — Registration and juniors
 
-Review: how roles are assigned; whether standalone archers can join; how junior onboarding and guardian verification work. Empty state must explain how to obtain or create a plan.
+Open private pilot invitation → create account → confirm email → choose athlete/parent/coach use → enter required profile data.
 
-## Flow B — Assign a session
+Parent flow: declare relationship → enter child birth date/profile → complete goals/availability → request plan. Under-14 has no child login; ages 14–15 can receive an optional junior login invitation, with read-only screens after email confirmation.
 
-Coach signs in → selects linked athlete → opens week → creates draft session → reviews date, instructions and targets → assigns session → receives confirmation.
+At 16: notification and existing-profile claim if needed → parent editing becomes viewing → athlete sees parent permission chooser. Previous history stays on the same profile. No manual administrator verification.
 
-Proposed fields: date, title, purpose, instructions, planned arrows, distance/format where applicable. Decide rest days, multiple sessions per day, plan copying and revisions before expanding this form.
+## B — Initial plan
 
-Changes after assignment must have defined behaviour. Completed logs must retain enough context to understand what the athlete performed.
+Athlete/parent supplies goals, experience, current volume, schedule, equipment/range access, optional event date and duration → system validates input → assigned Plan Manager generates AI draft → reviews assumptions/constraints → adjusts if necessary → publishes inactive plan → athlete/parent chooses start date and activates.
 
-## Flow C — View and log practice
+If another plan is active, show replacement warning and date; confirm immediate or scheduled switch. Failure leaves previous plan active. Manager sees generation status and retry option; users see preparation status without raw provider errors.
 
-Archer signs in → sees today's session within the week → opens instructions → selects Log session → enters actual arrows, optional score and feedback → saves → sees completion and can return to the week.
+## C — Weekly adaptation
 
-Logging screen:
-- Session title, date and instructions remain accessible.
-- Inputs show expected units and validation.
-- Save action has a visible pending and success state.
-- A failed save preserves entered values.
-- Repeated submission does not duplicate the log.
+On selected review day, system prepares proposals → Plan Manager reviews/edits/releases → eligible athlete/parent/editing coach sees individual changes and reasons → accept, edit or reject each.
 
-Decide partial completion, skipped sessions and unplanned sessions before implementation.
+Show original/proposed session and human-edit indicators. Record all decisions, including rejection. If the plan changed since preparation, show conflict and require re-review; no silent overwrite. Pending proposals for replaced plans become superseded. Prior plan and recommendation histories remain accessible under current permissions.
 
-## Flow D — Review progress
+## D — Practice and rescheduling
 
-Coach selects linked athlete → chooses period → sees planned versus completed sessions and actual arrow totals → opens an individual log.
+Today/Week shows instructions, targets and Rest Day entries. Choose one unstarted session → select destination date within plan → preview conflicts → warning/confirmation if needed → move only that session.
 
-Archer sees the equivalent view for their own data. Scores require matching format context. Empty states must distinguish no plan, no recorded activity and no access.
+Rest-day destination displays the activity afterwards. Other sessions stay put. Started/completed sessions retain dates; remaining work can become a new session.
 
-## Flow E — End coaching access
+Log completed/partial/skipped → actual shooting arrows and optional effort/notes → save. Non-shooting sessions use basic instructions/status/feedback without arrow requirement. No action required for Rest Day. Unlogged is unknown.
 
-Eligible user opens relationship settings → reviews consequence → ends relationship → sees confirmation. Coach loses subsequent access according to the agreed policy. Training-data ownership and historical access follow D05/D12.
+## E — Scoring
 
-## Screen review checklist
+Select athlete → session/new practice → bow/type, saved arrow set optional, distance/format/face → start round. Display actual context and running totals.
 
-- Is the primary action clear on a phone?
-- Can a user reach today's instructions and logging quickly?
-- Are validation, empty, loading and permission states defined?
-- Can keyboard users complete each core journey?
-- Are parent and coach permissions clear to the account holder?
-- Can pilot users complete the journey without verbal guidance?
+For each shot use keypad or tap/zoom target. Optional arrow selector uses saved arrows only; no identifier required. Changing method uses the same shot record. Show “saved,” “unsaved” or retry state. Triple layout shows chosen spot and collision warnings.
 
-## Design work remaining
+Save/leave → resume same round; or Finish as partial → confirm recorded count and maximum. Doubles show both component rounds and combined totals. Score correction shows old/new values; conflicting plot requires reposition/clear-location decision. Only athlete/parent can save actuals.
 
-Produce low-fidelity layouts for homepage, weekly plan, session detail/log form and coach athlete review. Review with representative pilot users before detailed styling.
+## F — Equipment and analysis
+
+Profile → Equipment → add bow / named arrow set / identifiers → optional sight marks by distance/set. Archive with history-preservation explanation. Historical shots keep equipment version.
+
+Progress → day/date range → compatible bow/distance/face groups → each physical arrow's average and count → drill into scored shots. Optional mixed-conditions report is labelled. No-ID shots remain in overall statistics but not individual-arrow means.
+
+## G — Connections and contribution history
+
+Eligible profile search lists minimal data for signed-in users. Stay out of Search hides the profile; under-16 profiles never appear.
+
+Initiator sends private account-bound invitation → intended recipient verifies/signs in → accepts → default view-only coach link. Athlete/parent can grant editing. Hidden users initiate their own links.
+
+End relationship → explanation → confirm → live/history access revoked. Coach's My contributions shows own read-only authored snapshots only; athlete still sees received contributions. Private notes never appear in shared feedback automatically.
+
+## H — Share plan
+
+Owner chooses recipient via private invitation → recipient accepts → independent inactive copy → start-date/availability preview → activation with replacement warning if needed. No source logs, identity, feedback or relationships are copied.
+
+## I — Export and closure
+
+Athlete/eligible parent → export → reauthenticate → CSV/detail or PDF summary → private 24-hour download. Download is optional.
+
+Close profile → verify authority → show linked-profile implications → reauthenticate and confirm → immediate access revocation → anonymisation within 30 days. Parent-account closure requires transfer or explicit closure of under-16 child profiles. No orphaned child profiles and no restoration of closed accounts from backup.
+
+## Screen design and verification
+
+Produce mobile wireframes for Today/Week, logging/scoring, manager review, parent transition and per-arrow analytics before implementation. Include loading/empty/error/conflict/permission states. Numeric scoring is the accessible equivalent to plotting. Preserve valid form entries after errors; every write gives a clear outcome without duplicate submissions.
