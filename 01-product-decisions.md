@@ -42,8 +42,9 @@ Club, state and team memberships are future scope. Payments, competition registr
 Confirmed product direction:
 - System Plan Managers are humans who use AI and software to generate personalised shooting plans. Multiple people may hold this role.
 - The default plan duration is 12 weeks.
-- Users with plan-editing permission can swap planned activities between two selected days.
-- Athlete/parent/coach age and permission rules apply to day swapping; view-only users cannot swap days.
+- Users with plan-editing permission can move an individual planned session or exercise to another day without swapping with an activity on that day.
+- Moving a session leaves other sessions on both days unchanged; entire-day schedule swapping is not required.
+- Athlete/parent/coach age and permission rules apply to moving sessions; view-only users cannot move sessions.
 - Plan duration is configurable for shorter or longer periods, up to a maximum of one year.
 - Weekly AI recommendations and Plan Manager review continue throughout the selected plan duration.
 - Plan Managers are involved at both stages: reviewing and publishing initial plans, and reviewing weekly AI change recommendations before releasing them to the athlete/parent/authorised coach.
@@ -67,12 +68,13 @@ Confirmed product direction:
 - Ages 14–15 can view recommendations but cannot accept changes.
 - Until accepted, the active plan remains unchanged. Completed-session history is preserved.
 
-Proposed day-swap behaviour:
-- Show both days and their planned activities before confirming the swap.
-- Exchange the selected planned activities and their instructions/targets without changing score records or completed-session history.
+Proposed session-move behaviour:
+- Select an individual planned session or exercise and a destination date, then confirm the move.
+- Move its instructions and planned targets together without changing recorded scores or completed-session history.
+- Do not exchange or overwrite other sessions on either date.
 - Preserve a record of the schedule change and use the revised schedule in subsequent AI recommendations.
 - Warn about conflicts with recorded range availability, competitions or recovery constraints.
-- Before implementation, confirm whether a swap exchanges entire daily schedules or individual sessions, whether rest days can be selected, and how partially completed activities are handled.
+- Before implementation, confirm handling of moves onto rest days, outside the plan period and partially completed activities.
 
 Proposed weekly review details:
 - Consider actual versus planned arrow volume, session completion, comparable scores, recorded effort, training notes and known schedule or competition changes where available.
@@ -328,6 +330,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 | 22 October 2026 | D15 | Confirmed completed/partially completed/skipped statuses, actual arrows shot, optional effort (1–10), optional notes and scores linked through scoring. | Product owner |
 | 22 October 2026 | D15 | Confirmed basic non-shooting sessions for launch with completion and feedback, no required arrow count, and detailed tracking deferred to future releases. | Product owner |
 | 22 October 2026 | D02/D15 | Confirmed calendar entries marked "Rest Day" without required logging, and the ability to swap planned activities between two days under existing plan-editing permissions. | Product owner |
+| 22 October 2026 | D02 | Clarified rescheduling means moving individual sessions/exercises without a reciprocal swap; other sessions remain on their existing dates. Supersedes the earlier day-swap direction. | Product owner |
 
 ## Completion checklist
 
@@ -366,8 +369,8 @@ Historical entries record earlier decisions; the latest clarification and curren
 - [x] Confirm D15 statuses, actual arrows, optional effort (1–10), optional notes and linked scoring.
 - [x] Confirm basic non-shooting sessions with completion/feedback and no required arrow count; detailed tracking deferred.
 - [x] Confirm calendar entries marked "Rest Day" with no required logging.
-- [x] Confirm swapping planned activities between two days by users with plan-editing permission.
-- [ ] Confirm day-swap scope and handling of rest days, conflicts and started activities.
+- [x] Confirm individual sessions/exercises can move to another day without a swap, under existing plan-editing permissions.
+- [ ] Confirm moves onto rest days, conflicts, plan-boundary handling and started activities.
 - [ ] Accept or revise D10/D14 proposals.
 - [ ] Identify pilot participants; keep D09 deferred until scope estimation.
 - [ ] Mark this document approved before propagating decisions to documents 02–07.
