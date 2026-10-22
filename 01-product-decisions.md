@@ -258,9 +258,14 @@ The earlier proposed totals-only MVP approach is superseded. The scoring interac
 
 Confirmed intent: attempt to anonymise all user-related data on leaving/deleting an account, while preserving useful data only where it is genuinely anonymous.
 
+Confirmed export requirement:
+- Users can download their training data, including plans, session logs and scores, before deleting their account.
+- Export is offered as an option before closure; downloading it is not a requirement for deletion.
+- Exports follow existing access permissions. Junior/guardian export authorisation details and file formats remain to be defined.
+
 Proposed operating rules:
 1. Treat leaving as an explicit closure request; sign-out, inactivity or ending a coaching relationship alone does not trigger deletion.
-2. Offer a data export before closure and verify that the requester is authorised. Junior and guardian closure rules require explicit definition.
+2. Verify that the requester is authorised for the export or closure. The pre-deletion export option is confirmed above; junior and guardian authorisation rules require explicit definition.
 3. Revoke account access, invitations and active relationships when closure is confirmed.
 4. Assess all relevant records, including profiles, session histories, free text, relationships, identifiers, logs and any files.
 5. Do not treat changing a name to "Anonymous" as sufficient. Remove or generalise identifying details and linkages; prefer anonymous aggregate statistics where detailed histories could identify someone.
@@ -350,6 +355,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 | 22 October 2026 | D02 | Confirmed one active plan per athlete, warning before confirmed plan replacement, preserved history, and adaptation of the existing plan based on completed training under existing permissions/review rules. | Product owner |
 | 22 October 2026 | D07/D14 | Confirmed a four-week pilot with 5–10 athletes, at least two coaches and at least one parent-managed junior. Success targets remain proposed. | Product owner |
 | 22 October 2026 | D14 | Removed proposed pilot success targets. The pilot gathers feedback and identifies improvements without formal criteria or pass/fail assessment. | Product owner |
+| 22 October 2026 | D12 | Confirmed users can download plans, session logs and scores before deleting their account; export is optional rather than a deletion prerequisite. | Product owner |
 
 ## Completion checklist
 
@@ -389,7 +395,8 @@ Historical entries record earlier decisions; the latest clarification and curren
 - [x] Confirm optional distance-specific sight marks stored against each bow.
 - [x] Confirm athlete/parent score corrections after round completion, with original/corrected values, editor and time retained.
 - [ ] Confirm equipment details/retirement, scoring-format details and plotted-shot correction behaviour.
-- [ ] Confirm retention operations and closure timescales.
+- [x] Confirm users can export plans, session logs and scores before account deletion.
+- [ ] Confirm export formats/authorisation, retention operations and closure timescales.
 - [x] Confirm D15 statuses, actual arrows, optional effort (1–10), optional notes and linked scoring.
 - [x] Confirm basic non-shooting sessions with completion/feedback and no required arrow count; detailed tracking deferred.
 - [x] Confirm calendar entries marked "Rest Day" with no required logging.
