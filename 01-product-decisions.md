@@ -26,7 +26,7 @@ Club, state and team memberships are future scope. Payments, competition registr
 | D03 | Reusable templates | A reusable template library is outside version one. Shared AI-generated plans become independent copies owned by their receiving archers. | Confirmed |
 | D04 | Multiple coaches | An athlete can have multiple coaches, including a physio and an archery technical coach. The athlete aged 16+ or parent managing the junior profile chooses plan access separately for each connected coach: view-only by default, with plan-editing permission explicitly granted and revocable. Detailed edit scope and conflict handling remain to be defined. | Partial |
 | D05 | Coach relationships and discovery | Coaches and athletes can invite, accept or reject one another. Both may choose whether to be listed. Ending a relationship immediately removes the coach's access to the athlete's plans and history. The coach retains a separate record of their own proposals and authored revisions, without continued athlete-data access. Listings are visible only to signed-in users. Profiles include a "Stay out of Search" toggle that excludes the user from discovery when selected. Under-16 athlete profiles are always excluded. | Partial |
-| D06 | Junior access | Below 14, a parent creates an account and manages a linked child athlete profile. At ages 14–15, the junior may have a login with view-only access to their own training information; the parent continues to manage edits. From age 16, the athlete can edit their own training data through the agreed account transition. | Partial — age thresholds confirmed; verification and parent-access transition pending |
+| D06 | Junior access | Below 14, a parent creates an account and manages a linked child athlete profile. At ages 14–15, the junior may have a login with view-only access to their own training information; the parent continues to manage edits. From age 16, the athlete can edit their own training data through the agreed account transition. | Partial — age thresholds and athlete-controlled parent access confirmed; verification and transition activation pending |
 | D07 | Pilot participants | Juniors are included. Participant numbers, coaches and recruitment arrangements remain to be confirmed. | Partial |
 | D08 | Testing budget | EUR 45 per month on Azure. Cost planning must include the application, database, email, backups and monitoring. The production budget is separate and not yet agreed. | Confirmed for testing |
 | D09 | Pilot date | Set after the MVP scope is agreed and estimated. No committed launch date yet. | Deferred |
@@ -112,7 +112,7 @@ Confirmed product direction:
 - A view-only coach cannot modify the plan or apply AI recommendations. A coach with plan-editing permission may do so within the agreed editing scope.
 - Ages 14–15 cannot grant or revoke coach permissions.
 - These permissions do not grant authority over another athlete or another coach's private notes.
-- Parent authority after the age-16 transition remains subject to the separate transition decision.
+- From age 16, the athlete chooses each linked parent's continued access: view-only, editing or no access.
 - Ending a coaching relationship immediately revokes the coach's access to the athlete's active plans, logs, scores, feedback and historical records.
 - The coach can still access a separate contribution history containing their own proposals and authored revisions. This is not access to the athlete's full historical plan or later activity.
 - The contribution record must exclude unrelated athlete data and later changes by the athlete, parent, AI or other coaches.
@@ -146,13 +146,17 @@ Confirmed product direction:
 - At ages 14–15, view-only means no changes to training data, no logging, no plan sharing and no management of coach relationships.
 - Until the age-16 transition, the parent continues to enter logs and make permitted changes. Coaches may act only within their separately agreed permissions.
 - Reaching 14 does not automatically remove parental access.
+- From age 16, the athlete chooses whether a linked parent has view-only access, editing access or no access.
+- The athlete can subsequently change or revoke that parent access.
+- View-only parent access permits no changes to plans, logs or scores. Parent editing access includes score entry/corrections within the agreed athlete/parent permissions.
+- Parent status alone does not override the athlete's age-16 access decision.
 
 Proposed design implication: retain one stable athlete profile and link the junior's login to it, rather than duplicating or moving training records. Account security and privacy requests need separate handling from read-only training permissions.
 
 Still to decide:
 - How is the confirmed age-16 editing transition activated and verified?
 - How are age and guardian authority verified, and how is the junior login activated?
-- Which actions remain available to parents after greater independence is granted?
+- How is the parent-access choice presented at the age-16 transition, and what access applies while awaiting the athlete's choice? The athlete's right to choose viewing/editing/no access is confirmed.
 
 A read-only login is a product permission, not a substitute for a lawful basis for processing children's data. In Ireland, the digital age of consent is 16 where an online service relies on consent. The proposed age-14 viewing threshold does not by itself establish independent consent.
 
@@ -194,7 +198,7 @@ Confirmed product direction:
 - The eligible athlete or managing parent can correct an incorrectly entered score after a round is completed.
 - Preserve a correction history showing the original and corrected values, who made the correction and when.
 - Recalculate affected end, round and session totals after a score correction; coach and Plan Manager score-editing restrictions still apply.
-- Parent scoring access after the athlete's age-16 transition remains subject to the parent-access decision.
+- From age 16, a parent can enter or correct scores only if the athlete has granted that parent editing access; viewing or no access does not allow score edits.
 
 Proposed MVP behaviour:
 - Organise a round into numbered ends with a configured number of arrows per end.
@@ -287,6 +291,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 | 22 October 2026 | D11 | Confirmed named saved arrow sets and multiple bows per athlete profile, with equipment selected per session/round and historical selections preserved. | Product owner |
 | 22 October 2026 | D11 | Confirmed optional sight marks by bow and distance for range lookup. | Product owner |
 | 22 October 2026 | D11 | Confirmed athlete/parent corrections after round completion for input errors, with original/corrected values, editor and timestamp preserved and totals recalculated. | Product owner |
+| 22 October 2026 | D06 | Confirmed athlete control of linked-parent access from age 16: view-only, editing or none, with subsequent changes/revocation allowed. | Product owner |
 
 ## Completion checklist
 
@@ -305,7 +310,8 @@ Historical entries record earlier decisions; the latest clarification and curren
 - [x] Confirm "Stay out of Search" is off by default for eligible new accounts; under-16 exclusions still apply.
 - [ ] Confirm hidden-user invitations, detailed coach edit scope, conflict handling and contribution-history details.
 - [x] Confirm junior editing threshold: 16; ages 14–15 are view-only.
-- [ ] Confirm verification and parent/junior transition rules.
+- [x] Confirm athletes aged 16+ choose and can change parent access: view-only, editing or none.
+- [ ] Confirm verification, transition activation and interim access before the athlete makes their choice.
 - [x] Confirm scoring supports recurve, compound and barebow at launch.
 - [x] Confirm indoor 30-arrow, 60-arrow and double 60-arrow formats.
 - [x] Confirm outdoor 720 and double 720, with valid saved 36-arrow training results.
