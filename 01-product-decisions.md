@@ -66,6 +66,8 @@ Confirmed product direction:
 - The recipient's copy follows the existing age and access rules: ages 14–15 remain view-only, with an eligible parent or authorised coach managing edits.
 - Only plan instructions and structure are copied; the sender's profile, logs, scores and feedback are not shared.
 - AI reviews completed training and available feedback weekly and recommends adjustments to upcoming sessions.
+- Each eligible athlete aged 16+, or the managing parent for an under-16 athlete, can choose and change the weekly review day for that athlete's plan.
+- The selected day schedules preparation of the weekly review. Plan Manager review remains required before recommendations are released; it does not promise immediate release or automatic application.
 - Weekly recommendations require acceptance by an eligible athlete aged 16+, a parent managing the junior profile, or a coach with the necessary plan-editing permission before changing the active plan.
 - Ages 14–15 can view recommendations but cannot accept changes.
 - Until accepted, the active plan remains unchanged. Completed-session history is preserved.
@@ -89,7 +91,7 @@ Proposed weekly review details:
 - Preserve human edits and highlight any proposed changes to edited sessions.
 - Review the current plan version when applying accepted changes so newer human edits are not silently overwritten.
 - If evidence is insufficient, explain the uncertainty and recommend retaining the plan or requesting missing information rather than inventing progress.
-- Weekly review timing remains to be defined. Individual acceptance, editing and rejection with decision history are confirmed above.
+- Weekly review day is chosen by the eligible athlete/managing parent. Time of day, timezone handling and changes to an already scheduled review remain to be defined. Individual acceptance, editing and rejection with decision history are confirmed above.
 
 Proposed MVP behaviour:
 - Generate a personal plan from the athlete's goals, experience, current training volume, schedule, range access and competition dates.
@@ -106,7 +108,7 @@ Still to decide:
 - Who can change plan duration, and how should a duration change affect existing future sessions? The 12-week default and one-year maximum are confirmed.
 - Which athlete data fields can an assigned or covering Plan Manager access? Assignment-only access is confirmed.
 - Which AI provider or external service will generate plans? No provider or integration is selected.
-- What day/time should weekly recommendations be prepared, and can users request an additional review?
+- What time/timezone should apply to the user-selected review day, how should review-day changes affect pending reviews, and can users request an additional review?
 - What is the detailed scope of coach plan-editing permission, and how are conflicting edits handled? Per-coach view versus edit selection is confirmed.
 - How is a shared copy received and activated? Copy ownership is confirmed; receipt and activation flow remain to be defined.
 
@@ -338,6 +340,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 | 22 October 2026 | D02 | Clarified rescheduling means moving individual sessions/exercises without a reciprocal swap; other sessions remain on their existing dates. Supersedes the earlier day-swap direction. | Product owner |
 | 22 October 2026 | D02/D15 | Confirmed sessions may move onto planned Rest Days with a warning and user confirmation. | Product owner |
 | 22 October 2026 | D02 | Confirmed individual acceptance, editing or rejection of weekly recommendations, with a retained record of the original suggestion, user decision, edits, actor, time and application outcome. | Product owner |
+| 22 October 2026 | D02 | Confirmed eligible athletes/managing parents choose and can change their weekly review day; Plan Manager review before release still applies. | Product owner |
 
 ## Completion checklist
 
@@ -349,7 +352,8 @@ Historical entries record earlier decisions; the latest clarification and curren
 - [x] Confirm weekly AI recommendations with eligible-user acceptance before plan updates.
 - [x] Confirm shared copies belong to the receiving archer and are independent of the original.
 - [x] Confirm individual weekly recommendations can be accepted, edited or rejected, with original suggestion, decision, edits, actor, time and application history retained.
-- [ ] Confirm weekly review timing, validation, edit preservation and shared-copy receipt/activation.
+- [x] Confirm eligible athletes/managing parents choose and can change their weekly review day.
+- [ ] Confirm review time/timezone, validation, edit preservation and shared-copy receipt/activation.
 - [x] Confirm per-coach plan access: view-only by default; eligible athlete/parent grants or revokes editing.
 - [x] Confirm immediate relationship-end revocation with a separate coach contribution history.
 - [x] Confirm the athlete retains their history of the coach's original contributions.
