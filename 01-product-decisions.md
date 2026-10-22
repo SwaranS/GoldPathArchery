@@ -165,6 +165,9 @@ Confirmed product direction:
 - Scoring supports recurve, compound and barebow at launch. Round and score validation must account for the selected bow type.
 - Indoor scoring supports 30-arrow rounds, 60-arrow rounds and double 60-arrow rounds (two 60-arrow rounds, 120 arrows overall). Distances, target faces and bow-specific score rules remain to be confirmed.
 - Outdoor scoring supports 720 and double 720 rounds.
+- Any unfinished round can be saved and resumed later, preserving the entered scores and the next entry position.
+- Saved incomplete rounds remain clearly distinguishable from completed rounds.
+- Adding future scoring formats, such as 1440 and 900 rounds, must be straightforward. These are future extension examples, not additional launch formats.
 - A training score containing only 36 arrows is valid and can be saved without completing the full outdoor round.
 - Store and display the actual number of scored arrows and the corresponding maximum score. A saved 36-arrow training result is distinguished from a completed 720 or double 720.
 - Unscored arrows are not treated as misses or zeros; comparisons must account for the different arrow counts.
@@ -187,13 +190,17 @@ Proposed MVP behaviour:
 - Support corrections to individual entries and distinguish unrecorded arrows from misses.
 - Validate each score, including X and miss where supported, against the selected scoring format.
 - Preserve arrow-level data for progress analysis and weekly AI recommendations.
+- Proposed design: define round formats through reusable, versioned scoring definitions covering stages/distances, target faces, ends, arrows per end, allowed scores and bow-specific rules.
+- Support format definitions with multiple stages or distances so future 1440/900 formats do not require redesigning the core scoring flow.
+- Preserve the scoring definition used by an existing round when format definitions change; historical and resumed rounds must remain consistent.
+- Confirm the rules for each new format before enabling it. The exact format-management workflow will be defined during architecture/design.
 
 Still to decide:
 - How are optional physical arrow identifiers entered: free entry, selection from an equipment list, or both?
 - Which distances, target faces, arrows per end and bow-specific scoring rules apply to the confirmed indoor/outdoor formats?
 - Indoor double 60-arrow and outdoor double 720 rounds are confirmed. Which other combinations of rounds within a session are required?
 - Are target-face plotting and analysis by physical arrow identifier required in MVP or later? Optional identifier capture itself is already agreed.
-- Can saved partial rounds be resumed later, and should other partial arrow counts also be accepted? A saved 36-arrow training result is already confirmed.
+- How should a user mark a partial training round as finished without completing its full scheduled arrow count? Saving and resuming any unfinished round is confirmed.
 - How is the athlete/parent score-correction history handled? Coach score editing is excluded.
 
 The earlier proposed totals-only MVP approach is superseded. The scoring interaction should be reviewed before implementation.
@@ -260,6 +267,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 | 22 October 2026 | D11 | Confirmed launch scoring support for recurve, compound and barebow. | Product owner |
 | 22 October 2026 | D11 | Confirmed indoor 30-arrow, 60-arrow and double 60-arrow rounds (120 arrows overall). | Product owner |
 | 22 October 2026 | D11 | Confirmed outdoor 720 and double 720 formats; users may save 36-arrow training scores without completing a full round. | Product owner |
+| 22 October 2026 | D11 | Confirmed saving/resuming unfinished rounds and easy extension to future round formats such as 1440 and 900; these examples are not added to launch scope. | Product owner |
 
 ## Completion checklist
 
@@ -282,6 +290,8 @@ Historical entries record earlier decisions; the latest clarification and curren
 - [x] Confirm scoring supports recurve, compound and barebow at launch.
 - [x] Confirm indoor 30-arrow, 60-arrow and double 60-arrow formats.
 - [x] Confirm outdoor 720 and double 720, with valid saved 36-arrow training results.
+- [x] Confirm saving and resuming any unfinished round.
+- [x] Confirm easy future extension to additional formats, including 1440 and 900.
 - [x] Confirm required arrow-by-arrow scoring and optional physical arrow identifier capture in MVP.
 - [x] Confirm score entry and correction remain controlled by the eligible athlete/managing parent; coaches and Plan Managers cannot edit scores.
 - [ ] Confirm identifier entry method, initial scoring formats, double rounds and correction-history rules.
