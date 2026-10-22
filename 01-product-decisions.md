@@ -62,6 +62,8 @@ Confirmed product direction:
 - Assignment-scoped access does not grant score-editing rights or authority to accept weekly changes on the athlete's behalf. Exact accessible data fields and assignment-administration permissions remain to be defined.
 - This restores the human System Plan Manager role and supersedes the earlier wording that removed that role.
 - Sharing creates a separate, independent copy owned by the receiving archer.
+- Shared plans arrive as inactive copies. The receiving athlete aged 16+, or managing parent for an under-16 athlete, chooses a start date and explicitly activates the copy.
+- Receiving a shared plan does not automatically change the recipient's active training schedule. Existing view-only restrictions apply to ages 14–15.
 - Changes to either plan do not alter the other, and the sender gains no access to the recipient's data through sharing.
 - The recipient's copy follows the existing age and access rules: ages 14–15 remain view-only, with an eligible parent or authorised coach managing edits.
 - Only plan instructions and structure are copied; the sender's profile, logs, scores and feedback are not shared.
@@ -110,7 +112,7 @@ Still to decide:
 - Which AI provider or external service will generate plans? No provider or integration is selected.
 - What time/timezone should apply to the user-selected review day, how should review-day changes affect pending reviews, and can users request an additional review?
 - What is the detailed scope of coach plan-editing permission, and how are conflicting edits handled? Per-coach view versus edit selection is confirmed.
-- How is a shared copy received and activated? Copy ownership is confirmed; receipt and activation flow remain to be defined.
+- What happens if activating a shared copy overlaps an existing active plan? Inactive receipt, recipient-selected start date and explicit activation are confirmed.
 
 AI-assisted generation under the human System Plan Manager is in MVP scope. The other project documents will be reconciled only after this product decision document is completed.
 
@@ -341,6 +343,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 | 22 October 2026 | D02/D15 | Confirmed sessions may move onto planned Rest Days with a warning and user confirmation. | Product owner |
 | 22 October 2026 | D02 | Confirmed individual acceptance, editing or rejection of weekly recommendations, with a retained record of the original suggestion, user decision, edits, actor, time and application outcome. | Product owner |
 | 22 October 2026 | D02 | Confirmed eligible athletes/managing parents choose and can change their weekly review day; Plan Manager review before release still applies. | Product owner |
+| 22 October 2026 | D02 | Confirmed shared plans arrive as inactive copies; the receiving eligible athlete/managing parent chooses a start date and activates them explicitly. | Product owner |
 
 ## Completion checklist
 
@@ -353,7 +356,8 @@ Historical entries record earlier decisions; the latest clarification and curren
 - [x] Confirm shared copies belong to the receiving archer and are independent of the original.
 - [x] Confirm individual weekly recommendations can be accepted, edited or rejected, with original suggestion, decision, edits, actor, time and application history retained.
 - [x] Confirm eligible athletes/managing parents choose and can change their weekly review day.
-- [ ] Confirm review time/timezone, validation, edit preservation and shared-copy receipt/activation.
+- [x] Confirm shared copies arrive inactive and require a recipient-selected start date and explicit activation.
+- [ ] Confirm review time/timezone, validation, edit preservation and handling of overlapping active plans.
 - [x] Confirm per-coach plan access: view-only by default; eligible athlete/parent grants or revokes editing.
 - [x] Confirm immediate relationship-end revocation with a separate coach contribution history.
 - [x] Confirm the athlete retains their history of the coach's original contributions.
