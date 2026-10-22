@@ -64,6 +64,11 @@ Confirmed product direction:
 - Sharing creates a separate, independent copy owned by the receiving archer.
 - Shared plans arrive as inactive copies. The receiving athlete aged 16+, or managing parent for an under-16 athlete, chooses a start date and explicitly activates the copy.
 - Receiving a shared plan does not automatically change the recipient's active training schedule. Existing view-only restrictions apply to ages 14–15.
+- Each athlete has only one active training plan at a time.
+- Activating a different plan while one is active shows a replacement warning before the user confirms. On confirmation, the new plan becomes active and the former plan becomes inactive.
+- Replacing the active plan preserves the former plan, completed-session records, scores and decision history.
+- The user and system can adapt the existing active plan based on the athlete's completed training and feedback; a new plan is not required for routine adjustments.
+- User edits follow existing athlete/parent/coach permissions. System-generated changes follow the agreed Plan Manager review and eligible-user acceptance process.
 - Changes to either plan do not alter the other, and the sender gains no access to the recipient's data through sharing.
 - The recipient's copy follows the existing age and access rules: ages 14–15 remain view-only, with an eligible parent or authorised coach managing edits.
 - Only plan instructions and structure are copied; the sender's profile, logs, scores and feedback are not shared.
@@ -112,7 +117,7 @@ Still to decide:
 - Which AI provider or external service will generate plans? No provider or integration is selected.
 - What time/timezone should apply to the user-selected review day, how should review-day changes affect pending reviews, and can users request an additional review?
 - What is the detailed scope of coach plan-editing permission, and how are conflicting edits handled? Per-coach view versus edit selection is confirmed.
-- What happens if activating a shared copy overlaps an existing active plan? Inactive receipt, recipient-selected start date and explicit activation are confirmed.
+- Define future-dated activation behaviour so only one plan is active at any time. Replacement of an active plan requires a warning and user confirmation.
 
 AI-assisted generation under the human System Plan Manager is in MVP scope. The other project documents will be reconciled only after this product decision document is completed.
 
@@ -344,6 +349,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 | 22 October 2026 | D02 | Confirmed individual acceptance, editing or rejection of weekly recommendations, with a retained record of the original suggestion, user decision, edits, actor, time and application outcome. | Product owner |
 | 22 October 2026 | D02 | Confirmed eligible athletes/managing parents choose and can change their weekly review day; Plan Manager review before release still applies. | Product owner |
 | 22 October 2026 | D02 | Confirmed shared plans arrive as inactive copies; the receiving eligible athlete/managing parent chooses a start date and activates them explicitly. | Product owner |
+| 22 October 2026 | D02 | Confirmed one active plan per athlete, warning before confirmed plan replacement, preserved history, and adaptation of the existing plan based on completed training under existing permissions/review rules. | Product owner |
 
 ## Completion checklist
 
@@ -357,7 +363,9 @@ Historical entries record earlier decisions; the latest clarification and curren
 - [x] Confirm individual weekly recommendations can be accepted, edited or rejected, with original suggestion, decision, edits, actor, time and application history retained.
 - [x] Confirm eligible athletes/managing parents choose and can change their weekly review day.
 - [x] Confirm shared copies arrive inactive and require a recipient-selected start date and explicit activation.
-- [ ] Confirm review time/timezone, validation, edit preservation and handling of overlapping active plans.
+- [x] Confirm one active plan per athlete, with a warning before confirmed replacement and prior history preserved.
+- [x] Confirm the existing plan can be adapted to completed work through agreed user permissions and system review/acceptance.
+- [ ] Confirm review time/timezone, validation, edit preservation and future-dated activation behaviour.
 - [x] Confirm per-coach plan access: view-only by default; eligible athlete/parent grants or revokes editing.
 - [x] Confirm immediate relationship-end revocation with a separate coach contribution history.
 - [x] Confirm the athlete retains their history of the coach's original contributions.
