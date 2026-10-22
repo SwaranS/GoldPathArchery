@@ -186,6 +186,8 @@ Confirmed product direction:
 - Until the age-16 transition, the parent continues to enter logs and make permitted changes. Coaches may act only within their separately agreed permissions.
 - Reaching 14 does not automatically remove parental access.
 - From age 16, the athlete chooses whether a linked parent has view-only access, editing access or no access.
+- When the athlete turns 16, existing parent editing access becomes view-only until the athlete makes a choice. A parent whose access was already revoked is not granted access again.
+- During this interim view-only period, the parent cannot edit plans, log sessions, change scores, export data or request profile closure.
 - The athlete can subsequently change or revoke that parent access.
 - View-only parent access permits no changes to plans, logs or scores. Parent editing access includes score entry/corrections within the agreed athlete/parent permissions.
 - Parent status alone does not override the athlete's age-16 access decision.
@@ -196,7 +198,7 @@ Proposed design implication: retain one stable athlete profile and link the juni
 Still to decide:
 - How is the confirmed age-16 editing transition activated and verified?
 - How are accounts confirmed and junior logins activated? Entered date of birth and parent/guardian declaration are confirmed for pilot registration.
-- How is the parent-access choice presented at the age-16 transition, and what access applies while awaiting the athlete's choice? The athlete's right to choose viewing/editing/no access is confirmed.
+- How is the parent-access choice presented at the age-16 transition? Interim parent access is confirmed as view-only, without restoring previously revoked access.
 
 A read-only login is a product permission, not a substitute for a lawful basis for processing children's data. In Ireland, the digital age of consent is 16 where an online service relies on consent. The proposed age-14 viewing threshold does not by itself establish independent consent.
 
@@ -388,6 +390,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 | 22 October 2026 | D06/D12 | Confirmed managing parents may export/request closure for under-16 profiles; control passes to the athlete at 16 and is separate from continued parent viewing/editing access. | Product owner |
 | 22 October 2026 | D06 | Confirmed manual administrator verification of parent/child relationships and age transitions is not required for the private pilot; self-service mechanics remain for design. | Product owner |
 | 22 October 2026 | D06 | Confirmed private-pilot registration uses entered date of birth and a parent/guardian declaration, without manual administrator verification. | Product owner |
+| 22 October 2026 | D06 | Confirmed interim parent access at age 16 is view-only until the athlete chooses viewing, editing or no access; previously revoked access is not restored. | Product owner |
 
 ## Completion checklist
 
@@ -418,7 +421,8 @@ Historical entries record earlier decisions; the latest clarification and curren
 - [x] Confirm athletes aged 16+ choose and can change parent access: view-only, editing or none.
 - [x] Confirm no manual administrator verification of parent/child relationships or age transitions for the private pilot.
 - [x] Confirm entered date of birth and parent/guardian declaration for private-pilot registration.
-- [ ] Define account confirmation, transition activation and interim parent access.
+- [x] Confirm existing parent access becomes view-only at 16 until the athlete chooses, without restoring revoked access.
+- [ ] Define account confirmation and transition activation mechanics.
 - [x] Confirm scoring supports recurve, compound and barebow at launch.
 - [x] Confirm indoor 30-arrow, 60-arrow and double 60-arrow formats.
 - [x] Confirm outdoor 720 and double 720, with valid saved 36-arrow training results.
