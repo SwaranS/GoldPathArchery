@@ -44,6 +44,8 @@ Confirmed product direction:
 - The default plan duration is 12 weeks.
 - Users with plan-editing permission can move an individual planned session or exercise to another day without swapping with an activity on that day.
 - Moving a session leaves other sessions on both days unchanged; entire-day schedule swapping is not required.
+- Users with plan-editing permission may move a session onto a planned Rest Day. Show a warning and require confirmation before applying the move.
+- After confirmation, the destination displays the moved session and is no longer presented as a rest-only day; preserve the original rest-day designation in schedule-change history.
 - Athlete/parent/coach age and permission rules apply to moving sessions; view-only users cannot move sessions.
 - Plan duration is configurable for shorter or longer periods, up to a maximum of one year.
 - Weekly AI recommendations and Plan Manager review continue throughout the selected plan duration.
@@ -74,7 +76,7 @@ Proposed session-move behaviour:
 - Do not exchange or overwrite other sessions on either date.
 - Preserve a record of the schedule change and use the revised schedule in subsequent AI recommendations.
 - Warn about conflicts with recorded range availability, competitions or recovery constraints.
-- Before implementation, confirm handling of moves onto rest days, outside the plan period and partially completed activities.
+- Before implementation, confirm handling of moves outside the plan period and partially completed activities. Moves onto Rest Days with warning/confirmation are agreed.
 
 Proposed weekly review details:
 - Consider actual versus planned arrow volume, session completion, comparable scores, recorded effort, training notes and known schedule or competition changes where available.
@@ -331,6 +333,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 | 22 October 2026 | D15 | Confirmed basic non-shooting sessions for launch with completion and feedback, no required arrow count, and detailed tracking deferred to future releases. | Product owner |
 | 22 October 2026 | D02/D15 | Confirmed calendar entries marked "Rest Day" without required logging, and the ability to swap planned activities between two days under existing plan-editing permissions. | Product owner |
 | 22 October 2026 | D02 | Clarified rescheduling means moving individual sessions/exercises without a reciprocal swap; other sessions remain on their existing dates. Supersedes the earlier day-swap direction. | Product owner |
+| 22 October 2026 | D02/D15 | Confirmed sessions may move onto planned Rest Days with a warning and user confirmation. | Product owner |
 
 ## Completion checklist
 
@@ -370,7 +373,8 @@ Historical entries record earlier decisions; the latest clarification and curren
 - [x] Confirm basic non-shooting sessions with completion/feedback and no required arrow count; detailed tracking deferred.
 - [x] Confirm calendar entries marked "Rest Day" with no required logging.
 - [x] Confirm individual sessions/exercises can move to another day without a swap, under existing plan-editing permissions.
-- [ ] Confirm moves onto rest days, conflicts, plan-boundary handling and started activities.
+- [x] Confirm moves onto Rest Days are allowed with warning and confirmation.
+- [ ] Confirm other scheduling conflicts, plan-boundary handling and started activities.
 - [ ] Accept or revise D10/D14 proposals.
 - [ ] Identify pilot participants; keep D09 deferred until scope estimation.
 - [ ] Mark this document approved before propagating decisions to documents 02–07.
