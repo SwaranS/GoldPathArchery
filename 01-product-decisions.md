@@ -164,6 +164,10 @@ Confirmed product direction:
 - Indoor and outdoor scoring are essential.
 - Scoring supports recurve, compound and barebow at launch. Round and score validation must account for the selected bow type.
 - Indoor scoring supports 30-arrow rounds, 60-arrow rounds and double 60-arrow rounds (two 60-arrow rounds, 120 arrows overall). Distances, target faces and bow-specific score rules remain to be confirmed.
+- Outdoor scoring supports 720 and double 720 rounds.
+- A training score containing only 36 arrows is valid and can be saved without completing the full outdoor round.
+- Store and display the actual number of scored arrows and the corresponding maximum score. A saved 36-arrow training result is distinguished from a completed 720 or double 720.
+- Unscored arrows are not treated as misses or zeros; comparisons must account for the different arrow counts.
 - When scoring a round, users must be able to record each arrow's individual score.
 - Arrow-by-arrow entry is essential first-release functionality.
 - An optional physical arrow identifier, such as shaft #7, may be associated with each scored shot. This is what the product owner means by arrow number; it is distinct from shot order.
@@ -186,10 +190,11 @@ Proposed MVP behaviour:
 
 Still to decide:
 - How are optional physical arrow identifiers entered: free entry, selection from an equipment list, or both?
-- Which indoor/outdoor rounds are supported initially for recurve, compound and barebow, including arrows per end and score rules?
-- Indoor double 60-arrow rounds are confirmed. Are outdoor double rounds and other multiple-round sessions required?
+- Which distances, target faces, arrows per end and bow-specific scoring rules apply to the confirmed indoor/outdoor formats?
+- Indoor double 60-arrow and outdoor double 720 rounds are confirmed. Which other combinations of rounds within a session are required?
 - Are target-face plotting and analysis by physical arrow identifier required in MVP or later? Optional identifier capture itself is already agreed.
-- How are partial rounds and the athlete/parent score-correction history handled? Coach score editing is excluded.
+- Can saved partial rounds be resumed later, and should other partial arrow counts also be accepted? A saved 36-arrow training result is already confirmed.
+- How is the athlete/parent score-correction history handled? Coach score editing is excluded.
 
 The earlier proposed totals-only MVP approach is superseded. The scoring interaction should be reviewed before implementation.
 
@@ -254,6 +259,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 | 22 October 2026 | D02 | Confirmed a default 12-week plan duration, configurable for shorter or longer periods up to one year, with weekly reviews throughout. | Product owner |
 | 22 October 2026 | D11 | Confirmed launch scoring support for recurve, compound and barebow. | Product owner |
 | 22 October 2026 | D11 | Confirmed indoor 30-arrow, 60-arrow and double 60-arrow rounds (120 arrows overall). | Product owner |
+| 22 October 2026 | D11 | Confirmed outdoor 720 and double 720 formats; users may save 36-arrow training scores without completing a full round. | Product owner |
 
 ## Completion checklist
 
@@ -275,6 +281,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 - [ ] Confirm verification and parent/junior transition rules.
 - [x] Confirm scoring supports recurve, compound and barebow at launch.
 - [x] Confirm indoor 30-arrow, 60-arrow and double 60-arrow formats.
+- [x] Confirm outdoor 720 and double 720, with valid saved 36-arrow training results.
 - [x] Confirm required arrow-by-arrow scoring and optional physical arrow identifier capture in MVP.
 - [x] Confirm score entry and correction remain controlled by the eligible athlete/managing parent; coaches and Plan Managers cannot edit scores.
 - [ ] Confirm identifier entry method, initial scoring formats, double rounds and correction-history rules.
