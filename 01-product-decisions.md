@@ -225,6 +225,10 @@ Confirmed product direction:
 - Physical arrow identifiers are selected only from the athlete's saved arrows; free-text/manual identifier entry is not available while scoring.
 - Users can save arrows in named sets, such as indoor and outdoor sets.
 - An athlete profile can hold multiple saved bows.
+- Users can archive saved bows and physical arrows that are no longer used.
+- Archived equipment is excluded from selection for new sessions/rounds and new scored shots.
+- Past sessions and scores preserve their recorded equipment details and references when equipment is archived; archiving does not rewrite history.
+- Resuming or viewing an existing round must preserve any archived equipment already recorded on its historical shots.
 - Each saved bow can store sight marks for different distances, with distance units recorded, for lookup at the range.
 - Sight marks are optional and apply to bows using a sight; barebow equipment does not require them.
 - Users can select which saved bow and arrow set they use for a session or round, including using bow X one day and bow Y the next.
@@ -256,7 +260,7 @@ Proposed MVP behaviour:
 - Confirm the rules for each new format before enabling it. The exact format-management workflow will be defined during architecture/design.
 
 Still to decide:
-- Which details are required for saved bows and arrows, and how are they edited or retired while preserving historical equipment records? Named arrow sets, multiple bows and selection of equipment per session/round are confirmed.
+- Which details are required for saved bows and arrows, and how are equipment edits represented over time? Archiving and preservation of historical equipment records are confirmed.
 - Which distances, target faces, arrows per end and bow-specific scoring rules apply to the confirmed indoor/outdoor formats?
 - Indoor double 60-arrow and outdoor double 720 rounds are confirmed. Which other combinations of rounds within a session are required?
 - Is analysis by physical arrow identifier required in MVP or later? Numeric entry, target-face plotting and optional identifier capture are confirmed for launch.
@@ -391,6 +395,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 | 22 October 2026 | D06 | Confirmed manual administrator verification of parent/child relationships and age transitions is not required for the private pilot; self-service mechanics remain for design. | Product owner |
 | 22 October 2026 | D06 | Confirmed private-pilot registration uses entered date of birth and a parent/guardian declaration, without manual administrator verification. | Product owner |
 | 22 October 2026 | D06 | Confirmed interim parent access at age 16 is view-only until the athlete chooses viewing, editing or no access; previously revoked access is not restored. | Product owner |
+| 22 October 2026 | D11 | Confirmed equipment archiving: bows/arrows no longer used are excluded from new selection while past sessions and scores retain their equipment details. | Product owner |
 
 ## Completion checklist
 
@@ -435,7 +440,8 @@ Historical entries record earlier decisions; the latest clarification and curren
 - [x] Confirm named saved arrow sets, multiple bows per profile and equipment selection per session/round.
 - [x] Confirm optional distance-specific sight marks stored against each bow.
 - [x] Confirm athlete/parent score corrections after round completion, with original/corrected values, editor and time retained.
-- [ ] Confirm equipment details/retirement, scoring-format details and plotted-shot correction behaviour.
+- [x] Confirm archived bows/arrows are excluded from new selection while their historical session/score details are preserved.
+- [ ] Confirm equipment fields/edit history, scoring-format details and plotted-shot correction behaviour.
 - [x] Confirm users can export plans, session logs and scores before account deletion.
 - [x] Confirm CSV exports for analysis and a readable PDF summary.
 - [x] Confirm anonymisation as the primary closure approach, immediate access revocation and completion within 30 days.
