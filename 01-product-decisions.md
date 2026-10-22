@@ -191,6 +191,9 @@ Confirmed product direction:
 - Coaches cannot enter or edit the athlete's scores, including coaches with plan-editing permission.
 - Plan Manager status does not grant score-entry or correction rights. Viewing scores remains subject to separately agreed access.
 - AI recommendations cannot change recorded scores.
+- The eligible athlete or managing parent can correct an incorrectly entered score after a round is completed.
+- Preserve a correction history showing the original and corrected values, who made the correction and when.
+- Recalculate affected end, round and session totals after a score correction; coach and Plan Manager score-editing restrictions still apply.
 - Parent scoring access after the athlete's age-16 transition remains subject to the parent-access decision.
 
 Proposed MVP behaviour:
@@ -198,7 +201,7 @@ Proposed MVP behaviour:
 - Proposed interaction: allow users to switch between keypad and plotting without duplicating shots. Numeric-only entries have no assumed target coordinates; define boundary scoring and correction behaviour for plotted shots.
 - Track shot sequence (end number and position within the end) independently of any physical arrow identifier.
 - Calculate end subtotals and running round totals from individual scores.
-- Support corrections to individual entries and distinguish unrecorded arrows from misses.
+- Distinguish unrecorded arrows from misses; individual-score corrections and post-completion correction history are confirmed above.
 - Validate each score, including X and miss where supported, against the selected scoring format.
 - Preserve arrow-level data for progress analysis and weekly AI recommendations.
 - Proposed design: define round formats through reusable, versioned scoring definitions covering stages/distances, target faces, ends, arrows per end, allowed scores and bow-specific rules.
@@ -212,7 +215,7 @@ Still to decide:
 - Indoor double 60-arrow and outdoor double 720 rounds are confirmed. Which other combinations of rounds within a session are required?
 - Is analysis by physical arrow identifier required in MVP or later? Numeric entry, target-face plotting and optional identifier capture are confirmed for launch.
 - How should a user mark a partial training round as finished without completing its full scheduled arrow count? Saving and resuming any unfinished round is confirmed.
-- How is the athlete/parent score-correction history handled? Coach score editing is excluded.
+- Define the correction interaction for plotted shots so target position and recorded score remain consistent. Post-completion athlete/parent score corrections with history are confirmed.
 
 The earlier proposed totals-only MVP approach is superseded. The scoring interaction should be reviewed before implementation.
 
@@ -283,6 +286,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 | 22 October 2026 | D11 | Confirmed physical arrow selection from the athlete's saved arrows only; identifier selection remains optional and manual identifier entry during scoring is excluded. | Product owner |
 | 22 October 2026 | D11 | Confirmed named saved arrow sets and multiple bows per athlete profile, with equipment selected per session/round and historical selections preserved. | Product owner |
 | 22 October 2026 | D11 | Confirmed optional sight marks by bow and distance for range lookup. | Product owner |
+| 22 October 2026 | D11 | Confirmed athlete/parent corrections after round completion for input errors, with original/corrected values, editor and timestamp preserved and totals recalculated. | Product owner |
 
 ## Completion checklist
 
@@ -313,7 +317,8 @@ Historical entries record earlier decisions; the latest clarification and curren
 - [x] Confirm optional physical arrow identifiers are selected from saved arrows only.
 - [x] Confirm named saved arrow sets, multiple bows per profile and equipment selection per session/round.
 - [x] Confirm optional distance-specific sight marks stored against each bow.
-- [ ] Confirm equipment details/retirement, scoring-format details and correction-history rules.
+- [x] Confirm athlete/parent score corrections after round completion, with original/corrected values, editor and time retained.
+- [ ] Confirm equipment details/retirement, scoring-format details and plotted-shot correction behaviour.
 - [ ] Confirm retention operations and closure timescales.
 - [ ] Accept or revise D10, D14 and D15 proposals.
 - [ ] Identify pilot participants; keep D09 deferred until scope estimation.
