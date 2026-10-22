@@ -69,6 +69,10 @@ Confirmed product direction:
 - Weekly recommendations require acceptance by an eligible athlete aged 16+, a parent managing the junior profile, or a coach with the necessary plan-editing permission before changing the active plan.
 - Ages 14–15 can view recommendations but cannot accept changes.
 - Until accepted, the active plan remains unchanged. Completed-session history is preserved.
+- Eligible users can accept, edit or reject each weekly AI recommendation individually.
+- Preserve a recommendation decision history containing the original suggestion, its affected sessions, the user's decision, any edited version, the acting user and decision time.
+- Record which accepted or edited recommendation was applied and the resulting plan version; rejected recommendations remain recorded without changing the active plan.
+- Recommendation history follows existing athlete/parent/coach/Plan Manager access rules and the account-closure deletion/anonymisation policy; keeping history does not grant new access or indefinite identifiable-data retention.
 
 Proposed session-move behaviour:
 - Select an individual planned session or exercise and a destination date, then confirm the move.
@@ -85,7 +89,7 @@ Proposed weekly review details:
 - Preserve human edits and highlight any proposed changes to edited sessions.
 - Review the current plan version when applying accepted changes so newer human edits are not silently overwritten.
 - If evidence is insufficient, explain the uncertainty and recommend retaining the plan or requesting missing information rather than inventing progress.
-- Weekly review timing, partial acceptance and rejection behaviour remain to be defined.
+- Weekly review timing remains to be defined. Individual acceptance, editing and rejection with decision history are confirmed above.
 
 Proposed MVP behaviour:
 - Generate a personal plan from the athlete's goals, experience, current training volume, schedule, range access and competition dates.
@@ -103,7 +107,6 @@ Still to decide:
 - Which athlete data fields can an assigned or covering Plan Manager access? Assignment-only access is confirmed.
 - Which AI provider or external service will generate plans? No provider or integration is selected.
 - What day/time should weekly recommendations be prepared, and can users request an additional review?
-- Can users accept individual recommendations, reject them, or edit them before applying?
 - What is the detailed scope of coach plan-editing permission, and how are conflicting edits handled? Per-coach view versus edit selection is confirmed.
 - How is a shared copy received and activated? Copy ownership is confirmed; receipt and activation flow remain to be defined.
 
@@ -334,6 +337,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 | 22 October 2026 | D02/D15 | Confirmed calendar entries marked "Rest Day" without required logging, and the ability to swap planned activities between two days under existing plan-editing permissions. | Product owner |
 | 22 October 2026 | D02 | Clarified rescheduling means moving individual sessions/exercises without a reciprocal swap; other sessions remain on their existing dates. Supersedes the earlier day-swap direction. | Product owner |
 | 22 October 2026 | D02/D15 | Confirmed sessions may move onto planned Rest Days with a warning and user confirmation. | Product owner |
+| 22 October 2026 | D02 | Confirmed individual acceptance, editing or rejection of weekly recommendations, with a retained record of the original suggestion, user decision, edits, actor, time and application outcome. | Product owner |
 
 ## Completion checklist
 
@@ -344,7 +348,8 @@ Historical entries record earlier decisions; the latest clarification and curren
 - [x] Confirm default plan duration of 12 weeks, configurable up to one year.
 - [x] Confirm weekly AI recommendations with eligible-user acceptance before plan updates.
 - [x] Confirm shared copies belong to the receiving archer and are independent of the original.
-- [ ] Confirm weekly review details, validation, edit preservation and shared-copy receipt/activation.
+- [x] Confirm individual weekly recommendations can be accepted, edited or rejected, with original suggestion, decision, edits, actor, time and application history retained.
+- [ ] Confirm weekly review timing, validation, edit preservation and shared-copy receipt/activation.
 - [x] Confirm per-coach plan access: view-only by default; eligible athlete/parent grants or revokes editing.
 - [x] Confirm immediate relationship-end revocation with a separate coach contribution history.
 - [x] Confirm the athlete retains their history of the coach's original contributions.
