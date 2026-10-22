@@ -27,7 +27,7 @@ Club, state and team memberships are future scope. Payments, competition registr
 | D04 | Multiple coaches | An athlete can have multiple coaches, including a physio and an archery technical coach. The athlete aged 16+ or parent managing the junior profile chooses plan access separately for each connected coach: view-only by default, with plan-editing permission explicitly granted and revocable. Detailed edit scope and conflict handling remain to be defined. | Partial |
 | D05 | Coach relationships and discovery | Coaches and athletes can invite, accept or reject one another. Both may choose whether to be listed. Ending a relationship immediately removes the coach's access to the athlete's plans and history. The coach retains a separate record of their own proposals and authored revisions, without continued athlete-data access. Listings are visible only to signed-in users. Profiles include a "Stay out of Search" toggle that excludes the user from discovery when selected. Under-16 athlete profiles are always excluded. | Partial |
 | D06 | Junior access | Below 14, a parent creates an account and manages a linked child athlete profile. At ages 14–15, the junior may have a login with view-only access to their own training information; the parent continues to manage edits. From age 16, the athlete can edit their own training data through the agreed account transition. | Partial — age thresholds and athlete-controlled parent access confirmed; verification and transition activation pending |
-| D07 | Pilot participants | Juniors are included. Participant numbers, coaches and recruitment arrangements remain to be confirmed. | Partial |
+| D07 | Pilot participants | A four-week pilot includes 5–10 athletes, at least two coaches and at least one parent-managed junior. Specific participants and recruitment arrangements remain to be confirmed. | Partial |
 | D08 | Testing budget | EUR 45 per month on Azure. Cost planning must include the application, database, email, backups and monitoring. The production budget is separate and not yet agreed. | Confirmed for testing |
 | D09 | Pilot date | Set after the MVP scope is agreed and estimated. No committed launch date yet. | Deferred |
 | D10 | Main return value | Know what to train today, record practice quickly and review progress with coaches. Parents record practice for juniors with view-only access. | Proposed |
@@ -274,11 +274,13 @@ References:
 - [Irish DPC: storage limitation and retention](https://dataprotection.ie/en/faqs/responsibilities-data-controllers/how-long-should-personal-data-be-held-meet-obligations-imposed-gdpr)
 - [Irish DPC: anonymisation and pseudonymisation](https://www.dataprotection.ie/en/dpc-guidance/anonymisation-pseudonymisation)
 
-## D14 — Proposed pilot defaults
+## D14 — Pilot scope and proposed success targets
 
-These are review suggestions, not commitments:
-- Pilot: 5–10 athlete profiles, at least 2 coaches and at least 1 parent-managed junior.
-- Observe usage for 4 weeks.
+Confirmed pilot scope:
+- 5–10 athletes, at least 2 coaches and at least 1 parent-managed junior.
+- Run the pilot for 4 weeks.
+
+Proposed success targets, awaiting confirmation:
 - At least 80% of pilot participants complete their role's core journey without assistance.
 - At least 60% of athlete profiles have weekly recorded activity in 3 of the 4 weeks, including parent-entered activity.
 - No unresolved critical access-control or data-loss defects at release.
@@ -350,6 +352,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 | 22 October 2026 | D02 | Confirmed eligible athletes/managing parents choose and can change their weekly review day; Plan Manager review before release still applies. | Product owner |
 | 22 October 2026 | D02 | Confirmed shared plans arrive as inactive copies; the receiving eligible athlete/managing parent chooses a start date and activates them explicitly. | Product owner |
 | 22 October 2026 | D02 | Confirmed one active plan per athlete, warning before confirmed plan replacement, preserved history, and adaptation of the existing plan based on completed training under existing permissions/review rules. | Product owner |
+| 22 October 2026 | D07/D14 | Confirmed a four-week pilot with 5–10 athletes, at least two coaches and at least one parent-managed junior. Success targets remain proposed. | Product owner |
 
 ## Completion checklist
 
@@ -397,5 +400,6 @@ Historical entries record earlier decisions; the latest clarification and curren
 - [x] Confirm moves onto Rest Days are allowed with warning and confirmation.
 - [ ] Confirm other scheduling conflicts, plan-boundary handling and started activities.
 - [ ] Accept or revise D10/D14 proposals.
-- [ ] Identify pilot participants; keep D09 deferred until scope estimation.
+- [x] Confirm four-week pilot with 5–10 athletes, at least two coaches and at least one parent-managed junior.
+- [ ] Identify specific pilot participants; keep D09 deferred until scope estimation.
 - [ ] Mark this document approved before propagating decisions to documents 02–07.
