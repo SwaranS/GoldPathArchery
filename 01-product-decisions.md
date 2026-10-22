@@ -32,7 +32,7 @@ Club, state and team memberships are future scope. Payments, competition registr
 | D09 | Pilot date | Set after the MVP scope is agreed and estimated. No committed launch date yet. | Deferred |
 | D10 | Main return value | Know what to train today, record practice quickly and review progress with coaches. Parents record practice for juniors with view-only access. | Proposed |
 | D11 | Scoring | Indoor and outdoor scoring for recurve, compound and barebow are essential at launch. Arrow-by-arrow scoring is required in MVP; totals-only entry is insufficient. Each score may optionally include the physical arrow identifier, such as the number on its shaft. Score entry and correction are controlled by the eligible athlete or managing parent; coaches and Plan Managers cannot edit scores. Supported formats remain to be agreed. | Partial |
-| D12 | Leaving, account deletion and retention | On confirmed account closure/deletion, remove access and delete or genuinely anonymise user-related data. Attempt anonymisation only where identity cannot reasonably be recovered; delete data that cannot be sufficiently anonymised unless a documented retention obligation applies. Permanent retention of identifiable or merely renamed records is not the policy. Operational timescales, export and backup expiry remain to be agreed. | Partial |
+| D12 | Leaving, account deletion and retention | On confirmed account closure/deletion, remove access and delete or genuinely anonymise user-related data. Attempt anonymisation only where identity cannot reasonably be recovered; delete data that cannot be sufficiently anonymised unless a documented retention obligation applies. Permanent retention of identifiable or merely renamed records is not the policy. Access ends immediately on confirmed closure; anonymisation processing is completed within 30 days. Export authorisation and backup expiry remain to be agreed. | Partial |
 | D13 | Hosting | Azure, in Europe. Specific region and services will be selected after requirements and budget review. | Confirmed direction |
 | D14 | Pilot purpose | No formal success criteria, numeric targets or pass/fail assessment. Use the pilot to gather feedback and identify improvements. | Confirmed |
 | D15 | Session feedback | Sessions support completed, partially completed and skipped status, actual arrows shot, optional perceived effort (1–10) and optional notes. Scores are linked through the scoring feature. Sensitive health-record fields remain outside the agreed feedback scope. | Confirmed core fields, basic non-shooting sessions and Rest Day entries without required logging |
@@ -256,7 +256,12 @@ The earlier proposed totals-only MVP approach is superseded. The scoring interac
 
 ## D12 — Account closure and anonymisation
 
-Confirmed intent: attempt to anonymise all user-related data on leaving/deleting an account, while preserving useful data only where it is genuinely anonymous.
+Confirmed closure policy:
+- Anonymisation remains the primary approach when a user explicitly closes/deletes their account.
+- Account access, invitations and active relationships end immediately when the authorised closure request is confirmed.
+- Complete anonymisation processing within 30 days of confirmed closure.
+- Retain useful data only where it is genuinely anonymous. Where adequate anonymisation is not possible, remove the identifying content or delete the affected data, subject to any documented retention obligation.
+- This is the agreed product processing target. Finite backup expiry and restore handling still need to be specified; backup retention must not be assumed to be approved by this decision.
 
 Confirmed export requirement:
 - Users can download their training data, including plans, session logs and scores, before deleting their account.
@@ -268,14 +273,14 @@ Confirmed export requirement:
 Proposed operating rules:
 1. Treat leaving as an explicit closure request; sign-out, inactivity or ending a coaching relationship alone does not trigger deletion.
 2. Verify that the requester is authorised for the export or closure. The pre-deletion export option is confirmed above; junior and guardian authorisation rules require explicit definition.
-3. Revoke account access, invitations and active relationships when closure is confirmed.
+3. Implement the immediate access revocation and 30-day anonymisation target confirmed above.
 4. Assess all relevant records, including profiles, session histories, free text, relationships, identifiers, logs and any files.
 5. Do not treat changing a name to "Anonymous" as sufficient. Remove or generalise identifying details and linkages; prefer anonymous aggregate statistics where detailed histories could identify someone.
 6. Delete data that cannot be adequately anonymised, subject to any documented retention obligation.
-7. Define closure-processing deadlines and finite backup retention. Restoring a backup must not permanently reintroduce deleted accounts or data.
+7. Define finite backup retention and restore handling consistent with the closure policy. Restoring a backup must not permanently reintroduce closed accounts or identifying data.
 8. Keep any required retained records restricted, purpose-limited and subject to an agreed expiry.
 
-Still to decide: processing deadline, backup expiry, inactive-account policy and what anonymous statistics have a useful purpose. No guarantee is made that every detailed record can safely be retained.
+Still to decide: backup expiry, inactive-account policy and what anonymous statistics have a useful purpose. No guarantee is made that every detailed record can safely be retained.
 
 References:
 - [Irish DPC: storage limitation and retention](https://dataprotection.ie/en/faqs/responsibilities-data-controllers/how-long-should-personal-data-be-held-meet-obligations-imposed-gdpr)
@@ -359,6 +364,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 | 22 October 2026 | D14 | Removed proposed pilot success targets. The pilot gathers feedback and identifies improvements without formal criteria or pass/fail assessment. | Product owner |
 | 22 October 2026 | D12 | Confirmed users can download plans, session logs and scores before deleting their account; export is optional rather than a deletion prerequisite. | Product owner |
 | 22 October 2026 | D12 | Confirmed CSV files for analysis and a readable PDF summary as training-data export options. | Product owner |
+| 22 October 2026 | D12 | Confirmed anonymisation as the primary account-closure approach, immediate access revocation and a 30-day completion target. Backup expiry remains to be defined. | Product owner |
 
 ## Completion checklist
 
@@ -400,7 +406,8 @@ Historical entries record earlier decisions; the latest clarification and curren
 - [ ] Confirm equipment details/retirement, scoring-format details and plotted-shot correction behaviour.
 - [x] Confirm users can export plans, session logs and scores before account deletion.
 - [x] Confirm CSV exports for analysis and a readable PDF summary.
-- [ ] Confirm export authorisation, retention operations and closure timescales.
+- [x] Confirm anonymisation as the primary closure approach, immediate access revocation and completion within 30 days.
+- [ ] Confirm export/closure authorisation, backup expiry and remaining retention operations.
 - [x] Confirm D15 statuses, actual arrows, optional effort (1–10), optional notes and linked scoring.
 - [x] Confirm basic non-shooting sessions with completion/feedback and no required arrow count; detailed tracking deferred.
 - [x] Confirm calendar entries marked "Rest Day" with no required logging.
