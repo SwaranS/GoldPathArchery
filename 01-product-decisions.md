@@ -35,13 +35,15 @@ Club, state and team memberships are future scope. Payments, competition registr
 | D12 | Leaving, account deletion and retention | On confirmed account closure/deletion, remove access and delete or genuinely anonymise user-related data. Attempt anonymisation only where identity cannot reasonably be recovered; delete data that cannot be sufficiently anonymised unless a documented retention obligation applies. Permanent retention of identifiable or merely renamed records is not the policy. Operational timescales, export and backup expiry remain to be agreed. | Partial |
 | D13 | Hosting | Azure, in Europe. Specific region and services will be selected after requirements and budget review. | Confirmed direction |
 | D14 | Pilot success | Assess core-journey completion without assistance, repeat weekly use, logging activity and participant feedback. Targets below are proposed. | Proposed |
-| D15 | Session feedback | Sessions support completed, partially completed and skipped status, actual arrows shot, optional perceived effort (1–10) and optional notes. Scores are linked through the scoring feature. Sensitive health-record fields remain outside the agreed feedback scope. | Confirmed core fields and basic non-shooting support; rest-day details pending |
+| D15 | Session feedback | Sessions support completed, partially completed and skipped status, actual arrows shot, optional perceived effort (1–10) and optional notes. Scores are linked through the scoring feature. Sensitive health-record fields remain outside the agreed feedback scope. | Confirmed core fields, basic non-shooting sessions and Rest Day entries without required logging |
 
 ## D02 — Human System Plan Manager with AI-assisted generation
 
 Confirmed product direction:
 - System Plan Managers are humans who use AI and software to generate personalised shooting plans. Multiple people may hold this role.
 - The default plan duration is 12 weeks.
+- Users with plan-editing permission can swap planned activities between two selected days.
+- Athlete/parent/coach age and permission rules apply to day swapping; view-only users cannot swap days.
 - Plan duration is configurable for shorter or longer periods, up to a maximum of one year.
 - Weekly AI recommendations and Plan Manager review continue throughout the selected plan duration.
 - Plan Managers are involved at both stages: reviewing and publishing initial plans, and reviewing weekly AI change recommendations before releasing them to the athlete/parent/authorised coach.
@@ -64,6 +66,13 @@ Confirmed product direction:
 - Weekly recommendations require acceptance by an eligible athlete aged 16+, a parent managing the junior profile, or a coach with the necessary plan-editing permission before changing the active plan.
 - Ages 14–15 can view recommendations but cannot accept changes.
 - Until accepted, the active plan remains unchanged. Completed-session history is preserved.
+
+Proposed day-swap behaviour:
+- Show both days and their planned activities before confirming the swap.
+- Exchange the selected planned activities and their instructions/targets without changing score records or completed-session history.
+- Preserve a record of the schedule change and use the revised schedule in subsequent AI recommendations.
+- Warn about conflicts with recorded range availability, competitions or recovery constraints.
+- Before implementation, confirm whether a swap exchanges entire daily schedules or individual sessions, whether rest days can be selected, and how partially completed activities are handled.
 
 Proposed weekly review details:
 - Consider actual versus planned arrow volume, session completion, comparable scores, recorded effort, training notes and known schedule or competition changes where available.
@@ -271,10 +280,11 @@ Confirmed product direction:
 - Plans include basic non-shooting sessions, such as strength, mobility and mental practice, at launch.
 - Non-shooting sessions use a simple activity title/type, brief instructions, completion status and the existing optional effort/notes fields. No arrow count is required.
 - Keep non-shooting details basic in MVP; detailed exercise prescriptions, sets/repetitions, weights and specialised tracking are future extensions.
+- Planned rest days appear on the calendar explicitly marked "Rest Day" and require no logging.
+- Rest days are not treated as skipped or incomplete training sessions.
 
 Proposed details still to settle:
 - An unlogged session remains unknown rather than automatically becoming skipped.
-- Define rest-day presentation and logging; basic non-shooting sessions without required arrow counts are confirmed.
 - Define labels for the effort scale so users apply it consistently.
 - Preserve the latest actual training information without modifying the originally planned targets.
 - No dedicated diagnosis, treatment or injury-record fields are assumed in MVP. Free-text notes still require appropriate access restrictions.
@@ -317,6 +327,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 | 22 October 2026 | D05 | Confirmed private invitation links and hidden-user-controlled initiation of connections, with managing parents acting for under-16 athletes and recipient acceptance before access. | Product owner |
 | 22 October 2026 | D15 | Confirmed completed/partially completed/skipped statuses, actual arrows shot, optional effort (1–10), optional notes and scores linked through scoring. | Product owner |
 | 22 October 2026 | D15 | Confirmed basic non-shooting sessions for launch with completion and feedback, no required arrow count, and detailed tracking deferred to future releases. | Product owner |
+| 22 October 2026 | D02/D15 | Confirmed calendar entries marked "Rest Day" without required logging, and the ability to swap planned activities between two days under existing plan-editing permissions. | Product owner |
 
 ## Completion checklist
 
@@ -354,6 +365,9 @@ Historical entries record earlier decisions; the latest clarification and curren
 - [ ] Confirm retention operations and closure timescales.
 - [x] Confirm D15 statuses, actual arrows, optional effort (1–10), optional notes and linked scoring.
 - [x] Confirm basic non-shooting sessions with completion/feedback and no required arrow count; detailed tracking deferred.
-- [ ] Confirm rest-day logging details and accept or revise D10/D14 proposals.
+- [x] Confirm calendar entries marked "Rest Day" with no required logging.
+- [x] Confirm swapping planned activities between two days by users with plan-editing permission.
+- [ ] Confirm day-swap scope and handling of rest days, conflicts and started activities.
+- [ ] Accept or revise D10/D14 proposals.
 - [ ] Identify pilot participants; keep D09 deferred until scope estimation.
 - [ ] Mark this document approved before propagating decisions to documents 02–07.
