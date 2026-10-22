@@ -31,7 +31,7 @@ Club, state and team memberships are future scope. Payments, competition registr
 | D08 | Testing budget | EUR 45 per month on Azure. Cost planning must include the application, database, email, backups and monitoring. The production budget is separate and not yet agreed. | Confirmed for testing |
 | D09 | Pilot date | Set after the MVP scope is agreed and estimated. No committed launch date yet. | Deferred |
 | D10 | Main return value | Know what to train today, record practice quickly and review progress with coaches. Parents record practice for juniors with view-only access. | Proposed |
-| D11 | Scoring | Both indoor and outdoor scoring are essential. Arrow-by-arrow scoring is required in MVP; totals-only entry is insufficient. Each score may optionally include the physical arrow identifier, such as the number on its shaft. Supported formats remain to be agreed. | Partial |
+| D11 | Scoring | Both indoor and outdoor scoring are essential. Arrow-by-arrow scoring is required in MVP; totals-only entry is insufficient. Each score may optionally include the physical arrow identifier, such as the number on its shaft. Score entry and correction are controlled by the eligible athlete or managing parent; coaches and Plan Managers cannot edit scores. Supported formats remain to be agreed. | Partial |
 | D12 | Leaving, account deletion and retention | On confirmed account closure/deletion, remove access and delete or genuinely anonymise user-related data. Attempt anonymisation only where identity cannot reasonably be recovered; delete data that cannot be sufficiently anonymised unless a documented retention obligation applies. Permanent retention of identifiable or merely renamed records is not the policy. Operational timescales, export and backup expiry remain to be agreed. | Partial |
 | D13 | Hosting | Azure, in Europe. Specific region and services will be selected after requirements and budget review. | Confirmed direction |
 | D14 | Pilot success | Assess core-journey completion without assistance, repeat weekly use, logging activity and participant feedback. Targets below are proposed. | Proposed |
@@ -160,7 +160,12 @@ Confirmed product direction:
 - An optional physical arrow identifier, such as shaft #7, may be associated with each scored shot. This is what the product owner means by arrow number; it is distinct from shot order.
 - Users can score a complete round without entering physical arrow identifiers. An omitted identifier does not mean a missing score or a miss.
 - A totals-only approach does not meet this requirement.
-- Existing access rules apply: athletes aged 16+ can enter scores; a parent manages entry for an under-16 athlete. Coach access to score editing remains separately defined.
+- Score entry and correction are controlled by the athlete or managing parent: athletes aged 16+ can enter and edit their own scores; a parent manages scoring for an under-16 athlete.
+- Ages 14–15 may view scores but cannot enter or edit them.
+- Coaches cannot enter or edit the athlete's scores, including coaches with plan-editing permission.
+- Plan Manager status does not grant score-entry or correction rights. Viewing scores remains subject to separately agreed access.
+- AI recommendations cannot change recorded scores.
+- Parent scoring access after the athlete's age-16 transition remains subject to the parent-access decision.
 
 Proposed MVP behaviour:
 - Organise a round into numbered ends with a configured number of arrows per end.
@@ -175,7 +180,7 @@ Still to decide:
 - Which indoor/outdoor rounds are supported initially, including arrows per end and score rules?
 - Are double rounds and multiple rounds in a session required?
 - Are target-face plotting and analysis by physical arrow identifier required in MVP or later? Optional identifier capture itself is already agreed.
-- How are partial rounds, score corrections and any coach score-editing permissions handled?
+- How are partial rounds and the athlete/parent score-correction history handled? Coach score editing is excluded.
 
 The earlier proposed totals-only MVP approach is superseded. The scoring interaction should be reviewed before implementation.
 
@@ -235,6 +240,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 | 21 October 2026 | D12 | Replaced blanket permanent retention with deletion or genuine anonymisation on explicit account closure. | Product owner |
 | 22 October 2026 | D02 | Clarified that the System Plan Manager is a human using AI/software to generate plans. Supersedes earlier wording removing the human role; publication/review duties remain open. | Product owner |
 | 22 October 2026 | D02 | Confirmed human Plan Manager involvement at initial-plan and weekly-recommendation stages; multiple managers supported. Weekly changes still require eligible-user acceptance. | Product owner |
+| 22 October 2026 | D11 | Confirmed athlete/parent control of score entry and corrections; coach plan-editing and Plan Manager permissions do not grant score editing. | Product owner |
 
 ## Completion checklist
 
@@ -253,7 +259,8 @@ Historical entries record earlier decisions; the latest clarification and curren
 - [x] Confirm junior editing threshold: 16; ages 14–15 are view-only.
 - [ ] Confirm verification and parent/junior transition rules.
 - [x] Confirm required arrow-by-arrow scoring and optional physical arrow identifier capture in MVP.
-- [ ] Confirm identifier entry method, initial scoring formats, double rounds and correction rules.
+- [x] Confirm score entry and correction remain controlled by the eligible athlete/managing parent; coaches and Plan Managers cannot edit scores.
+- [ ] Confirm identifier entry method, initial scoring formats, double rounds and correction-history rules.
 - [ ] Confirm retention operations and closure timescales.
 - [ ] Accept or revise D10, D14 and D15 proposals.
 - [ ] Identify pilot participants; keep D09 deferred until scope estimation.
