@@ -177,6 +177,10 @@ Confirmed product direction:
 - Both entry methods record the same underlying arrow scores; physical arrow identifiers remain optional.
 - An optional physical arrow identifier, such as shaft #7, may be associated with each scored shot. This is what the product owner means by arrow number; it is distinct from shot order.
 - Physical arrow identifiers are selected only from the athlete's saved arrows; free-text/manual identifier entry is not available while scoring.
+- Users can save arrows in named sets, such as indoor and outdoor sets.
+- An athlete profile can hold multiple saved bows.
+- Users can select which saved bow and arrow set they use for a session or round, including using bow X one day and bow Y the next.
+- Selecting equipment for a new session or round must not change the equipment recorded against earlier activity.
 - Selecting an arrow remains optional. Users without saved arrows can still score a round without physical identifiers.
 - Users can score a complete round without entering physical arrow identifiers. An omitted identifier does not mean a missing score or a miss.
 - A totals-only approach does not meet this requirement.
@@ -201,7 +205,7 @@ Proposed MVP behaviour:
 - Confirm the rules for each new format before enabling it. The exact format-management workflow will be defined during architecture/design.
 
 Still to decide:
-- How are saved arrows created, organised into sets and retired while preserving identifiers on historical scores? Scoring selection from saved arrows only is confirmed.
+- Which details are required for saved bows and arrows, and how are they edited or retired while preserving historical equipment records? Named arrow sets, multiple bows and selection of equipment per session/round are confirmed.
 - Which distances, target faces, arrows per end and bow-specific scoring rules apply to the confirmed indoor/outdoor formats?
 - Indoor double 60-arrow and outdoor double 720 rounds are confirmed. Which other combinations of rounds within a session are required?
 - Is analysis by physical arrow identifier required in MVP or later? Numeric entry, target-face plotting and optional identifier capture are confirmed for launch.
@@ -275,6 +279,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 | 22 October 2026 | D11 | Confirmed saving/resuming unfinished rounds and easy extension to future round formats such as 1440 and 900; these examples are not added to launch scope. | Product owner |
 | 22 October 2026 | D11 | Confirmed both numeric keypad scoring and target-face plotting for launch. | Product owner |
 | 22 October 2026 | D11 | Confirmed physical arrow selection from the athlete's saved arrows only; identifier selection remains optional and manual identifier entry during scoring is excluded. | Product owner |
+| 22 October 2026 | D11 | Confirmed named saved arrow sets and multiple bows per athlete profile, with equipment selected per session/round and historical selections preserved. | Product owner |
 
 ## Completion checklist
 
@@ -303,7 +308,8 @@ Historical entries record earlier decisions; the latest clarification and curren
 - [x] Confirm numeric keypad entry and target-face plotting are both required at launch.
 - [x] Confirm score entry and correction remain controlled by the eligible athlete/managing parent; coaches and Plan Managers cannot edit scores.
 - [x] Confirm optional physical arrow identifiers are selected from saved arrows only.
-- [ ] Confirm saved-arrow management, scoring-format details and correction-history rules.
+- [x] Confirm named saved arrow sets, multiple bows per profile and equipment selection per session/round.
+- [ ] Confirm equipment details/retirement, scoring-format details and correction-history rules.
 - [ ] Confirm retention operations and closure timescales.
 - [ ] Accept or revise D10, D14 and D15 proposals.
 - [ ] Identify pilot participants; keep D09 deferred until scope estimation.
