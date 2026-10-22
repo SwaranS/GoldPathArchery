@@ -22,7 +22,7 @@ Club, state and team memberships are future scope. Payments, competition registr
 | ID | Topic | Current decision | Status |
 |---|---|---|---|
 | D01 | Primary customers | Coaches and athletes. Future releases may add club, state and team memberships with access to defined sets of data. | Confirmed |
-| D02 | Plan creation and adaptation | The System Plan Manager is a human who uses AI and software to generate personalised training plans; AI can lead the drafting process under that person's direction. Eligible athletes, parents managing junior profiles and authorised coaches can edit the athlete's plan. One or more human Plan Managers review and publish initial plans and review weekly AI change recommendations before releasing them for eligible-user acceptance; approval by the athlete's own coach is not mandatory by default. AI recommends weekly changes based on completed training and available feedback; an eligible user accepts changes before they update the active plan. Sharing creates an independent copy owned by the receiving archer, subject to their age and access permissions. | Partial |
+| D02 | Plan creation and adaptation | The System Plan Manager is a human who uses AI and software to generate personalised training plans; AI can lead the drafting process under that person's direction. Eligible athletes, parents managing junior profiles and authorised coaches can edit the athlete's plan. One or more human Plan Managers review and publish initial plans and review weekly AI change recommendations before releasing them for eligible-user acceptance; approval by the athlete's own coach is not mandatory by default. AI recommends weekly changes based on completed training and available feedback; an eligible user accepts changes before they update the active plan. Sharing creates an independent copy owned by the receiving archer, subject to their age and access permissions. Plan Managers access only assigned athletes, with explicit reassignment or temporary cover for other managers. | Partial |
 | D03 | Reusable templates | A reusable template library is outside version one. Shared AI-generated plans become independent copies owned by their receiving archers. | Confirmed |
 | D04 | Multiple coaches | An athlete can have multiple coaches, including a physio and an archery technical coach. The athlete aged 16+ or parent managing the junior profile chooses plan access separately for each connected coach: view-only by default, with plan-editing permission explicitly granted and revocable. Detailed edit scope and conflict handling remain to be defined. | Partial |
 | D05 | Coach relationships and discovery | Coaches and athletes can invite, accept or reject one another. Both may choose whether to be listed. Ending a relationship immediately removes the coach's access to the athlete's plans and history. The coach retains a separate record of their own proposals and authored revisions, without continued athlete-data access. Listings are visible only to signed-in users. Profiles include a "Stay out of Search" toggle that excludes the user from discovery when selected. Under-16 athlete profiles are always excluded. | Partial |
@@ -48,7 +48,10 @@ Confirmed product direction:
 - Ages 14–15 remain view-only; this decision does not expand junior editing rights.
 - Plan Manager review is part of both stages, rather than an exception-only workflow. The athlete's own coach is not required to approve every plan unless separately agreed.
 - Releasing reviewed weekly recommendations does not apply them automatically: eligible-user acceptance is still required. Plan Manager status alone does not grant authority to accept changes on an athlete's behalf.
-- Plan Manager athlete-data access and allocation of work between multiple managers remain to be defined.
+- Plan Managers can access only athletes explicitly assigned to them; the role does not grant access to all athletes.
+- Another Plan Manager gains access only through explicit reassignment or a temporary cover assignment.
+- Temporary cover access ends when the cover assignment ends; reassignment removes access based on the former assignment.
+- Assignment-scoped access does not grant score-editing rights or authority to accept weekly changes on the athlete's behalf. Exact accessible data fields and assignment-administration permissions remain to be defined.
 - This restores the human System Plan Manager role and supersedes the earlier wording that removed that role.
 - Sharing creates a separate, independent copy owned by the receiving archer.
 - Changes to either plan do not alter the other, and the sender gains no access to the recipient's data through sharing.
@@ -79,8 +82,8 @@ Proposed MVP behaviour:
 - Include AI usage costs when evaluating the EUR 45 monthly testing budget.
 
 Still to decide:
-- How are initial plans and weekly reviews assigned between multiple Plan Managers, including cover when a manager is unavailable?
-- What athlete information can the System Plan Manager access, and for which athletes?
+- Who can create, change and end Plan Manager assignments, and how are cover durations set?
+- Which athlete data fields can an assigned or covering Plan Manager access? Assignment-only access is confirmed.
 - Which AI provider or external service will generate plans? No provider or integration is selected.
 - What day/time should weekly recommendations be prepared, and can users request an additional review?
 - Can users accept individual recommendations, reject them, or edit them before applying?
@@ -241,12 +244,14 @@ Historical entries record earlier decisions; the latest clarification and curren
 | 22 October 2026 | D02 | Clarified that the System Plan Manager is a human using AI/software to generate plans. Supersedes earlier wording removing the human role; publication/review duties remain open. | Product owner |
 | 22 October 2026 | D02 | Confirmed human Plan Manager involvement at initial-plan and weekly-recommendation stages; multiple managers supported. Weekly changes still require eligible-user acceptance. | Product owner |
 | 22 October 2026 | D11 | Confirmed athlete/parent control of score entry and corrections; coach plan-editing and Plan Manager permissions do not grant score editing. | Product owner |
+| 22 October 2026 | D02 | Confirmed Plan Managers see only assigned athletes; other managers require explicit reassignment or temporary cover. | Product owner |
 
 ## Completion checklist
 
 - [x] Confirm a human System Plan Manager uses AI/software to generate plans, with eligible athlete, parent and coach editing.
 - [x] Confirm multiple human Plan Managers review initial plans and weekly AI recommendations before release.
-- [ ] Confirm Plan Manager athlete-data access, work assignment and cover.
+- [x] Confirm Plan Manager access is limited to assigned athletes, with explicit reassignment or temporary cover.
+- [ ] Confirm Plan Manager data-field scope and who administers assignments/cover.
 - [x] Confirm weekly AI recommendations with eligible-user acceptance before plan updates.
 - [x] Confirm shared copies belong to the receiving archer and are independent of the original.
 - [ ] Confirm weekly review details, validation, edit preservation and shared-copy receipt/activation.
