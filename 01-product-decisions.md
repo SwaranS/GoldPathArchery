@@ -263,6 +263,10 @@ Confirmed closure policy:
 - Retain useful data only where it is genuinely anonymous. Where adequate anonymisation is not possible, remove the identifying content or delete the affected data, subject to any documented retention obligation.
 - This is the agreed product processing target. Finite backup expiry and restore handling still need to be specified; backup retention must not be assumed to be approved by this decision.
 
+Current inactivity policy:
+- For the initial release, inactivity alone does not close an account or trigger anonymisation; accounts remain available until the user explicitly requests closure.
+- This is a provisional product decision, not a permanent retention commitment. Review inactivity and retention policy in a future phase.
+
 Confirmed export requirement:
 - Users can download their training data, including plans, session logs and scores, before deleting their account.
 - Provide CSV files for analysis and a readable PDF summary as export options.
@@ -280,7 +284,7 @@ Proposed operating rules:
 7. Define finite backup retention and restore handling consistent with the closure policy. Restoring a backup must not permanently reintroduce closed accounts or identifying data.
 8. Keep any required retained records restricted, purpose-limited and subject to an agreed expiry.
 
-Still to decide: backup expiry, inactive-account policy and what anonymous statistics have a useful purpose. No guarantee is made that every detailed record can safely be retained.
+Still to decide: backup expiry and what anonymous statistics have a useful purpose. The initial inactivity policy is confirmed above and will be revisited in a future phase. No guarantee is made that every detailed record can safely be retained.
 
 References:
 - [Irish DPC: storage limitation and retention](https://dataprotection.ie/en/faqs/responsibilities-data-controllers/how-long-should-personal-data-be-held-meet-obligations-imposed-gdpr)
@@ -365,6 +369,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 | 22 October 2026 | D12 | Confirmed users can download plans, session logs and scores before deleting their account; export is optional rather than a deletion prerequisite. | Product owner |
 | 22 October 2026 | D12 | Confirmed CSV files for analysis and a readable PDF summary as training-data export options. | Product owner |
 | 22 October 2026 | D12 | Confirmed anonymisation as the primary account-closure approach, immediate access revocation and a 30-day completion target. Backup expiry remains to be defined. | Product owner |
+| 22 October 2026 | D12 | Provisionally confirmed inactive accounts remain available until explicit closure; inactivity/retention policy will be investigated further in a future phase. | Product owner |
 
 ## Completion checklist
 
@@ -407,6 +412,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 - [x] Confirm users can export plans, session logs and scores before account deletion.
 - [x] Confirm CSV exports for analysis and a readable PDF summary.
 - [x] Confirm anonymisation as the primary closure approach, immediate access revocation and completion within 30 days.
+- [x] Confirm inactivity alone does not close accounts for the initial release; review this provisional policy in future.
 - [ ] Confirm export/closure authorisation, backup expiry and remaining retention operations.
 - [x] Confirm D15 statuses, actual arrows, optional effort (1–10), optional notes and linked scoring.
 - [x] Confirm basic non-shooting sessions with completion/feedback and no required arrow count; detailed tracking deferred.
