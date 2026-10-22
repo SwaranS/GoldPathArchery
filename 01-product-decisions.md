@@ -105,6 +105,12 @@ Confirmed product direction:
 - Under-16 athlete profiles are always excluded from searches/listings; this setting cannot make them discoverable.
 - Athletes aged 16+ and coaches may choose whether to appear in listings. "Stay out of Search" is off by default for eligible new accounts, so they are discoverable by signed-in users unless they enable it. Under-16 athlete profiles remain excluded regardless of the default.
 - Search visibility does not grant access to private training data or change existing coaching relationships and permissions.
+- All invitation links are private and intended for the invited recipient.
+- Hidden users control new connections: only they can initiate an invitation involving their hidden profile; other users cannot search for or initiate invitations to that hidden profile.
+- For an under-16 athlete, the managing parent initiates invitations on the athlete's behalf.
+- Acceptance by the intended recipient is required before a connection grants access.
+- Opening or forwarding a link alone does not grant access or make a hidden profile discoverable.
+- Existing accepted connections remain governed by their granted permissions when a user enables "Stay out of Search".
 
 - An athlete aged 16+ chooses each connected coach's plan access. For athletes under 16, the parent managing the junior profile makes that choice.
 - Connected coaches have view-only plan access by default. Editing requires an explicit grant for that athlete.
@@ -132,7 +138,7 @@ Proposed MVP behaviour:
 - Coaches do not automatically gain access to another coach's private notes.
 - Either eligible party may end a relationship; the immediate revocation and separate contribution-history rules above apply.
 - A personal copy of a plan already shared is distinct from continuing access to the originating athlete's data.
-- Define how hidden users can exchange direct invitations without appearing in search; this flow remains to be agreed.
+- Define invitation expiry, revocation and intended-recipient verification. Private links and hidden-user initiation are confirmed above.
 - A parent handles coaching invitations for a junior whose access is view-only.
 
 Confirm the proposed rules above before treating them as requirements; the confirmed per-coach plan-access model is already agreed.
@@ -292,6 +298,7 @@ Historical entries record earlier decisions; the latest clarification and curren
 | 22 October 2026 | D11 | Confirmed optional sight marks by bow and distance for range lookup. | Product owner |
 | 22 October 2026 | D11 | Confirmed athlete/parent corrections after round completion for input errors, with original/corrected values, editor and timestamp preserved and totals recalculated. | Product owner |
 | 22 October 2026 | D06 | Confirmed athlete control of linked-parent access from age 16: view-only, editing or none, with subsequent changes/revocation allowed. | Product owner |
+| 22 October 2026 | D05 | Confirmed private invitation links and hidden-user-controlled initiation of connections, with managing parents acting for under-16 athletes and recipient acceptance before access. | Product owner |
 
 ## Completion checklist
 
@@ -308,7 +315,8 @@ Historical entries record earlier decisions; the latest clarification and curren
 - [x] Confirm the athlete retains their history of the coach's original contributions.
 - [x] Confirm signed-in-only listings, "Stay out of Search" control and mandatory exclusion of under-16 profiles.
 - [x] Confirm "Stay out of Search" is off by default for eligible new accounts; under-16 exclusions still apply.
-- [ ] Confirm hidden-user invitations, detailed coach edit scope, conflict handling and contribution-history details.
+- [x] Confirm all invitation links are private; hidden users (or managing parents for under-16s) initiate connections, with recipient acceptance required.
+- [ ] Confirm invitation expiry/verification, detailed coach edit scope, conflict handling and contribution-history details.
 - [x] Confirm junior editing threshold: 16; ages 14–15 are view-only.
 - [x] Confirm athletes aged 16+ choose and can change parent access: view-only, editing or none.
 - [ ] Confirm verification, transition activation and interim access before the athlete makes their choice.
