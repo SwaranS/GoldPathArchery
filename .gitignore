@@ -9,4 +9,6 @@ __pycache__/
 *$py.class
 
 # Pytest / test cache
-.pytest_cache/
+.pytest_cache/
+# Local configuration
+/.env
