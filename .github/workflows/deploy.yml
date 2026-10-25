@@ -1,0 +1,104 @@
+name: GoldPathArchery CI and deployment
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Django checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Create temporary CI configuration
+        run: |
+          cat > .env <<ENV
+          POSTGRES_DB=goldpath_ci
+          POSTGRES_USER=goldpath_ci
+          POSTGRES_PASSWORD=ci-only-password
+          DJANGO_SECRET_KEY=ci-only-django-key-not-used-by-azure-0123456789abcdef
+          DJANGO_DEBUG=0
+          POSTGRES_HOST=db
+          POSTGRES_PORT=5432
+          POSTGRES_SSLMODE=disable
+          POSTGRES_SSLROOTCERT=certs/DigiCertGlobalRootG2.crt.pem
+          DJANGO_ALLOWED_HOSTS=goldpatharchery-dev-swarans.azurewebsites.net
+          DJANGO_CSRF_TRUSTED_ORIGINS=https://goldpatharchery-dev-swarans.azurewebsites.net
+          LOCAL_UID=$(id -u)
+          LOCAL_GID=$(id -g)
+          ENV
+
+      - name: Build application and start test database
+        run: |
+          docker compose build web
+          docker compose up --detach --wait --wait-timeout 120 db
+
+      - name: Check Django and migrations
+        run: |
+          bash -n startup.sh
+          docker compose run --rm --no-deps web python manage.py check
+          docker compose run --rm --no-deps web python manage.py makemigrations --check --dry-run
+          docker compose run --rm --no-deps web python manage.py migrate --noinput
+          docker compose run --rm --no-deps web python manage.py test --noinput
+
+      - name: Check production settings and static files
+        run: |
+          docker compose run --rm --no-deps \
+            -e DJANGO_SETTINGS_MODULE=config.production \
+            web sh -ec 'python manage.py check; python manage.py collectstatic --noinput'
+
+      - name: Clean up temporary containers
+        if: always()
+        run: docker compose down --volumes --remove-orphans
+
+  deploy:
+    name: Deploy development app
+    needs: checks
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    permissions:
+      contents: read
+      id-token: write
+
+    concurrency:
+      group: goldpatharchery-dev-deployment
+      cancel-in-progress: false
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Package application
+        run: |
+          git archive --format=zip --output=goldpatharchery.zip \
+            HEAD app/ requirements.txt startup.sh
+          unzip -tq goldpatharchery.zip
+
+      - name: Sign in to Azure
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy to Azure App Service
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: goldpatharchery-dev-swarans
+          resource-group-name: rg-goldpath-dev-ne
+          package: goldpatharchery.zip
