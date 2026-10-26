@@ -1,0 +1,6 @@
+{% load socialaccount %}
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Sign in - GoldPathArchery</title></head>
+<body><main><h1>GoldPathArchery</h1><p>Sign in or create an account with Google.</p>
+<form action="{% provider_login_url 'google' %}" method="post">{% csrf_token %}<button type="submit">Continue with Google</button></form>
+</main></body></html>

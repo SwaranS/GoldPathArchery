@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>My account - GoldPathArchery</title></head>
+<body><main>
+<h1>My account</h1>
+<p><a href="{% url 'athletes' %}">My athletes and connections</a></p>
+{% for notice in notices %}<p>A linked athlete has turned 16. Existing parent editing becomes viewing; the athlete can choose each parent's access in Connections.</p>{% endfor %}
+<p>Signed in as {{ request.user.email|default:request.user.username }}</p>
+<p>Select all roles that apply: Archer, Parent/Guardian and Coach. You can select any combination.</p>
+<p>Roles alone do not grant access to athlete records. Access requires explicit relationship and invitation permissions.</p>
+<form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Save roles</button></form>
+<form action="{% url 'account_logout' %}" method="post">{% csrf_token %}<button type="submit">Sign out</button></form>
+</main></body></html>
