@@ -10,9 +10,10 @@ from .models import UserRole
 @login_required
 @require_http_methods(["GET", "POST"])
 def profile(request):
-    allowed = {UserRole.Role.ARCHER, UserRole.Role.PARENT}
+    # Role declarations do not grant permissions or athlete relationships.
+    allowed = {role for role, _label in RolesForm.base_fields["roles"].choices}
     existing = set(request.user.role_assignments.values_list("role", flat=True))
-    form = RolesForm(request.POST or None, initial={"roles": list(existing & allowed)})
+    form = RolesForm(request.POST if request.method == "POST" else None, initial={"roles": list(existing & allowed)})
     if request.method == "POST" and form.is_valid():
         chosen = set(form.cleaned_data["roles"])
         with transaction.atomic():

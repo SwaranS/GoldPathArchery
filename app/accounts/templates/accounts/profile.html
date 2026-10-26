@@ -3,7 +3,8 @@
 <body><main>
 <h1>My account</h1>
 <p>Signed in as {{ request.user.email|default:request.user.username }}</p>
-<p>Select all roles that apply. Coaching access is granted separately by an administrator.</p>
+<p>Select all roles that apply: Archer, Parent/Guardian and Coach. You can select any combination.</p>
+<p>Roles alone do not grant access to athlete records. Access requires explicit relationship and invitation permissions.</p>
 <form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Save roles</button></form>
 <form action="{% url 'account_logout' %}" method="post">{% csrf_token %}<button type="submit">Sign out</button></form>
 </main></body></html>

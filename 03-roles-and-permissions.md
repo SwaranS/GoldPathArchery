@@ -7,6 +7,8 @@ Authority: [01](01-product-decisions.md) · Requirements: [02](02-mvp-requiremen
 
 Deny by default. Authorise the actor, target athlete, operation and current relationship on every server request, including searches, exports, background work and reports. IDs, hidden UI and role labels are not access controls. Multiple roles do not grant access to unrelated athletes.
 
+Archer, Parent/Guardian and Coach are self-selectable account roles and may coexist in any combination, including all three. Selecting Coach does not create an athlete relationship, accept an invitation or grant athlete-data access. Access requires explicit relationship/invitation permissions for the target athlete and operation.
+
 Eligibility is calculated from the profile's declared birth date in its timezone. Below 14 no login; 14–15 is read-only; 16+ can manage own training. Parent access uses explicit links/grants. Coach and Plan Manager permissions are separate.
 
 ## Access matrix
