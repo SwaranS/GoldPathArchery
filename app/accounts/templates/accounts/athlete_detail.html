@@ -1,6 +1,7 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{ athlete.display_name }} - GoldPathArchery</title></head>
-<body><main><a href="{% url 'athletes' %}">My athletes</a><h1>{{ athlete.display_name }}</h1>
+{% extends 'base.html' %}
+{% block title %}{{ athlete.display_name }} - GoldPathArchery{% endblock %}
+{% block page_class %}workspace-page{% endblock %}
+{% block content %}<section class="workspace-card"><a href="{% url 'athletes' %}">My athletes</a><h1>{{ athlete.display_name }}</h1>
 <dl><dt>Discipline</dt><dd>{{ athlete.discipline }}</dd><dt>Goals</dt><dd>{{ athlete.goals }}</dd><dt>Availability</dt><dd>{{ athlete.availability }}</dd></dl>
 {% if form %}<h2>Edit {{ athlete.display_name }}</h2><form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Save profile</button></form>{% else %}<p>Profile is read-only.</p>{% endif %}
 <h2>Connections for {{ athlete.display_name }}</h2>
@@ -19,4 +20,4 @@
 <label>Invitation type <select name="kind">{% if permissions.manage_grants %}<option value="coach">Coach (view only)</option><option value="parent">Parent/guardian</option>{% endif %}{% if claim_allowed %}<option value="claim">Athlete login claim</option>{% endif %}</select></label><button type="submit">Create private link</button></form>
 {% for invitation in invitations %}<p>{{ invitation.get_kind_display }} invitation to {{ invitation.recipient_email }} (expires {{ invitation.expires_at }})</p>
 <form action="{% url 'invitation-revoke' athlete.id invitation.pk %}" method="post">{% csrf_token %}<input type="hidden" name="version" value="{{ version }}"><button type="submit">Revoke invitation</button></form>{% endfor %}{% endif %}
-</main></body></html>
+</section>{% endblock %}

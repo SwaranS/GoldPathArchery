@@ -1,6 +1,4 @@
-{% load socialaccount %}
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Sign in - GoldPathArchery</title></head>
-<body><main><h1>GoldPathArchery</h1><p>Sign in or create an account with Google.</p>
-<form action="{% provider_login_url 'google' %}" method="post">{% csrf_token %}<button type="submit">Continue with Google</button></form>
-</main></body></html>
+{% extends 'base.html' %}{% load socialaccount %}
+{% block title %}Sign in · GoldPathArchery{% endblock %}
+{% block page_class %}login-page{% endblock %}
+{% block content %}<section class="login-card"><span class="login-target" aria-hidden="true">◎</span><p class="eyebrow">WELCOME TO GOLDPATH</p><h1>Your journey<br>starts here.</h1><p>Sign in or create an account to set up your athlete profile and connect your support team.</p><form action="{% provider_login_url 'google' %}" method="post">{% csrf_token %}<button class="google-button" type="submit"><span aria-hidden="true">G</span> Continue with Google <span aria-hidden="true">→</span></button></form><p class="login-footnote">One account for archers, coaches and families.</p></section>{% endblock %}
