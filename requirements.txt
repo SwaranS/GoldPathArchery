@@ -2,3 +2,4 @@ Django>=5.2,<5.3
 psycopg[binary]>=3.2,<4
 gunicorn>=26.2,<27
 whitenoise>=6.12,<7
+django-allauth[socialaccount]>=65.0,<66
