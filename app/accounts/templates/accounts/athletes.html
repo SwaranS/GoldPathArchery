@@ -1,8 +1,9 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>My athletes - GoldPathArchery</title></head>
-<body><main><h1>My athletes</h1><a href="{% url 'account-profile' %}">My account</a>
+{% extends 'base.html' %}
+{% block title %}My athletes - GoldPathArchery{% endblock %}
+{% block page_class %}workspace-page{% endblock %}
+{% block content %}<section class="workspace-card"><h1>My athletes</h1><a href="{% url 'account-profile' %}">My account</a>
 {% for notice in notices %}<p>An athlete you are linked to has turned 16. Athlete editing is enabled; existing parent editing becomes viewing. The athlete can review parent access in Connections.</p>{% endfor %}
 <ul>{% for athlete in athletes %}<li><a href="{% url 'athlete-detail' athlete.pk %}">{{ athlete.display_name }}</a></li>{% empty %}<li>No linked athletes.</li>{% endfor %}</ul>
 <h2>Create an athlete profile</h2><p>Select Archer for your own profile, or Parent/Guardian to create a child profile. Children under 14 have no login. Ages 14–15 may claim an existing profile with a private invitation and have read-only access.</p>
 <form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Create profile</button></form>
-</main></body></html>
+</section>{% endblock %}

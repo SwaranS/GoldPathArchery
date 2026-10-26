@@ -1,6 +1,7 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>My account - GoldPathArchery</title></head>
-<body><main>
+{% extends 'base.html' %}
+{% block title %}My account - GoldPathArchery{% endblock %}
+{% block page_class %}workspace-page{% endblock %}
+{% block content %}<section class="workspace-card">
 <h1>My account</h1>
 <p><a href="{% url 'athletes' %}">My athletes and connections</a></p>
 {% for notice in notices %}<p>A linked athlete has turned 16. Existing parent editing becomes viewing; the athlete can choose each parent's access in Connections.</p>{% endfor %}
@@ -9,4 +10,4 @@
 <p>Roles alone do not grant access to athlete records. Access requires explicit relationship and invitation permissions.</p>
 <form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Save roles</button></form>
 <form action="{% url 'account_logout' %}" method="post">{% csrf_token %}<button type="submit">Sign out</button></form>
-</main></body></html>
+</section>{% endblock %}

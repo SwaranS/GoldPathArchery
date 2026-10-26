@@ -1,1 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="referrer" content="no-referrer"><title>Private invitation</title></head><body><main><h1>Private invitation created</h1><p>Copy this link and send it privately to the intended recipient. This is the only time the link is displayed.</p><p><a href="{{ invitation_url }}">{{ invitation_url }}</a></p><a href="{% url 'athlete-detail' athlete_id %}">Return to athlete</a></main></body></html>
+{% extends 'base.html' %}
+{% block title %}Private invitation{% endblock %}
+{% block page_class %}workspace-page{% endblock %}
+{% block content %}<section class="workspace-card"><h1>Private invitation created</h1><p>Copy this link and send it privately to the intended recipient. This is the only time the link is displayed.</p><p><a href="{{ invitation_url }}">{{ invitation_url }}</a></p><a href="{% url 'athlete-detail' athlete_id %}">Return to athlete</a></section>{% endblock %}

@@ -1,13 +1,11 @@
 from django.contrib import admin
-from django.http import Http404, HttpResponse
+from django.http import Http404
+from django.shortcuts import render
 from django.urls import include, path
 
 
 def home(request):
-    return HttpResponse(
-        "<h1>GoldPathArchery</h1>"
-        '<p><a href="/accounts/login/">Sign in or create account with Google</a></p>'
-    )
+    return render(request, "home.html")
 
 
 def disabled_password_signup(request):
