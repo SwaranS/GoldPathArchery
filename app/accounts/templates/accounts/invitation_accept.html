@@ -1,4 +1,15 @@
-{% extends 'base.html' %}
+{% extends 'base.html' %}{% load static %}
 {% block title %}Accept private invitation{% endblock %}
 {% block page_class %}workspace-page{% endblock %}
-{% block content %}<section class="workspace-card"><h1>Accept private invitation</h1><p>Sign in with the verified Google email the invitation was sent to. Select Coach or Parent/Guardian in My account before accepting that type of invitation.</p><p>A junior athlete login is read-only until 16. Coach access starts view-only. Opening this page grants no access.</p><form method="post">{% csrf_token %}<label><input type="checkbox" name="declaration"> For a child guardian invitation, I declare I am the child's parent or guardian.</label><button type="submit">Accept invitation</button></form></section>{% endblock %}
+{% block content %}<section class="workspace-card">
+<div class="placeholder-header">
+  <div>
+    <p class="eyebrow"><span></span> PRIVATE RECIPIENT-BOUND INVITATION</p>
+    <h1>Accept private invitation</h1>
+  </div>
+  <img src="{% static 'accounts/role-coach.svg' %}" alt="Invitation graphic" width="72" height="72">
+</div>
+<p>Sign in with the verified Google email the invitation was sent to. Select Coach or Parent/Guardian in <a href="{% url 'account-profile' %}">My account</a> before accepting that type of invitation.</p>
+<p>A junior athlete login is read-only until 16. Coach access starts view-only. Opening this page grants no access.</p>
+<form method="post">{% csrf_token %}<label><input type="checkbox" name="declaration"> For a child guardian invitation, I declare I am the child's parent or guardian.</label><button type="submit">Accept invitation</button></form>
+</section>{% endblock %}

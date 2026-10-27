@@ -1,23 +1,92 @@
-{% extends 'base.html' %}
+{% extends 'base.html' %}{% load static %}
 {% block title %}{{ athlete.display_name }} - GoldPathArchery{% endblock %}
 {% block page_class %}workspace-page{% endblock %}
-{% block content %}<section class="workspace-card"><a href="{% url 'athletes' %}">My athletes</a><h1>{{ athlete.display_name }}</h1>
-<dl><dt>Discipline</dt><dd>{{ athlete.discipline }}</dd><dt>Goals</dt><dd>{{ athlete.goals }}</dd><dt>Availability</dt><dd>{{ athlete.availability }}</dd></dl>
-{% if form %}<h2>Edit {{ athlete.display_name }}</h2><form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Save profile</button></form>{% else %}<p>Profile is read-only.</p>{% endif %}
+{% block content %}<section class="workspace-card">
+<a class="back-link" href="{% url 'athletes' %}">← My athletes</a>
+{% include 'accounts/_athlete_header.html' %}
+
+<h1>{{ athlete.display_name }}</h1>
+
+<div class="detail-grid">
+  <div class="workspace-panel">
+    <p class="eyebrow"><span></span> TRAINING PROFILE</p>
+    <dl class="profile-summary-list">
+      <dt>Discipline</dt><dd>{{ athlete.discipline }}</dd>
+      <dt>Goals</dt><dd>{{ athlete.goals|default:"—" }}</dd>
+      <dt>Availability</dt><dd>{{ athlete.availability|default:"—" }}</dd>
+    </dl>
+  </div>
+
+  <div class="workspace-panel">
+    {% if form %}
+      <p class="eyebrow"><span></span> PROFILE SETTINGS</p>
+      <h2>Edit {{ athlete.display_name }}</h2>
+      <form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Save profile</button></form>
+    {% else %}
+      <p class="eyebrow"><span></span> ACCESS LEVEL</p>
+      <p>Profile is read-only.</p>
+    {% endif %}
+  </div>
+</div>
+
 <h2>Connections for {{ athlete.display_name }}</h2>
-{% if review_required %}<p>You now control your parent's access. Review each parent below and choose viewing, editing or no access. Parent editing never includes exports, closure or managing grants.</p>{% endif %}
-{% for link in guardians %}<p>Parent/guardian: {{ link.parent.get_username }} — {% if link.revoked_at %}Revoked{% else %}{{ link.access }}{% endif %}</p>
-{% if not link.revoked_at %}<form action="{% url 'grant-update' athlete.id 'parent' link.pk %}" method="post">{% csrf_token %}<input type="hidden" name="version" value="{{ version }}">
-{% if permissions.manage_grants %}<select name="access" aria-label="Parent access"><option value="view">View</option><option value="edit">Edit</option><option value="none">No access</option></select><button type="submit">Update parent access</button>
-{% else %}<input type="hidden" name="access" value="none"><button type="submit">End my parent access</button>{% endif %}</form>{% endif %}{% endfor %}
-{% for link in coaches %}<p>Coach: {{ link.coach.get_username }} — {% if link.revoked_at %}Revoked{% elif link.plan_edit %}View and plan editing{% else %}View only{% endif %}</p>
-{% if not link.revoked_at %}<form action="{% url 'grant-update' athlete.id 'coach' link.pk %}" method="post">{% csrf_token %}<input type="hidden" name="version" value="{{ version }}">
-{% if permissions.manage_grants %}<select name="access" aria-label="Coach access"><option value="view">View</option><option value="edit">Plan editing</option><option value="none">No access</option></select><button type="submit">Update coach access</button>
-{% else %}<input type="hidden" name="access" value="none"><button type="submit">End my coach relationship</button>{% endif %}</form>{% endif %}{% endfor %}
-{% if review_required %}<form action="{% url 'parent-review' athlete.id %}" method="post">{% csrf_token %}<input type="hidden" name="version" value="{{ version }}"><button type="submit">I have reviewed parent access</button></form>{% endif %}
-{% if permissions.manage_grants or claim_allowed %}<h3>Create private invitation</h3><p>Use the recipient's Google sign-in email. Copy the private link to that person. It expires in seven days and requires their verified account.</p>
-<form action="{% url 'invitation-create' athlete.id %}" method="post">{% csrf_token %}<input type="hidden" name="version" value="{{ version }}"><label>Recipient email <input type="email" name="email" required></label>
-<label>Invitation type <select name="kind">{% if permissions.manage_grants %}<option value="coach">Coach (view only)</option><option value="parent">Parent/guardian</option>{% endif %}{% if claim_allowed %}<option value="claim">Athlete login claim</option>{% endif %}</select></label><button type="submit">Create private link</button></form>
-{% for invitation in invitations %}<p>{{ invitation.get_kind_display }} invitation to {{ invitation.recipient_email }} (expires {{ invitation.expires_at }})</p>
-<form action="{% url 'invitation-revoke' athlete.id invitation.pk %}" method="post">{% csrf_token %}<input type="hidden" name="version" value="{{ version }}"><button type="submit">Revoke invitation</button></form>{% endfor %}{% endif %}
+{% if review_required %}<p class="notice">You now control your parent's access. Review each parent below and choose viewing, editing or no access. Parent editing never includes exports, closure or managing grants.</p>{% endif %}
+
+<div class="connections-grid">
+  <div class="workspace-panel">
+    <div class="connection-card-header">
+      <img src="{% static 'accounts/role-parent.svg' %}" alt="" width="44" height="44">
+      <div>
+        <h3>Parents &amp; Guardians</h3>
+        <p>Guardian access and age-transition controls.</p>
+      </div>
+    </div>
+    {% for link in guardians %}
+      <div class="connection-row">
+        <p>Parent/guardian: <strong>{{ link.parent.get_username }}</strong> — {% if link.revoked_at %}Revoked{% else %}{{ link.access }}{% endif %}</p>
+        {% if not link.revoked_at %}<form class="inline-grant-form" action="{% url 'grant-update' athlete.id 'parent' link.pk %}" method="post">{% csrf_token %}<input type="hidden" name="version" value="{{ version }}">
+        {% if permissions.manage_grants %}<select name="access" aria-label="Parent access"><option value="view" {% if link.access == 'view' %}selected{% endif %}>View</option><option value="edit" {% if link.access == 'edit' %}selected{% endif %}>Edit</option><option value="none">No access</option></select><button type="submit">Update parent access</button>
+        {% else %}<input type="hidden" name="access" value="none"><button class="button-outline" type="submit">End my parent access</button>{% endif %}</form>{% endif %}
+      </div>
+    {% empty %}
+      <p class="muted-note">No linked parents or guardians shown for your access level.</p>
+    {% endfor %}
+    {% if review_required %}<form action="{% url 'parent-review' athlete.id %}" method="post">{% csrf_token %}<input type="hidden" name="version" value="{{ version }}"><button type="submit">I have reviewed parent access</button></form>{% endif %}
+  </div>
+
+  <div class="workspace-panel">
+    <div class="connection-card-header">
+      <img src="{% static 'accounts/role-coach.svg' %}" alt="" width="44" height="44">
+      <div>
+        <h3>Linked Coaches</h3>
+        <p>Coaches start view-only; optional plan editing never permits score editing.</p>
+      </div>
+    </div>
+    {% for link in coaches %}
+      <div class="connection-row">
+        <p>Coach: <strong>{{ link.coach.get_username }}</strong> — {% if link.revoked_at %}Revoked{% elif link.plan_edit %}View and plan editing{% else %}View only{% endif %}</p>
+        {% if not link.revoked_at %}<form class="inline-grant-form" action="{% url 'grant-update' athlete.id 'coach' link.pk %}" method="post">{% csrf_token %}<input type="hidden" name="version" value="{{ version }}">
+        {% if permissions.manage_grants %}<select name="access" aria-label="Coach access"><option value="view" {% if not link.plan_edit %}selected{% endif %}>View</option><option value="edit" {% if link.plan_edit %}selected{% endif %}>Plan editing</option><option value="none">No access</option></select><button type="submit">Update coach access</button>
+        {% else %}<input type="hidden" name="access" value="none"><button class="button-outline" type="submit">End my coach relationship</button>{% endif %}</form>{% endif %}
+      </div>
+    {% empty %}
+      <p class="muted-note">No linked coaches.</p>
+    {% endfor %}
+  </div>
+</div>
+
+{% if permissions.manage_grants or claim_allowed %}
+<div class="workspace-panel">
+  <h3>Create private invitation</h3>
+  <p>Use the recipient's Google sign-in email. Copy the private link to that person. It expires in seven days and requires their verified account.</p>
+  <form action="{% url 'invitation-create' athlete.id %}" method="post">{% csrf_token %}<input type="hidden" name="version" value="{{ version }}"><label>Recipient email <input type="email" name="email" required></label>
+  <label>Invitation type <select name="kind">{% if permissions.manage_grants %}<option value="coach">Coach (view only)</option><option value="parent">Parent/guardian</option>{% endif %}{% if claim_allowed %}<option value="claim">Athlete login claim</option>{% endif %}</select></label><button type="submit">Create private link</button></form>
+  {% for invitation in invitations %}
+    <div class="connection-row">
+      <p>{{ invitation.get_kind_display }} invitation to <strong>{{ invitation.recipient_email }}</strong> (expires {{ invitation.expires_at }})</p>
+      <form action="{% url 'invitation-revoke' athlete.id invitation.pk %}" method="post">{% csrf_token %}<input type="hidden" name="version" value="{{ version }}"><button class="button-outline" type="submit">Revoke invitation</button></form>
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
 </section>{% endblock %}

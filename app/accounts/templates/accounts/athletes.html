@@ -1,20 +1,80 @@
-{% extends 'base.html' %}
+{% extends 'base.html' %}{% load static %}
 {% block title %}My athletes - GoldPathArchery{% endblock %}
 {% block page_class %}workspace-page{% endblock %}
-{% block content %}<section class="workspace-card"><h1>My athletes</h1><a href="{% url 'account-profile' %}">My account</a>
-{% for notice in notices %}<p>An athlete you are linked to has turned 16. Athlete editing is enabled; existing parent editing becomes viewing. The athlete can review parent access in Connections.</p>{% endfor %}
-<ul>{% for athlete in athletes %}<li><a href="{% url 'athlete-detail' athlete.pk %}">{{ athlete.display_name }}</a></li>{% empty %}<li>No linked athletes.</li>{% endfor %}</ul>
+{% block content %}<section class="workspace-card">
+<nav class="workflow-tabs" aria-label="Workspace navigation">
+  <a class="workflow-tab" href="{% url 'account-profile' %}">My account</a>
+  <a class="workflow-tab is-active" href="{% url 'athletes' %}">My athletes</a>
+  <a class="workflow-tab" href="{% url 'athlete-discovery' %}">Discovery</a>
+  <a class="workflow-tab" href="{% url 'coach-contributions' %}">My contributions</a>
+  <a class="workflow-tab" href="{% url 'manager-queue' %}">Plan Manager</a>
+  <a class="workflow-tab" href="{% url 'admin-ops' %}">Admin ops</a>
+</nav>
+
+<div class="workspace-header-row">
+  <div>
+    <p class="eyebrow"><span></span> STEP 02 · ATHLETE SELECTOR &amp; PROFILES</p>
+    <h1>My athletes</h1>
+    <p>Select an athlete to view or manage their profile, connections, training plan and scoring workflow.</p>
+  </div>
+  <div class="workspace-header-actions">
+    <a class="button-outline" href="{% url 'account-profile' %}">My account</a>
+  </div>
+</div>
+
+{% for notice in notices %}<p class="notice">An athlete you are linked to has turned 16. Athlete editing is enabled; existing parent editing becomes viewing. The athlete can review parent access in Connections.</p>{% endfor %}
+
+<ul class="athlete-selector-grid">
+  {% for athlete in athletes %}
+    <li class="athlete-selector-card">
+      <div class="athlete-selector-top">
+        <img src="{% static 'accounts/role-archer.svg' %}" alt="" width="48" height="48">
+        <div>
+          <a class="athlete-selector-name" href="{% url 'athlete-detail' athlete.pk %}">{{ athlete.display_name }}</a>
+          <span class="badge badge-discipline">{{ athlete.discipline|title }}</span>
+        </div>
+      </div>
+      <div class="athlete-selector-links">
+        <a href="{% url 'athlete-detail' athlete.pk %}">Profile &amp; Connections</a>
+        <a href="{% url 'athlete-today' athlete.pk %}">Today / Week</a>
+        <a href="{% url 'athlete-plans' athlete.pk %}">Plans</a>
+        <a href="{% url 'athlete-score' athlete.pk %}">Score</a>
+        <a href="{% url 'athlete-progress' athlete.pk %}">Progress</a>
+        <a href="{% url 'athlete-equipment' athlete.pk %}">Equipment</a>
+      </div>
+    </li>
+  {% empty %}
+    <li class="empty-state-item">No linked athletes.</li>
+  {% endfor %}
+</ul>
+
 {{ form.non_field_errors }}
 {% if can_create_own or can_create_child %}
-<h2>Create an athlete profile</h2>
-{% if can_create_own %}<p>Create your own athlete profile (age 16 or older).</p>{% endif %}
-{% if can_create_child %}<p>Create a child profile below age 16. Children under 14 have no login. Ages 14–15 may claim an existing profile with a private invitation and have read-only access.</p>{% else %}<p>To create a child profile, save Parent/Guardian in <a href="{% url 'account-profile' %}">My account</a>.</p>{% endif %}
-<form method="post">{% csrf_token %}
-{% for field in form %}
-{% if field.name == 'child' %}{% if can_create_child %}{% if can_create_own %}{{ field.as_field_group }}{% else %}<input type="hidden" name="child" value="on">{% endif %}{% endif %}
-{% elif field.name == 'declaration' %}{% if can_create_child %}{{ field.as_field_group }}{% endif %}
-{% else %}<p>{{ field.errors }}{{ field.label_tag }} {{ field }}{% if field.help_text %}<span>{{ field.help_text }}</span>{% endif %}</p>{% endif %}
-{% endfor %}
-<button type="submit">Create profile</button></form>
-{% else %}<p>Profile creation requires Archer for your own profile or Parent/Guardian for a child profile. An account can have one own profile; junior and closed athlete accounts cannot create profiles.</p>{% endif %}
+<div class="workspace-panel">
+  <h2>Create an athlete profile</h2>
+  <div class="role-graphics-grid compact-grid">
+    {% if can_create_own %}
+      <div class="role-graphic-card">
+        <img src="{% static 'accounts/role-archer.svg' %}" alt="" width="44" height="44">
+        <p>Create your own athlete profile (age 16 or older).</p>
+      </div>
+    {% endif %}
+    {% if can_create_child %}
+      <div class="role-graphic-card">
+        <img src="{% static 'accounts/role-parent.svg' %}" alt="" width="44" height="44">
+        <p>Create a child profile below age 16. Children under 14 have no login. Ages 14–15 may claim an existing profile with a private invitation and have read-only access.</p>
+      </div>
+    {% else %}
+      <p>To create a child profile, save Parent/Guardian in <a href="{% url 'account-profile' %}">My account</a>.</p>
+    {% endif %}
+  </div>
+  <form method="post">{% csrf_token %}
+  {% for field in form %}
+  {% if field.name == 'child' %}{% if can_create_child %}{% if can_create_own %}{{ field.as_field_group }}{% else %}<input type="hidden" name="child" value="on">{% endif %}{% endif %}
+  {% elif field.name == 'declaration' %}{% if can_create_child %}{{ field.as_field_group }}{% endif %}
+  {% else %}<p>{{ field.errors }}{{ field.label_tag }} {{ field }}{% if field.help_text %}<span>{{ field.help_text }}</span>{% endif %}</p>{% endif %}
+  {% endfor %}
+  <button type="submit">Create profile</button></form>
+</div>
+{% else %}<p class="workspace-note">Profile creation requires Archer for your own profile or Parent/Guardian for a child profile. An account can have one own profile; junior and closed athlete accounts cannot create profiles.</p>{% endif %}
 </section>{% endblock %}

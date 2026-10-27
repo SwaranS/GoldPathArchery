@@ -944,3 +944,66 @@ class RelationshipTests(TestCase):
         self.adult.refresh_from_db()
         self.assertEqual(self.adult.account_id, self.owner.pk)
         self.assertEqual(self.owner.socialaccount_set.count(), 1)
+
+    def test_workflow_pages_and_user_graphics(self):
+        athlete_routes = [
+            "athlete-today",
+            "athlete-plans",
+            "athlete-score",
+            "athlete-progress",
+            "athlete-equipment",
+            "athlete-export",
+        ]
+        workspace_routes = [
+            "athlete-discovery",
+            "coach-contributions",
+            "manager-queue",
+            "admin-ops",
+        ]
+        home_response = self.client.get(reverse("home"))
+        self.assertEqual(home_response.status_code, 200)
+        for graphic in [
+            "accounts/target.svg",
+            "accounts/role-archer.svg",
+            "accounts/role-parent.svg",
+            "accounts/role-coach.svg",
+            "accounts/workflow-banner.svg",
+        ]:
+            self.assertContains(home_response, graphic)
+
+        for route in workspace_routes:
+            self.assertEqual(self.client.get(reverse(route)).status_code, 302)
+        for route in athlete_routes:
+            self.assertEqual(
+                self.client.get(reverse(route, args=[self.adult.pk])).status_code, 302
+            )
+
+        self.client.force_login(self.stranger)
+        for route in athlete_routes:
+            self.assertEqual(
+                self.client.get(reverse(route, args=[self.adult.pk])).status_code, 404
+            )
+        for route in workspace_routes:
+            response = self.client.get(reverse(route))
+            self.assertEqual(response.status_code, 200)
+            self.assertContains(response, "Page to be implemented")
+            self.assertNotContains(response, "Private Adult")
+            self.assertNotContains(response, "Private Child")
+
+        link = self.link_coach()
+        self.client.force_login(self.coach)
+        for route in athlete_routes:
+            response = self.client.get(reverse(route, args=[self.adult.pk]))
+            self.assertEqual(response.status_code, 200)
+            self.assertContains(response, "Page to be implemented")
+            self.assertContains(response, self.adult.display_name)
+            for private in ["birth_date", "2000-01-01", self.owner.email]:
+                self.assertNotContains(response, private)
+
+        service.set_grant(
+            self.owner, self.adult.pk, "coach", link.pk, "none", self.version(self.adult)
+        )
+        for route in athlete_routes:
+            self.assertEqual(
+                self.client.get(reverse(route, args=[self.adult.pk])).status_code, 404
+            )

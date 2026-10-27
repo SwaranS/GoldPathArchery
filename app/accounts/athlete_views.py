@@ -127,7 +127,11 @@ def athlete_detail(request, athlete_id):
         operation: can(request.user, athlete, operation) for operation in OPERATIONS
     }
     # Coach context never contains a whole athlete object, birth date, timezone or account identity.
-    context = {"athlete": training_fields(athlete), "permissions": permissions}
+    context = {
+        "athlete": training_fields(athlete),
+        "permissions": permissions,
+        "active_tab": "connections",
+    }
     if permissions["edit_profile"]:
         context["form"] = form
     managing = permissions["manage_grants"]
@@ -225,3 +229,189 @@ def grant_update(request, athlete_id, kind, link_id):
 def parent_review(request, athlete_id):
     service.confirm_parent_review(request.user, athlete_id, request.POST.get("version"))
     return redirect("athlete-detail", athlete_id=athlete_id)
+
+
+ATHLETE_SECTIONS = {
+    "today": {
+        "key": "today",
+        "eyebrow": "FLOW D · PRACTICE & RESCHEDULING",
+        "title": "Today & Week",
+        "summary": (
+            "View today's shooting and non-shooting sessions, Rest Day entries, "
+            "and weekly schedule targets."
+        ),
+        "highlights": [
+            "Log completed, partially completed or skipped sessions with actual arrow counts, effort (1–10) and notes.",
+            "Move individual unstarted sessions within the active plan period with Rest Day and conflict warnings.",
+            "Record strength, mobility and mental practice without requiring arrow counts.",
+        ],
+    },
+    "plans": {
+        "key": "plans",
+        "eyebrow": "FLOWS B, C & H · MANAGED AI PLANS",
+        "title": "Plans & Weekly Adaptation",
+        "summary": (
+            "Manage the athlete's active training plan (default 12 weeks, configurable 1 day to 1 year), "
+            "weekly AI recommendations and shared plan copies."
+        ),
+        "highlights": [
+            "One active plan per athlete with scheduled future activation and replacement confirmation.",
+            "Review Manager-released weekly AI recommendations: accept, edit or reject each proposal individually.",
+            "Share independent inactive plan copies via private invitation without exposing logs or scores.",
+        ],
+    },
+    "score": {
+        "key": "score",
+        "eyebrow": "FLOW E · KEYPAD & TARGET PLOTTING",
+        "title": "Round Scoring",
+        "summary": (
+            "Record arrow-by-arrow scores via numeric keypad or interactive target-face plotting "
+            "for recurve, compound and barebow."
+        ),
+        "highlights": [
+            "Launch presets: Indoor 30, Indoor 60, Double 60, Outdoor 720, Double 720 and partial training rounds.",
+            "Optional physical arrow identifiers selected strictly from the athlete's saved active arrow sets.",
+            "Save and resume unfinished rounds; audited score corrections remain restricted to Athlete 16+ or editing Parent.",
+        ],
+    },
+    "progress": {
+        "key": "progress",
+        "eyebrow": "FLOW F · HISTORY & ANALYTICS",
+        "title": "History & Progress",
+        "summary": (
+            "Review planned versus actual arrow volume, session completion and per-physical-arrow "
+            "score averages across local date ranges."
+        ),
+        "highlights": [
+            "Per-arrow mean score and sample count grouped by compatible bow revision, distance and target face.",
+            "Separate equal arrow labels across different sets and preserve archived equipment in historical analysis.",
+            "Explicitly labelled mixed-conditions view when combining different setups or distances.",
+        ],
+    },
+    "equipment": {
+        "key": "equipment",
+        "eyebrow": "FLOW F · BOWS, ARROWS & SIGHT MARKS",
+        "title": "Equipment & Sight Marks",
+        "summary": (
+            "Configure recurve, compound and barebow setups, named arrow sets, individual shaft identifiers "
+            "and distance sight marks."
+        ),
+        "highlights": [
+            "Save multiple bows, named arrow sets and unique physical arrow IDs per set.",
+            "Record sight marks by bow, distance and optional arrow set for range reference.",
+            "Archive retired equipment to hide it from new rounds while preserving historical shot revisions.",
+        ],
+    },
+    "export": {
+        "key": "export",
+        "eyebrow": "FLOW I · DATA PORTABILITY & CLOSURE",
+        "title": "Export & Profile Closure",
+        "summary": (
+            "Download training plans, session logs and scores as CSV or PDF summaries, or request "
+            "reauthenticated profile closure."
+        ),
+        "highlights": [
+            "Private 24-hour expiring downloads for CSV arrow-level detail and readable PDF summaries.",
+            "Immediate access, invitation and relationship revocation upon confirmed closure, with anonymisation within 30 days.",
+            "Controlled by Athlete 16+ or managing Parent for profiles below 16.",
+        ],
+    },
+}
+
+WORKSPACE_SECTIONS = {
+    "discovery": {
+        "key": "discovery",
+        "eyebrow": "FLOW G · R04 SIGNED-IN DISCOVERY",
+        "title": "Profile Discovery",
+        "graphic": "accounts/role-archer.svg",
+        "summary": (
+            "Search eligible signed-in profiles showing only display name, role and bow discipline."
+        ),
+        "highlights": [
+            "Under-16 athlete profiles and accounts with 'Stay out of Search' enabled never appear in search.",
+            "Hidden users and managing parents initiate their own connections via private 7-day invitations.",
+            "Birth dates, contact emails and training records are never exposed in directory listings.",
+        ],
+    },
+    "contributions": {
+        "key": "contributions",
+        "eyebrow": "FLOW G · R15 COACH SNAPSHOTS",
+        "title": "My Coach Contributions",
+        "graphic": "accounts/role-coach.svg",
+        "summary": (
+            "Read-only archive of your own authored plan proposals and session instruction revisions."
+        ),
+        "highlights": [
+            "Retains only your dated authored instructions and their status after a coaching relationship ends.",
+            "Excludes whole athlete plans, subsequent athlete activity and other coaches' private notes.",
+            "Subject to athlete account closure and anonymisation rules.",
+        ],
+    },
+    "manager": {
+        "key": "manager",
+        "eyebrow": "FLOWS B & C · R05/R07 SYSTEM PLAN MANAGER",
+        "title": "Plan Manager Review Queue",
+        "graphic": "accounts/workflow-banner.svg",
+        "summary": (
+            "Generate, validate and review initial AI training plans and weekly adaptation proposals "
+            "for assigned athletes."
+        ),
+        "highlights": [
+            "Access restricted strictly to administrator-assigned athletes and active temporary cover grants.",
+            "Review AI drafts against scheduling and volume constraints before publishing or releasing proposals.",
+            "Plan Managers never edit athlete actual scores or browse private coach notes.",
+        ],
+    },
+    "admin_ops": {
+        "key": "admin_ops",
+        "eyebrow": "R16 & R18 · OPERATIONS & ASSIGNMENTS",
+        "title": "Administrator Operations",
+        "graphic": "accounts/role-parent.svg",
+        "summary": (
+            "Manage System Plan Manager assignments, expiring temporary cover and operational job status."
+        ),
+        "highlights": [
+            "Assign or reassign Plan Managers and dated temporary cover (default 7 days, max 30 days) with audit logs.",
+            "Monitor durable background queues for exports, closures and scheduled activations.",
+            "Routine administration provides no private-data browsing or training-note debug views.",
+        ],
+    },
+}
+
+
+@login_required
+@require_http_methods(["GET"])
+@relationship_errors
+def athlete_section(request, athlete_id, section):
+    if section not in ATHLETE_SECTIONS:
+        raise Http404("Unavailable.")
+    athlete = visible_athlete(request, athlete_id)
+    permissions = {
+        operation: can(request.user, athlete, operation) for operation in OPERATIONS
+    }
+    return render(
+        request,
+        "accounts/athlete_placeholder.html",
+        {
+            "athlete": training_fields(athlete),
+            "permissions": permissions,
+            "section": ATHLETE_SECTIONS[section],
+            "active_tab": section,
+        },
+    )
+
+
+@login_required
+@require_http_methods(["GET"])
+@relationship_errors
+def workspace_section(request, section):
+    if section not in WORKSPACE_SECTIONS:
+        raise Http404("Unavailable.")
+    return render(
+        request,
+        "accounts/workspace_placeholder.html",
+        {
+            "section": WORKSPACE_SECTIONS[section],
+            "active_workspace": section,
+        },
+    )

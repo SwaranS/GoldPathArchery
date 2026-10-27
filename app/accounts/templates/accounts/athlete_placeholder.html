@@ -1,0 +1,33 @@
+{% extends 'base.html' %}{% load static %}
+{% block title %}{{ section.title }} · {{ athlete.display_name }} - GoldPathArchery{% endblock %}
+{% block page_class %}workspace-page{% endblock %}
+{% block content %}
+<section class="workspace-card">
+  {% include 'accounts/_athlete_header.html' %}
+
+  <div class="placeholder-panel">
+    <div class="placeholder-header">
+      <div>
+        <p class="eyebrow"><span></span> {{ section.eyebrow }}</p>
+        <h1>{{ section.title }} — {{ athlete.display_name }}</h1>
+        <p class="placeholder-status">Page to be implemented</p>
+      </div>
+      <img class="placeholder-graphic" src="{% static 'accounts/target.svg' %}" alt="Archery target graphic" width="120" height="120">
+    </div>
+    <p class="placeholder-summary">{{ section.summary }}</p>
+    <div class="workflow-spec-box">
+      <h2>Planned workflow scope</h2>
+      <ul>
+        {% for item in section.highlights %}
+          <li>{{ item }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="placeholder-actions">
+      <a class="button" href="{% url 'athlete-detail' athlete.id %}">Return to {{ athlete.display_name }} Profile &amp; Connections →</a>
+      <a class="text-link" href="{% url 'athletes' %}">All accessible athletes</a>
+    </div>
+  </div>
+</section>
+{% endblock %}
+

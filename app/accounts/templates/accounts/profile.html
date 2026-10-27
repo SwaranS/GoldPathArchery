@@ -1,14 +1,64 @@
-{% extends 'base.html' %}
+{% extends 'base.html' %}{% load static %}
 {% block title %}My account - GoldPathArchery{% endblock %}
 {% block page_class %}workspace-page{% endblock %}
 {% block content %}<section class="workspace-card">
-<h1>My account</h1>
-<p><a href="{% url 'athletes' %}">My athletes and connections</a></p>
-{% for notice in notices %}<p>A linked athlete has turned 16. Existing parent editing becomes viewing; the athlete can choose each parent's access in Connections.</p>{% endfor %}
-<p>Signed in as {{ request.user.email|default:request.user.username }}</p>
-<p>Select all roles that apply: Archer, Parent/Guardian and Coach. You can select any combination.</p>
-<p>Roles alone do not grant access to athlete records. Access requires explicit relationship and invitation permissions.</p>
-<p>My athletes includes your own Archer profile and profiles explicitly linked to you. Changing roles does not end existing relationships; manage those in the athlete's Connections.</p>
-<form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Save roles</button></form>
-<form action="{% url 'account_logout' %}" method="post">{% csrf_token %}<button type="submit">Sign out</button></form>
+<nav class="workflow-tabs" aria-label="Workspace navigation">
+  <a class="workflow-tab is-active" href="{% url 'account-profile' %}">My account</a>
+  <a class="workflow-tab" href="{% url 'athletes' %}">My athletes</a>
+  <a class="workflow-tab" href="{% url 'athlete-discovery' %}">Discovery</a>
+  <a class="workflow-tab" href="{% url 'coach-contributions' %}">My contributions</a>
+  <a class="workflow-tab" href="{% url 'manager-queue' %}">Plan Manager</a>
+  <a class="workflow-tab" href="{% url 'admin-ops' %}">Admin ops</a>
+</nav>
+
+<div class="workspace-header-row">
+  <div>
+    <p class="eyebrow"><span></span> STEP 01 · ACCOUNT &amp; ROLES</p>
+    <h1>My account</h1>
+    <p class="account-identity">Signed in as <strong>{{ request.user.email|default:request.user.username }}</strong></p>
+  </div>
+  <div class="workspace-header-actions">
+    <a class="button" href="{% url 'athletes' %}">My athletes and connections →</a>
+  </div>
+</div>
+
+{% for notice in notices %}<p class="notice">A linked athlete has turned 16. Existing parent editing becomes viewing; the athlete can choose each parent's access in Connections.</p>{% endfor %}
+
+<img class="workflow-banner-img" src="{% static 'accounts/workflow-banner.svg' %}" alt="GoldPathArchery workflow: Roles and Profile, Connections, 12-Week Plan, Score and Review">
+
+<div class="role-graphics-grid" aria-label="User role guide">
+  <article class="role-graphic-card">
+    <img src="{% static 'accounts/role-archer.svg' %}" alt="Archer graphic" width="56" height="56">
+    <div>
+      <h3>Archer</h3>
+      <p>Create and manage your own 16+ athlete profile, active training plan, equipment and arrow-by-arrow scores.</p>
+    </div>
+  </article>
+  <article class="role-graphic-card">
+    <img src="{% static 'accounts/role-parent.svg' %}" alt="Parent/Guardian graphic" width="56" height="56">
+    <div>
+      <h3>Parent/Guardian</h3>
+      <p>Create and manage child profiles under 16, issue 14–15 read-only junior claims and support age-16 transitions.</p>
+    </div>
+  </article>
+  <article class="role-graphic-card">
+    <img src="{% static 'accounts/role-coach.svg' %}" alt="Coach graphic" width="56" height="56">
+    <div>
+      <h3>Coach</h3>
+      <p>Accept private athlete invitations to view goals, plans and progress, or propose plan edits when granted.</p>
+    </div>
+  </article>
+</div>
+
+<div class="workspace-panel">
+  <h2>Select your account roles</h2>
+  <p>Select all roles that apply: Archer, Parent/Guardian and Coach. You can select any combination.</p>
+  <p>Roles alone do not grant access to athlete records. Access requires explicit relationship and invitation permissions.</p>
+  <p>My athletes includes your own Archer profile and profiles explicitly linked to you. Changing roles does not end existing relationships; manage those in the athlete's Connections.</p>
+  <form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Save roles</button></form>
+</div>
+
+<div class="workspace-footer-actions">
+  <form action="{% url 'account_logout' %}" method="post">{% csrf_token %}<button class="button-outline" type="submit">Sign out</button></form>
+</div>
 </section>{% endblock %}

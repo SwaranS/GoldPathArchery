@@ -1,0 +1,34 @@
+{% load static %}
+<div class="athlete-banner" aria-label="Selected athlete context">
+  <div class="athlete-banner-identity">
+    <img class="athlete-banner-graphic" src="{% static 'accounts/role-archer.svg' %}" alt="" width="56" height="56">
+    <div>
+      <p class="eyebrow athlete-eyebrow"><span></span> SELECTED ATHLETE</p>
+      <div class="athlete-banner-title-row">
+        <strong class="athlete-banner-name">{{ athlete.display_name }}</strong>
+        <span class="badge badge-discipline">{{ athlete.discipline|title }}</span>
+        {% if permissions.edit_profile %}
+          <span class="badge badge-edit">Editing enabled</span>
+        {% elif permissions.edit_plan %}
+          <span class="badge badge-plan">Plan editing</span>
+        {% else %}
+          <span class="badge badge-view">View only</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="athlete-banner-actions">
+    <a class="button-outline" href="{% url 'athletes' %}">Switch athlete →</a>
+  </div>
+</div>
+
+<nav class="workflow-tabs" aria-label="Athlete workflow navigation">
+  <a class="workflow-tab {% if active_tab == 'connections' %}is-active{% endif %}" href="{% url 'athlete-detail' athlete.id %}">Profile &amp; Connections</a>
+  <a class="workflow-tab {% if active_tab == 'today' %}is-active{% endif %}" href="{% url 'athlete-today' athlete.id %}">Today / Week</a>
+  <a class="workflow-tab {% if active_tab == 'plans' %}is-active{% endif %}" href="{% url 'athlete-plans' athlete.id %}">Plans</a>
+  <a class="workflow-tab {% if active_tab == 'score' %}is-active{% endif %}" href="{% url 'athlete-score' athlete.id %}">Score</a>
+  <a class="workflow-tab {% if active_tab == 'progress' %}is-active{% endif %}" href="{% url 'athlete-progress' athlete.id %}">History / Progress</a>
+  <a class="workflow-tab {% if active_tab == 'equipment' %}is-active{% endif %}" href="{% url 'athlete-equipment' athlete.id %}">Equipment</a>
+  <a class="workflow-tab {% if active_tab == 'export' %}is-active{% endif %}" href="{% url 'athlete-export' athlete.id %}">Export &amp; Closure</a>
+</nav>
+
