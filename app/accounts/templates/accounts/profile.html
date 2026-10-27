@@ -8,6 +8,7 @@
 <p>Signed in as {{ request.user.email|default:request.user.username }}</p>
 <p>Select all roles that apply: Archer, Parent/Guardian and Coach. You can select any combination.</p>
 <p>Roles alone do not grant access to athlete records. Access requires explicit relationship and invitation permissions.</p>
+<p>My athletes includes your own Archer profile and profiles explicitly linked to you. Changing roles does not end existing relationships; manage those in the athlete's Connections.</p>
 <form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Save roles</button></form>
 <form action="{% url 'account_logout' %}" method="post">{% csrf_token %}<button type="submit">Sign out</button></form>
 </section>{% endblock %}

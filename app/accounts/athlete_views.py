@@ -11,7 +11,7 @@ from django.views.decorators.http import require_http_methods
 
 from . import relationships as service
 from .forms import AthleteCreateForm, AthleteEditForm
-from .permissions import OPERATIONS, accessible_athletes, can, training_fields
+from .permissions import OPERATIONS, accessible_athletes, can, eligible_actor, training_fields
 
 
 def relationship_errors(view):
@@ -48,20 +48,40 @@ def athletes(request):
     if request.method == "POST" and form.is_valid():
         data = dict(form.cleaned_data)
         child, declaration = data.pop("child"), data.pop("declaration")
-        athlete = service.create_profile(
-            request.user, data, child=child, declaration=declaration
-        )
-        return redirect("athlete-detail", athlete_id=athlete.pk)
+        try:
+            athlete = service.create_profile(
+                request.user, data, child=child, declaration=declaration
+            )
+        except PermissionDenied:
+            # Creation has no private target to conceal. Keep the bound form so
+            # users can correct their role selection without losing their input.
+            form.add_error(
+                None,
+                "Unable to create this profile. Save the Parent/Guardian role in My account "
+                "for a child profile, or Archer for your own profile. Accounts with a "
+                "junior (under 16) or closed athlete profile cannot create profiles.",
+            )
+        else:
+            return redirect("athlete-detail", athlete_id=athlete.pk)
     # No directory of all athletes: only explicitly accessible objects.
     profiles = list(accessible_athletes(request.user))
     for athlete in profiles:
         service.transition(athlete.pk)
+    roles = set(request.user.role_assignments.values_list("role", flat=True))
+    eligible = eligible_actor(request.user, write=True)
+    can_create_child = eligible and "parent" in roles
+    can_create_own = (
+        eligible and "archer" in roles
+        and not hasattr(request.user, "athlete_profile")
+    )
     return render(
         request,
         "accounts/athletes.html",
         {
             "athletes": profiles,
             "form": form,
+            "can_create_child": can_create_child,
+            "can_create_own": can_create_own,
             "notices": request.user.relationship_notices.filter(
                 athlete__closed_at__isnull=True
             ),
