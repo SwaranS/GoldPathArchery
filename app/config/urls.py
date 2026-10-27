@@ -19,4 +19,5 @@ urlpatterns = [
     path("accounts/signup/", disabled_password_signup),
     path("accounts/", include("allauth.urls")),
     path("account/", include("accounts.urls")),
+    path("scoring/", include("scoring.urls")),
 ]

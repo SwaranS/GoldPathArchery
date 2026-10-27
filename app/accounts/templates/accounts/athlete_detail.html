@@ -2,6 +2,7 @@
 {% block title %}{{ athlete.display_name }} - GoldPathArchery{% endblock %}
 {% block page_class %}workspace-page{% endblock %}
 {% block content %}<section class="workspace-card"><a href="{% url 'athletes' %}">My athletes</a><h1>{{ athlete.display_name }}</h1>
+<p><a href="{% url 'scoring-history' athlete.id %}">Scoring sessions and personal bests</a></p>
 <dl><dt>Discipline</dt><dd>{{ athlete.discipline }}</dd><dt>Goals</dt><dd>{{ athlete.goals }}</dd><dt>Availability</dt><dd>{{ athlete.availability }}</dd></dl>
 {% if form %}<h2>Edit {{ athlete.display_name }}</h2><form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Save profile</button></form>{% else %}<p>Profile is read-only.</p>{% endif %}
 <h2>Connections for {{ athlete.display_name }}</h2>
