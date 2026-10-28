@@ -27,7 +27,7 @@ class WorkspaceTests(TestCase):
 
     def test_archer_home_and_connections(self):
         self.roles("archer")
-        own = self.athlete(account=self.user)
+        own = self.athlete(account=self.user, transitioned_at=timezone.now())
         response = self.client.get(reverse("home"), follow=True)
         self.assertEqual(response.request["PATH_INFO"], reverse("athlete-detail", args=[own.pk]))
         nav = response.content.decode().split('<nav aria-label="Main navigation">')[1].split('</nav>')[0]
@@ -143,7 +143,7 @@ class WorkspaceTests(TestCase):
 
     def test_menu_and_workflow_tabs_consistency(self):
         self.roles("archer")
-        own = self.athlete(account=self.user)
+        own = self.athlete(account=self.user, transitioned_at=timezone.now())
         for route in ("account-profile", "athletes", "athlete-discovery", "coach-contributions"):
             response = self.client.get(reverse(route))
             self.assertEqual(response.status_code, 200)
