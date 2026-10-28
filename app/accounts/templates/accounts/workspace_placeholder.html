@@ -9,7 +9,7 @@
     <a class="workflow-tab {% if active_workspace == 'discovery' %}is-active{% endif %}" href="{% url 'athlete-discovery' %}">Discovery</a>
     <a class="workflow-tab {% if active_workspace == 'contributions' %}is-active{% endif %}" href="{% url 'coach-contributions' %}">My contributions</a>
     <a class="workflow-tab {% if active_workspace == 'manager' %}is-active{% endif %}" href="{% url 'manager-queue' %}">Plan Manager</a>
-    <a class="workflow-tab {% if active_workspace == 'admin_ops' %}is-active{% endif %}" href="{% url 'admin-ops' %}">Admin ops</a>
+    {% if is_admin %}<a class="workflow-tab {% if active_workspace == 'admin_ops' %}is-active{% endif %}" href="{% url 'admin-ops' %}">Admin ops</a>{% endif %}
   </nav>
 
   <div class="placeholder-panel">

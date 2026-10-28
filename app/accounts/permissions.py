@@ -16,6 +16,15 @@ OPERATIONS = {
 }
 
 
+def is_admin(user):
+    return bool(
+        user
+        and user.is_authenticated
+        and user.is_active
+        and (user.is_staff or user.is_superuser)
+    )
+
+
 def eligible_actor(user, *, write=False):
     if not user or not user.is_authenticated or not user.is_active:
         return False

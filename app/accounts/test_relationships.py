@@ -984,11 +984,23 @@ class RelationshipTests(TestCase):
                 self.client.get(reverse(route, args=[self.adult.pk])).status_code, 404
             )
         for route in workspace_routes:
+            if route == "admin-ops":
+                self.assertEqual(self.client.get(reverse(route)).status_code, 404)
+                continue
             response = self.client.get(reverse(route))
             self.assertEqual(response.status_code, 200)
             self.assertContains(response, "Page to be implemented")
             self.assertNotContains(response, "Private Adult")
             self.assertNotContains(response, "Private Child")
+            self.assertNotContains(response, reverse("admin-ops"))
+        admin_user = self.user("admin-user")
+        admin_user.is_staff = True
+        admin_user.save(update_fields=["is_staff"])
+        self.client.force_login(admin_user)
+        admin_response = self.client.get(reverse("admin-ops"))
+        self.assertEqual(admin_response.status_code, 200)
+        self.assertContains(admin_response, "Administrator Operations")
+        self.assertContains(admin_response, reverse("admin-ops"))
 
         link = self.link_coach()
         self.client.force_login(self.coach)
