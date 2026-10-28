@@ -17,12 +17,13 @@
       </div>
     </div>
   </div>
-  <div class="athlete-banner-actions">
-    <a class="button-outline" href="{% url 'athletes' %}">Switch athlete →</a>
-  </div>
+  {% if show_athlete_switcher %}<div class="athlete-banner-actions">
+    {% include 'accounts/_athlete_switcher.html' %}
+  </div>{% endif %}
 </div>
 
 <nav class="workflow-tabs" aria-label="Athlete profile navigation">
 <a class="workflow-tab" href="{% url 'athlete-detail' athlete.id %}">Profile</a>
 <a class="workflow-tab" href="{% url 'athlete-detail' athlete.id %}#connections">Connections</a>
+<a class="workflow-tab {% if active_tab == 'plans' %}is-active{% endif %}" href="{% url 'athlete-plans' athlete.id %}">Plans</a>
 </nav>

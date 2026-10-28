@@ -2,9 +2,10 @@ from django.urls import path
 
 from . import athlete_views
 from .views import profile
-from . import workspace_views
+from . import workspace_views, plan_views
 
 urlpatterns = [
+    path("plans/", plan_views.my_plans, name="my-plans"),
     path("start/", workspace_views.landing, name="workspace-home"),
     path("workspace/<str:workspace>/", workspace_views.workspace, name="workspace"),
     path("profile/", profile, name="account-profile"),
@@ -22,8 +23,7 @@ urlpatterns = [
     ),
     path(
         "athletes/<uuid:athlete_id>/plans/",
-        athlete_views.athlete_section,
-        {"section": "plans"},
+        plan_views.plans,
         name="athlete-plans",
     ),
     path(
