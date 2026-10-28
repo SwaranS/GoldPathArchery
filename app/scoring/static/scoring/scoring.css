@@ -1,0 +1,10 @@
+#scorer [hidden] { display: none !important; }
+.scoring-table { width: 100%; border-collapse: collapse; text-align: left; }
+.scoring-table th, .scoring-table td { padding: 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+#keypad { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0; }
+#scorer > button { margin: 4px; }
+#scorer button:disabled { opacity: .55; cursor: wait; }
+#save-state { padding: 12px; border-left: 3px solid var(--gold); background: var(--paper); }
+#scorer details { margin: 12px 0; }
+#scorer summary { cursor: pointer; line-height: 1.7; }
+#scorer details p { font-family: monospace; font-size: 12px; }

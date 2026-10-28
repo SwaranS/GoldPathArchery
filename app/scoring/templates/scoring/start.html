@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% block title %}Start scoring - GoldPathArchery{% endblock %}
+{% block content %}<section class="workspace-card"><a href="{% url 'scoring-history' athlete.id %}">Scoring history</a><h1>Score for {{ athlete.display_name }}</h1>
+<p>Choose a configured round, or set the target, rules and counts for custom training. Round context decides whether the result is a Training or Competition PB.</p>
+<p>Presets are application practice formats. Check your event's rules before use.</p>
+<form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Start session</button></form>
+<p>Equipment is optional. <a href="{% url 'scoring-equipment' athlete.id %}">Save bows and arrows</a></p></section>{% endblock %}

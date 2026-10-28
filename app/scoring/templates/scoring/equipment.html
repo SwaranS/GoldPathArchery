@@ -1,0 +1,6 @@
+{% extends 'base.html' %}
+{% block content %}<section class="workspace-card"><a href="{% url 'scoring-history' athlete.id %}">Scoring history</a><h1>Equipment for {{ athlete.display_name }}</h1>
+<p>Equipment is optional. Save a new setup when specifications change; sessions keep a copy of the setup they started with.</p>
+<h2>Save bow or arrow set</h2><form method="post">{% csrf_token %}<input type="hidden" name="action" value="equipment">{{ form.as_p }}<button>Save equipment</button></form>
+<h2>Identify a physical arrow</h2><form method="post">{% csrf_token %}<input type="hidden" name="action" value="arrow">{{ arrow_form.as_p }}<button>Save arrow</button></form>
+<h2>Saved equipment</h2>{% for item in items %}<p>{{ item.name }} ({{ item.kind }}) {% if not item.active %}Archived{% endif %}</p><form method="post">{% csrf_token %}<input type="hidden" name="item" value="{{ item.pk }}"><button name="action" value="{% if item.active %}archive{% else %}restore{% endif %}">{% if item.active %}Archive{% else %}Restore{% endif %}</button></form>{% for arrow in item.arrows.all %}<p>Arrow {{ arrow.identifier }}</p>{% endfor %}{% empty %}<p>No equipment saved.</p>{% endfor %}</section>{% endblock %}

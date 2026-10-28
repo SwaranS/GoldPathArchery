@@ -2,6 +2,10 @@
 
 Archery training, scoring and coaching service for recurve, compound and barebow.
 
+## Scoring implementation
+
+See [scoring setup and behavior](docs/scoring.md) for migrations, practice seed data, administration, score entry, session history, equipment and personal bests.
+
 ## Planning baseline
 
 Product choices were gathered with the owner and remaining defaults selected under delegated authority on 22 October 2026. Documents below describe intended behaviour; application implementation has not started. Work is on `feature/requirements`; this update does not merge to main.
