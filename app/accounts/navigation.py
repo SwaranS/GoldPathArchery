@@ -1,6 +1,6 @@
 """Presentation preferences only; athlete permissions remain object-specific."""
 
-from .permissions import accessible_athletes, can
+from .permissions import accessible_athletes, can, is_admin
 
 WORKSPACES = {"archer": "My training", "parent": "Family", "coach": "Coaching"}
 
@@ -18,7 +18,7 @@ def navigation(request):
         ]
     return {"workspaces": [
         {"key": key, "label": label} for key, label in WORKSPACES.items() if key in roles
-    ], "has_archer_role": "archer" in roles,
+    ], "has_archer_role": "archer" in roles, "is_admin": is_admin(request.user),
         "athlete_switcher_options": athlete_options,
         "show_athlete_switcher": len(athlete_options) > 1,
     }

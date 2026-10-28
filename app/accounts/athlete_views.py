@@ -13,7 +13,14 @@ from django.views.decorators.http import require_http_methods
 
 from . import relationships as service
 from .forms import AthleteCreateForm, AthleteEditForm
-from .permissions import OPERATIONS, accessible_athletes, can, eligible_actor, training_fields
+from .permissions import (
+    OPERATIONS,
+    accessible_athletes,
+    can,
+    eligible_actor,
+    is_admin,
+    training_fields,
+)
 
 
 def relationship_errors(view):
@@ -433,6 +440,8 @@ def athlete_section(request, athlete_id, section):
 @require_http_methods(["GET"])
 @relationship_errors
 def workspace_section(request, section):
+    if section == "admin_ops" and not is_admin(request.user):
+        raise PermissionDenied
     if section not in WORKSPACE_SECTIONS:
         raise Http404("Unavailable.")
     return render(
