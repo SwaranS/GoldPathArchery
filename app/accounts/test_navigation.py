@@ -140,3 +140,22 @@ class WorkspaceTests(TestCase):
         child = AthleteProfile.objects.get(display_name="New child")
         self.assertRedirects(response, reverse("athlete-detail", args=[child.pk]))
         self.assertTrue(GuardianLink.objects.filter(athlete=child, parent=self.user).exists())
+
+    def test_menu_and_workflow_tabs_consistency(self):
+        self.roles("archer")
+        own = self.athlete(account=self.user)
+        for route in ("account-profile", "athletes", "athlete-discovery", "coach-contributions"):
+            response = self.client.get(reverse(route))
+            self.assertEqual(response.status_code, 200)
+            self.assertNotContains(response, 'class="workflow-tabs"')
+            self.assertNotContains(response, "Admin ops")
+            self.assertNotContains(response, "Plan Manager")
+        detail = self.client.get(reverse("athlete-detail", args=[own.pk]))
+        self.assertContains(detail, '<nav class="workflow-tabs" aria-label="Athlete profile navigation">')
+        self.assertContains(detail, f'class="workflow-tab is-active" href="{reverse("athlete-detail", args=[own.pk])}">Profile</a>')
+        plans = self.client.get(reverse("athlete-plans", args=[own.pk]))
+        self.assertContains(plans, f'class="workflow-tab is-active" href="{reverse("athlete-plans", args=[own.pk])}">Plans</a>')
+        self.user.is_staff = True
+        self.user.save(update_fields=["is_staff"])
+        admin_nav = self.client.get(reverse("account-profile")).content.decode().split('<nav aria-label="Main navigation">')[1].split('</nav>')[0]
+        self.assertIn("Admin ops", admin_nav)
