@@ -106,3 +106,6 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+# Keep Firefox form origins while withholding referrers from external sites.
+SECURE_REFERRER_POLICY = "same-origin"

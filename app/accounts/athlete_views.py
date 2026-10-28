@@ -178,7 +178,6 @@ def invitation_create(request, athlete_id):
         },
     )
     response["Cache-Control"] = "no-store"
-    response["Referrer-Policy"] = "no-referrer"
     return response
 
 
@@ -194,7 +193,6 @@ def invitation_accept(request, token):
     # Opening a link reveals no hidden target and makes no grant, even for matching recipients.
     response = render(request, "accounts/invitation_accept.html")
     response["Cache-Control"] = "no-store"
-    response["Referrer-Policy"] = "no-referrer"
     return response
 
 
