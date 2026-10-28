@@ -1,11 +1,13 @@
 from functools import wraps
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.db import IntegrityError
 from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
 
@@ -43,7 +45,11 @@ def relationship_errors(view):
 @login_required
 @require_http_methods(["GET", "POST"])
 @relationship_errors
-def athletes(request):
+def athletes(request, scope=None):
+    if request.method == "POST" and (scope == "coach" or
+            (scope == "parent" and request.POST.get("child") != "on") or
+            (scope == "archer" and request.POST.get("child"))):
+        raise PermissionDenied
     form = AthleteCreateForm(request.POST if request.method == "POST" else None)
     if request.method == "POST" and form.is_valid():
         data = dict(form.cleaned_data)
@@ -62,16 +68,35 @@ def athletes(request):
                 "junior (under 16) or closed athlete profile cannot create profiles.",
             )
         else:
+            messages.success(request, f"Profile created for {athlete.display_name}.")
             return redirect("athlete-detail", athlete_id=athlete.pk)
     # No directory of all athletes: only explicitly accessible objects.
     profiles = list(accessible_athletes(request.user))
     for athlete in profiles:
         service.transition(athlete.pk)
+    profiles = list(accessible_athletes(request.user))
+    if scope == "archer":
+        profiles = [a for a in profiles if a.account_id == request.user.pk]
+    elif scope == "parent":
+        profiles = [a for a in profiles if a.guardians.filter(
+            parent=request.user, revoked_at__isnull=True, access__in=["view", "edit"]
+        ).exists()]
+    elif scope == "coach":
+        profiles = [a for a in profiles if a.coaches.filter(
+            coach=request.user, revoked_at__isnull=True
+        ).exists()]
+    rows = []
+    for athlete in profiles:
+        coach = athlete.coaches.filter(coach=request.user, revoked_at__isnull=True).first()
+        access = "Can edit plans" if scope == "coach" and coach.plan_edit else "View only"
+        if scope != "coach" and can(request.user, athlete, "edit_profile"):
+            access = "Can edit profile"
+        rows.append({"athlete": training_fields(athlete), "access": access})
     roles = set(request.user.role_assignments.values_list("role", flat=True))
     eligible = eligible_actor(request.user, write=True)
-    can_create_child = eligible and "parent" in roles
+    can_create_child = eligible and "parent" in roles and scope in (None, "parent")
     can_create_own = (
-        eligible and "archer" in roles
+        eligible and "archer" in roles and scope in (None, "archer")
         and not hasattr(request.user, "athlete_profile")
     )
     return render(
@@ -79,6 +104,9 @@ def athletes(request):
         "accounts/athletes.html",
         {
             "athletes": profiles,
+            "athlete_rows": rows,
+            "scope": scope,
+            "page_title": {"archer": "My profile", "parent": "Family", "coach": "My athletes"}.get(scope, "All linked athletes"),
             "form": form,
             "can_create_child": can_create_child,
             "can_create_own": can_create_own,
@@ -120,6 +148,7 @@ def athlete_detail(request, athlete_id):
             data = dict(form.cleaned_data)
             version = data.pop("version")
             service.update_profile(request.user, athlete_id, data, version)
+            messages.success(request, f"Profile saved for {athlete.display_name}.")
             return redirect("athlete-detail", athlete_id=athlete_id)
     else:
         form = AthleteEditForm(instance=athlete, initial={"version": athlete.version})
@@ -139,7 +168,7 @@ def athlete_detail(request, athlete_id):
     context.update({"claim_allowed": claim_allowed, "version": athlete.version})
     if managing or claim_allowed:
         context["invitations"] = athlete.invitations.filter(
-            accepted_at__isnull=True, revoked_at__isnull=True
+            accepted_at__isnull=True, revoked_at__isnull=True, expires_at__gt=timezone.now()
         )
     if managing:
         context["guardians"] = athlete.guardians.select_related("parent")
@@ -175,6 +204,7 @@ def invitation_create(request, athlete_id):
                 reverse("invitation-accept", args=[token])
             ),
             "athlete_id": invitation.athlete_id,
+            "athlete_name": invitation.athlete.display_name,
         },
     )
     response["Cache-Control"] = "no-store"

@@ -1,21 +1,14 @@
 {% extends 'base.html' %}{% load static %}
-{% block title %}My athletes - GoldPathArchery{% endblock %}
+{% block title %}{{ page_title }} - GoldPathArchery{% endblock %}
 {% block page_class %}workspace-page{% endblock %}
 {% block content %}<section class="workspace-card">
-<nav class="workflow-tabs" aria-label="Workspace navigation">
-  <a class="workflow-tab" href="{% url 'account-profile' %}">My account</a>
-  <a class="workflow-tab is-active" href="{% url 'athletes' %}">My athletes</a>
-  <a class="workflow-tab" href="{% url 'athlete-discovery' %}">Discovery</a>
-  <a class="workflow-tab" href="{% url 'coach-contributions' %}">My contributions</a>
-  <a class="workflow-tab" href="{% url 'manager-queue' %}">Plan Manager</a>
-  <a class="workflow-tab" href="{% url 'admin-ops' %}">Admin ops</a>
-</nav>
+
 
 <div class="workspace-header-row">
   <div>
     <p class="eyebrow"><span></span> STEP 02 · ATHLETE SELECTOR &amp; PROFILES</p>
-    <h1>My athletes</h1>
-    <p>Select an athlete to view or manage their profile, connections, training plan and scoring workflow.</p>
+    <h1>{{ page_title }}</h1>
+    <p>Open a profile to view its details and connections. Available actions depend on your current access.</p>
   </div>
   <div class="workspace-header-actions">
     <a class="button-outline" href="{% url 'account-profile' %}">My account</a>
@@ -25,27 +18,12 @@
 {% for notice in notices %}<p class="notice">An athlete you are linked to has turned 16. Athlete editing is enabled; existing parent editing becomes viewing. The athlete can review parent access in Connections.</p>{% endfor %}
 
 <ul class="athlete-selector-grid">
-  {% for athlete in athletes %}
-    <li class="athlete-selector-card">
-      <div class="athlete-selector-top">
-        <img src="{% static 'accounts/role-archer.svg' %}" alt="" width="48" height="48">
-        <div>
-          <a class="athlete-selector-name" href="{% url 'athlete-detail' athlete.pk %}">{{ athlete.display_name }}</a>
-          <span class="badge badge-discipline">{{ athlete.discipline|title }}</span>
-        </div>
-      </div>
-      <div class="athlete-selector-links">
-        <a href="{% url 'athlete-detail' athlete.pk %}">Profile &amp; Connections</a>
-        <a href="{% url 'athlete-today' athlete.pk %}">Today / Week</a>
-        <a href="{% url 'athlete-plans' athlete.pk %}">Plans</a>
-        <a href="{% url 'athlete-score' athlete.pk %}">Score</a>
-        <a href="{% url 'athlete-progress' athlete.pk %}">Progress</a>
-        <a href="{% url 'athlete-equipment' athlete.pk %}">Equipment</a>
-      </div>
-    </li>
-  {% empty %}
-    <li class="empty-state-item">No linked athletes.</li>
-  {% endfor %}
+{% for row in athlete_rows %}<li class="athlete-selector-card">
+<div class="athlete-selector-top"><img src="{% static 'accounts/role-archer.svg' %}" alt="" width="48" height="48"><div>
+<a class="athlete-selector-name" href="{% url 'athlete-detail' row.athlete.id %}">{{ row.athlete.display_name }}</a>
+<span class="badge badge-discipline">{{ row.athlete.discipline|title }}</span></div></div>
+<p>{{ row.access }}</p><a href="{% url 'athlete-detail' row.athlete.id %}">Profile &amp; Connections</a>
+</li>{% empty %}<li class="empty-state-item">{% if scope == 'coach' %}No coaching connections yet. Ask an eligible athlete or managing parent to send a private invitation to your Google sign-in email.{% elif scope == 'parent' %}No linked children yet. Create an eligible child profile or accept a private guardian invitation.{% elif scope == 'archer' %}No own profile is available. Create your own profile if you are 16 or older. To claim an existing profile, use a private invitation from your managing parent; ages 14-15 have view-only access. An existing or closed profile cannot be duplicated.{% else %}No linked athletes.{% endif %}</li>{% endfor %}
 </ul>
 
 {{ form.non_field_errors }}
@@ -76,5 +54,5 @@
   {% endfor %}
   <button type="submit">Create profile</button></form>
 </div>
-{% else %}<p class="workspace-note">Profile creation requires Archer for your own profile or Parent/Guardian for a child profile. An account can have one own profile; junior and closed athlete accounts cannot create profiles.</p>{% endif %}
+{% elif not scope %}<p class="workspace-note">Profile creation requires Archer for your own profile or Parent/Guardian for a child profile. An account can have one own profile; junior and closed athlete accounts cannot create profiles.</p>{% endif %}
 </section>{% endblock %}

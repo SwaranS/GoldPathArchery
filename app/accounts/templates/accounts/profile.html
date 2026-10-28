@@ -2,23 +2,17 @@
 {% block title %}My account - GoldPathArchery{% endblock %}
 {% block page_class %}workspace-page{% endblock %}
 {% block content %}<section class="workspace-card">
-<nav class="workflow-tabs" aria-label="Workspace navigation">
-  <a class="workflow-tab is-active" href="{% url 'account-profile' %}">My account</a>
-  <a class="workflow-tab" href="{% url 'athletes' %}">My athletes</a>
-  <a class="workflow-tab" href="{% url 'athlete-discovery' %}">Discovery</a>
-  <a class="workflow-tab" href="{% url 'coach-contributions' %}">My contributions</a>
-  <a class="workflow-tab" href="{% url 'manager-queue' %}">Plan Manager</a>
-  <a class="workflow-tab" href="{% url 'admin-ops' %}">Admin ops</a>
-</nav>
+
 
 <div class="workspace-header-row">
   <div>
     <p class="eyebrow"><span></span> STEP 01 · ACCOUNT &amp; ROLES</p>
     <h1>My account</h1>
+<p><a class="button" href="{% url 'workspace-home' %}">Open my workspace</a></p>
     <p class="account-identity">Signed in as <strong>{{ request.user.email|default:request.user.username }}</strong></p>
   </div>
   <div class="workspace-header-actions">
-    <a class="button" href="{% url 'athletes' %}">My athletes and connections →</a>
+    <a class="button" href="{% url 'athletes' %}">All linked athletes →</a>
   </div>
 </div>
 
@@ -54,7 +48,7 @@
   <h2>Select your account roles</h2>
   <p>Select all roles that apply: Archer, Parent/Guardian and Coach. You can select any combination.</p>
   <p>Roles alone do not grant access to athlete records. Access requires explicit relationship and invitation permissions.</p>
-  <p>My athletes includes your own Archer profile and profiles explicitly linked to you. Changing roles does not end existing relationships; manage those in the athlete's Connections.</p>
+  <p>All linked athletes includes your own Archer profile and profiles explicitly linked to you. Changing roles does not end existing relationships; manage those in the athlete's Connections.</p>
   <form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Save roles</button></form>
 </div>
 

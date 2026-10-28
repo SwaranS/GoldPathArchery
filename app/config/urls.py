@@ -1,10 +1,12 @@
 from django.contrib import admin
 from django.http import Http404
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.urls import include, path
 
 
 def home(request):
+    if request.user.is_authenticated:
+        return redirect("workspace-home")
     return render(request, "home.html")
 
 

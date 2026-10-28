@@ -2,8 +2,11 @@ from django.urls import path
 
 from . import athlete_views
 from .views import profile
+from . import workspace_views
 
 urlpatterns = [
+    path("start/", workspace_views.landing, name="workspace-home"),
+    path("workspace/<str:workspace>/", workspace_views.workspace, name="workspace"),
     path("profile/", profile, name="account-profile"),
     path("athletes/", athlete_views.athletes, name="athletes"),
     path(

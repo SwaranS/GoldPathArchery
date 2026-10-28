@@ -59,7 +59,7 @@ class CsrfTests(TestCase):
             ("invitation-accept", ["synthetic-token"]), ("account_logout", []),
         ):
             with self.subTest(page=name):
-                self.assert_form_policy(self.client.get(reverse(name, args=args)))
+                self.assert_form_policy(self.client.get(reverse(name, args=args), follow=True))
         self.assertIn(SESSION_KEY, self.client.session)  # GET logout only confirms.
         self.assert_form_policy(
             Client(HTTP_HOST="localhost:8000").get(reverse("account_login"))

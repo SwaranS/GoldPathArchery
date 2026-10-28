@@ -967,3 +967,7 @@ dd {
     scroll-behavior: smooth;
   }
 }
+
+/* Role navigation wraps on narrow screens. */
+.site-header{flex-wrap:wrap}nav{flex-wrap:wrap}nav a{padding:8px 0}#connections{scroll-margin-top:24px}
+@media(max-width:760px){.site-header nav{width:100%;gap:8px 20px}}

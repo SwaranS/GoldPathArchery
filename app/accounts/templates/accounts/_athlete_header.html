@@ -22,13 +22,7 @@
   </div>
 </div>
 
-<nav class="workflow-tabs" aria-label="Athlete workflow navigation">
-  <a class="workflow-tab {% if active_tab == 'connections' %}is-active{% endif %}" href="{% url 'athlete-detail' athlete.id %}">Profile &amp; Connections</a>
-  <a class="workflow-tab {% if active_tab == 'today' %}is-active{% endif %}" href="{% url 'athlete-today' athlete.id %}">Today / Week</a>
-  <a class="workflow-tab {% if active_tab == 'plans' %}is-active{% endif %}" href="{% url 'athlete-plans' athlete.id %}">Plans</a>
-  <a class="workflow-tab {% if active_tab == 'score' %}is-active{% endif %}" href="{% url 'athlete-score' athlete.id %}">Score</a>
-  <a class="workflow-tab {% if active_tab == 'progress' %}is-active{% endif %}" href="{% url 'athlete-progress' athlete.id %}">History / Progress</a>
-  <a class="workflow-tab {% if active_tab == 'equipment' %}is-active{% endif %}" href="{% url 'athlete-equipment' athlete.id %}">Equipment</a>
-  <a class="workflow-tab {% if active_tab == 'export' %}is-active{% endif %}" href="{% url 'athlete-export' athlete.id %}">Export &amp; Closure</a>
+<nav class="workflow-tabs" aria-label="Athlete profile navigation">
+<a class="workflow-tab" href="{% url 'athlete-detail' athlete.id %}">Profile</a>
+<a class="workflow-tab" href="{% url 'athlete-detail' athlete.id %}#connections">Connections</a>
 </nav>
-
