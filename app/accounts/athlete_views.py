@@ -440,7 +440,7 @@ def athlete_section(request, athlete_id, section):
 @require_http_methods(["GET"])
 @relationship_errors
 def workspace_section(request, section):
-    if section == "admin_ops" and not is_admin(request.user):
+    if section in {"admin_ops", "manager"} and not is_admin(request.user):
         raise PermissionDenied
     if section not in WORKSPACE_SECTIONS:
         raise Http404("Unavailable.")
