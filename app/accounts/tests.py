@@ -7,6 +7,23 @@ from django.urls import reverse
 from .models import UserRole
 
 
+class LoginPageTests(TestCase):
+    def test_public_login_offers_only_google(self):
+        response = self.client.get(reverse("account_login"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Continue with Google")
+        self.assertContains(response, f'action="{reverse("google_login")}"')
+        self.assertContains(response, 'method="post"')
+        self.assertContains(response, 'name="csrfmiddlewaretoken"')
+        for unwanted in (
+            'name="login"', 'name="password"', 'name="remember"',
+            'href="/accounts/signup/"', 'href="/accounts/password/reset/"',
+            'action="/accounts/login/"',
+        ):
+            with self.subTest(unwanted=unwanted):
+                self.assertNotContains(response, unwanted)
+
+
 class RoleTests(TestCase):
     def setUp(self):
         self.user = get_user_model().objects.create_user(username="member", password="test-password")

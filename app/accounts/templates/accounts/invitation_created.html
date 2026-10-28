@@ -1,4 +1,15 @@
-{% extends 'base.html' %}
+{% extends 'base.html' %}{% load static %}
 {% block title %}Private invitation{% endblock %}
 {% block page_class %}workspace-page{% endblock %}
-{% block content %}<section class="workspace-card"><h1>Private invitation created</h1><p>Copy this link and send it privately to the intended recipient. This is the only time the link is displayed.</p><p><a href="{{ invitation_url }}">{{ invitation_url }}</a></p><a href="{% url 'athlete-detail' athlete_id %}">Return to athlete</a></section>{% endblock %}
+{% block content %}<section class="workspace-card">
+<div class="placeholder-header">
+  <div>
+    <p class="eyebrow"><span></span> SINGLE-USE 7-DAY INVITATION LINK</p>
+    <h1>Private invitation created for {{ athlete_name }}</h1>
+  </div>
+  <img src="{% static 'accounts/role-archer.svg' %}" alt="Private invitation graphic" width="72" height="72">
+</div>
+<p>Copy this link and send it privately to the intended recipient. This is the only time the link is displayed.</p>
+<p class="invitation-url-box"><a href="{{ invitation_url }}">{{ invitation_url }}</a></p>
+<a class="button" href="{% url 'athlete-detail' athlete_id %}">Return to athlete →</a>
+</section>{% endblock %}

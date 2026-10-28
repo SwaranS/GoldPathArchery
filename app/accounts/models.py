@@ -191,3 +191,6 @@ class RelationshipNotice(models.Model):
                 name="unique_relationship_notice",
             )
         ]
+
+
+from .plan_models import PlanSetup  # noqa: E402,F401

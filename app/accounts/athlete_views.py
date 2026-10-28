@@ -1,17 +1,19 @@
 from functools import wraps
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.db import IntegrityError
 from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
 
 from . import relationships as service
 from .forms import AthleteCreateForm, AthleteEditForm
-from .permissions import OPERATIONS, accessible_athletes, can, training_fields
+from .permissions import OPERATIONS, accessible_athletes, can, eligible_actor, training_fields
 
 
 def relationship_errors(view):
@@ -43,25 +45,71 @@ def relationship_errors(view):
 @login_required
 @require_http_methods(["GET", "POST"])
 @relationship_errors
-def athletes(request):
+def athletes(request, scope=None):
+    if request.method == "POST" and (scope == "coach" or
+            (scope == "parent" and request.POST.get("child") != "on") or
+            (scope == "archer" and request.POST.get("child"))):
+        raise PermissionDenied
     form = AthleteCreateForm(request.POST if request.method == "POST" else None)
     if request.method == "POST" and form.is_valid():
         data = dict(form.cleaned_data)
         child, declaration = data.pop("child"), data.pop("declaration")
-        athlete = service.create_profile(
-            request.user, data, child=child, declaration=declaration
-        )
-        return redirect("athlete-detail", athlete_id=athlete.pk)
+        try:
+            athlete = service.create_profile(
+                request.user, data, child=child, declaration=declaration
+            )
+        except PermissionDenied:
+            # Creation has no private target to conceal. Keep the bound form so
+            # users can correct their role selection without losing their input.
+            form.add_error(
+                None,
+                "Unable to create this profile. Save the Parent/Guardian role in My account "
+                "for a child profile, or Archer for your own profile. Accounts with a "
+                "junior (under 16) or closed athlete profile cannot create profiles.",
+            )
+        else:
+            messages.success(request, f"Profile created for {athlete.display_name}.")
+            return redirect("athlete-detail", athlete_id=athlete.pk)
     # No directory of all athletes: only explicitly accessible objects.
     profiles = list(accessible_athletes(request.user))
     for athlete in profiles:
         service.transition(athlete.pk)
+    profiles = list(accessible_athletes(request.user))
+    if scope == "archer":
+        profiles = [a for a in profiles if a.account_id == request.user.pk]
+    elif scope == "parent":
+        profiles = [a for a in profiles if a.guardians.filter(
+            parent=request.user, revoked_at__isnull=True, access__in=["view", "edit"]
+        ).exists()]
+    elif scope == "coach":
+        profiles = [a for a in profiles if a.coaches.filter(
+            coach=request.user, revoked_at__isnull=True
+        ).exists()]
+    rows = []
+    for athlete in profiles:
+        coach = athlete.coaches.filter(coach=request.user, revoked_at__isnull=True).first()
+        access = "Can edit plans" if scope == "coach" and coach.plan_edit else "View only"
+        if scope != "coach" and can(request.user, athlete, "edit_profile"):
+            access = "Can edit profile"
+        rows.append({"athlete": training_fields(athlete), "access": access})
+    roles = set(request.user.role_assignments.values_list("role", flat=True))
+    eligible = eligible_actor(request.user, write=True)
+    can_create_child = eligible and "parent" in roles and scope in (None, "parent")
+    can_create_own = (
+        eligible and "archer" in roles and scope in (None, "archer")
+        and not hasattr(request.user, "athlete_profile")
+    )
     return render(
         request,
         "accounts/athletes.html",
         {
             "athletes": profiles,
+            "athlete_rows": rows,
+            "scope": scope,
+            "page_title": {"archer": "My profile", "parent": "Family", "coach": "My athletes"}.get(scope, "All linked athletes"),
             "form": form,
+            "can_create_child": can_create_child,
+            "can_create_own": can_create_own,
             "notices": request.user.relationship_notices.filter(
                 athlete__closed_at__isnull=True
             ),
@@ -100,6 +148,7 @@ def athlete_detail(request, athlete_id):
             data = dict(form.cleaned_data)
             version = data.pop("version")
             service.update_profile(request.user, athlete_id, data, version)
+            messages.success(request, f"Profile saved for {athlete.display_name}.")
             return redirect("athlete-detail", athlete_id=athlete_id)
     else:
         form = AthleteEditForm(instance=athlete, initial={"version": athlete.version})
@@ -107,7 +156,11 @@ def athlete_detail(request, athlete_id):
         operation: can(request.user, athlete, operation) for operation in OPERATIONS
     }
     # Coach context never contains a whole athlete object, birth date, timezone or account identity.
-    context = {"athlete": training_fields(athlete), "permissions": permissions}
+    context = {
+        "athlete": training_fields(athlete),
+        "permissions": permissions,
+        "active_tab": "connections",
+    }
     if permissions["edit_profile"]:
         context["form"] = form
     managing = permissions["manage_grants"]
@@ -115,7 +168,7 @@ def athlete_detail(request, athlete_id):
     context.update({"claim_allowed": claim_allowed, "version": athlete.version})
     if managing or claim_allowed:
         context["invitations"] = athlete.invitations.filter(
-            accepted_at__isnull=True, revoked_at__isnull=True
+            accepted_at__isnull=True, revoked_at__isnull=True, expires_at__gt=timezone.now()
         )
     if managing:
         context["guardians"] = athlete.guardians.select_related("parent")
@@ -151,10 +204,10 @@ def invitation_create(request, athlete_id):
                 reverse("invitation-accept", args=[token])
             ),
             "athlete_id": invitation.athlete_id,
+            "athlete_name": invitation.athlete.display_name,
         },
     )
     response["Cache-Control"] = "no-store"
-    response["Referrer-Policy"] = "no-referrer"
     return response
 
 
@@ -170,7 +223,6 @@ def invitation_accept(request, token):
     # Opening a link reveals no hidden target and makes no grant, even for matching recipients.
     response = render(request, "accounts/invitation_accept.html")
     response["Cache-Control"] = "no-store"
-    response["Referrer-Policy"] = "no-referrer"
     return response
 
 
@@ -205,3 +257,189 @@ def grant_update(request, athlete_id, kind, link_id):
 def parent_review(request, athlete_id):
     service.confirm_parent_review(request.user, athlete_id, request.POST.get("version"))
     return redirect("athlete-detail", athlete_id=athlete_id)
+
+
+ATHLETE_SECTIONS = {
+    "today": {
+        "key": "today",
+        "eyebrow": "FLOW D · PRACTICE & RESCHEDULING",
+        "title": "Today & Week",
+        "summary": (
+            "View today's shooting and non-shooting sessions, Rest Day entries, "
+            "and weekly schedule targets."
+        ),
+        "highlights": [
+            "Log completed, partially completed or skipped sessions with actual arrow counts, effort (1–10) and notes.",
+            "Move individual unstarted sessions within the active plan period with Rest Day and conflict warnings.",
+            "Record strength, mobility and mental practice without requiring arrow counts.",
+        ],
+    },
+    "plans": {
+        "key": "plans",
+        "eyebrow": "FLOWS B, C & H · MANAGED AI PLANS",
+        "title": "Plans & Weekly Adaptation",
+        "summary": (
+            "Manage the athlete's active training plan (default 12 weeks, configurable 1 day to 1 year), "
+            "weekly AI recommendations and shared plan copies."
+        ),
+        "highlights": [
+            "One active plan per athlete with scheduled future activation and replacement confirmation.",
+            "Review Manager-released weekly AI recommendations: accept, edit or reject each proposal individually.",
+            "Share independent inactive plan copies via private invitation without exposing logs or scores.",
+        ],
+    },
+    "score": {
+        "key": "score",
+        "eyebrow": "FLOW E · KEYPAD & TARGET PLOTTING",
+        "title": "Round Scoring",
+        "summary": (
+            "Record arrow-by-arrow scores via numeric keypad or interactive target-face plotting "
+            "for recurve, compound and barebow."
+        ),
+        "highlights": [
+            "Launch presets: Indoor 30, Indoor 60, Double 60, Outdoor 720, Double 720 and partial training rounds.",
+            "Optional physical arrow identifiers selected strictly from the athlete's saved active arrow sets.",
+            "Save and resume unfinished rounds; audited score corrections remain restricted to Athlete 16+ or editing Parent.",
+        ],
+    },
+    "progress": {
+        "key": "progress",
+        "eyebrow": "FLOW F · HISTORY & ANALYTICS",
+        "title": "History & Progress",
+        "summary": (
+            "Review planned versus actual arrow volume, session completion and per-physical-arrow "
+            "score averages across local date ranges."
+        ),
+        "highlights": [
+            "Per-arrow mean score and sample count grouped by compatible bow revision, distance and target face.",
+            "Separate equal arrow labels across different sets and preserve archived equipment in historical analysis.",
+            "Explicitly labelled mixed-conditions view when combining different setups or distances.",
+        ],
+    },
+    "equipment": {
+        "key": "equipment",
+        "eyebrow": "FLOW F · BOWS, ARROWS & SIGHT MARKS",
+        "title": "Equipment & Sight Marks",
+        "summary": (
+            "Configure recurve, compound and barebow setups, named arrow sets, individual shaft identifiers "
+            "and distance sight marks."
+        ),
+        "highlights": [
+            "Save multiple bows, named arrow sets and unique physical arrow IDs per set.",
+            "Record sight marks by bow, distance and optional arrow set for range reference.",
+            "Archive retired equipment to hide it from new rounds while preserving historical shot revisions.",
+        ],
+    },
+    "export": {
+        "key": "export",
+        "eyebrow": "FLOW I · DATA PORTABILITY & CLOSURE",
+        "title": "Export & Profile Closure",
+        "summary": (
+            "Download training plans, session logs and scores as CSV or PDF summaries, or request "
+            "reauthenticated profile closure."
+        ),
+        "highlights": [
+            "Private 24-hour expiring downloads for CSV arrow-level detail and readable PDF summaries.",
+            "Immediate access, invitation and relationship revocation upon confirmed closure, with anonymisation within 30 days.",
+            "Controlled by Athlete 16+ or managing Parent for profiles below 16.",
+        ],
+    },
+}
+
+WORKSPACE_SECTIONS = {
+    "discovery": {
+        "key": "discovery",
+        "eyebrow": "FLOW G · R04 SIGNED-IN DISCOVERY",
+        "title": "Profile Discovery",
+        "graphic": "accounts/role-archer.svg",
+        "summary": (
+            "Search eligible signed-in profiles showing only display name, role and bow discipline."
+        ),
+        "highlights": [
+            "Under-16 athlete profiles and accounts with 'Stay out of Search' enabled never appear in search.",
+            "Hidden users and managing parents initiate their own connections via private 7-day invitations.",
+            "Birth dates, contact emails and training records are never exposed in directory listings.",
+        ],
+    },
+    "contributions": {
+        "key": "contributions",
+        "eyebrow": "FLOW G · R15 COACH SNAPSHOTS",
+        "title": "My Coach Contributions",
+        "graphic": "accounts/role-coach.svg",
+        "summary": (
+            "Read-only archive of your own authored plan proposals and session instruction revisions."
+        ),
+        "highlights": [
+            "Retains only your dated authored instructions and their status after a coaching relationship ends.",
+            "Excludes whole athlete plans, subsequent athlete activity and other coaches' private notes.",
+            "Subject to athlete account closure and anonymisation rules.",
+        ],
+    },
+    "manager": {
+        "key": "manager",
+        "eyebrow": "FLOWS B & C · R05/R07 SYSTEM PLAN MANAGER",
+        "title": "Plan Manager Review Queue",
+        "graphic": "accounts/workflow-banner.svg",
+        "summary": (
+            "Generate, validate and review initial AI training plans and weekly adaptation proposals "
+            "for assigned athletes."
+        ),
+        "highlights": [
+            "Access restricted strictly to administrator-assigned athletes and active temporary cover grants.",
+            "Review AI drafts against scheduling and volume constraints before publishing or releasing proposals.",
+            "Plan Managers never edit athlete actual scores or browse private coach notes.",
+        ],
+    },
+    "admin_ops": {
+        "key": "admin_ops",
+        "eyebrow": "R16 & R18 · OPERATIONS & ASSIGNMENTS",
+        "title": "Administrator Operations",
+        "graphic": "accounts/role-parent.svg",
+        "summary": (
+            "Manage System Plan Manager assignments, expiring temporary cover and operational job status."
+        ),
+        "highlights": [
+            "Assign or reassign Plan Managers and dated temporary cover (default 7 days, max 30 days) with audit logs.",
+            "Monitor durable background queues for exports, closures and scheduled activations.",
+            "Routine administration provides no private-data browsing or training-note debug views.",
+        ],
+    },
+}
+
+
+@login_required
+@require_http_methods(["GET"])
+@relationship_errors
+def athlete_section(request, athlete_id, section):
+    if section not in ATHLETE_SECTIONS:
+        raise Http404("Unavailable.")
+    athlete = visible_athlete(request, athlete_id)
+    permissions = {
+        operation: can(request.user, athlete, operation) for operation in OPERATIONS
+    }
+    return render(
+        request,
+        "accounts/athlete_placeholder.html",
+        {
+            "athlete": training_fields(athlete),
+            "permissions": permissions,
+            "section": ATHLETE_SECTIONS[section],
+            "active_tab": section,
+        },
+    )
+
+
+@login_required
+@require_http_methods(["GET"])
+@relationship_errors
+def workspace_section(request, section):
+    if section not in WORKSPACE_SECTIONS:
+        raise Http404("Unavailable.")
+    return render(
+        request,
+        "accounts/workspace_placeholder.html",
+        {
+            "section": WORKSPACE_SECTIONS[section],
+            "active_workspace": section,
+        },
+    )

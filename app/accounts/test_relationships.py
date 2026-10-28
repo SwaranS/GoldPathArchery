@@ -588,6 +588,111 @@ class RelationshipTests(TestCase):
         self.assertEqual(self.client.post(path).status_code, 302)
         self.assertEqual(self.client.post(path).status_code, 404)
 
+    def test_creation_controls_follow_saved_roles_and_own_profile(self):
+        user = self.user("archer-only", "archer")
+        self.client.force_login(user)
+        response = self.client.get(reverse("athletes"))
+        self.assertContains(response, 'name="display_name"')
+        self.assertNotContains(response, 'name="child"')
+        self.assertNotContains(response, 'name="declaration"')
+        self.client.post(reverse("account-profile"), {"roles": ["parent"]})
+        response = self.client.get(reverse("athletes"))
+        self.assertContains(response, 'name="child" value="on"')
+        self.assertContains(response, 'name="declaration"')
+        self.client.force_login(self.owner)
+        response = self.client.get(reverse("athletes"))
+        self.assertContains(response, self.adult.display_name)
+        self.assertNotContains(response, 'name="display_name"')
+
+    def test_archer_only_cannot_create_child_or_remove_unrelated_guardian(self):
+        self.client.force_login(self.owner)
+        count = AthleteProfile.objects.count()
+        response = self.client.post(reverse("athletes"), {
+            "display_name": "Denied child", "birth_date": "2020-01-01",
+            "timezone": "Europe/Dublin", "discipline": "recurve",
+            "child": "on", "declaration": "on",
+        })
+        self.assertContains(response, "Unable to create this profile.")
+        self.assertEqual(AthleteProfile.objects.count(), count)
+        link = GuardianLink.objects.get(athlete=self.child, parent=self.parent)
+        response = self.client.post(reverse("grant-update", args=[
+            self.child.pk, "parent", link.pk,
+        ]), {"access": "none", "version": self.version(self.child)})
+        self.assertEqual(response.status_code, 404)
+        link.refresh_from_db()
+        self.assertIsNone(link.revoked_at)
+
+    def test_deselecting_parent_preserves_explicit_link_and_authorized_removal(self):
+        GuardianLink.objects.create(
+            athlete=self.child, parent=self.stranger, managing=True, declared_at=NOW,
+        )
+        self.client.force_login(self.parent)
+        self.client.post(reverse("account-profile"), {"roles": ["archer"]})
+        self.assertEqual(list(self.parent.role_assignments.values_list("role", flat=True)), ["archer"])
+        self.assertTrue(can(self.parent, self.child, "edit_profile"))
+        response = self.client.get(reverse("athletes"))
+        self.assertContains(response, self.child.display_name)
+        self.assertNotContains(response, 'name="child"')
+        link = GuardianLink.objects.get(athlete=self.child, parent=self.parent)
+        response = self.client.post(reverse("grant-update", args=[
+            self.child.pk, "parent", link.pk,
+        ]), {"access": "none", "version": self.version(self.child)})
+        self.assertRedirects(response, reverse("athletes"))
+        link.refresh_from_db()
+        self.assertIsNotNone(link.revoked_at)
+        self.assertFalse(can(self.parent, self.child, "view"))
+
+    def test_http_create_missing_role_preserves_form_then_succeeds_after_role_saved(self):
+        user = self.user("new-account")
+        self.client.force_login(user)
+        for child, role in [(False, "archer"), (True, "parent")]:
+            with self.subTest(child=child):
+                UserRole.objects.filter(user=user).delete()
+                data = {
+                    "display_name": "New profile",
+                    "birth_date": "2015-02-01" if child else "2000-01-01",
+                    "timezone": "Europe/Dublin",
+                    "discipline": "recurve",
+                }
+                if child:
+                    data.update(child="on", declaration="on")
+                count = AthleteProfile.objects.count()
+                response = self.client.post(reverse("athletes"), data)
+                self.assertEqual(response.status_code, 200)
+                self.assertContains(response, "Unable to create this profile.")
+                self.assertContains(response, reverse("account-profile"))
+                self.assertEqual(response.context["form"].data["display_name"], "New profile")
+                self.assertTrue(response.context["form"].non_field_errors())
+                self.assertEqual(AthleteProfile.objects.count(), count)
+                self.client.post(reverse("account-profile"), {"roles": [role]})
+                response = self.client.post(reverse("athletes"), data)
+                athlete = AthleteProfile.objects.get(display_name="New profile", birth_date=data["birth_date"])
+                self.assertRedirects(response, reverse("athlete-detail", args=[athlete.pk]))
+                if child:
+                    self.assertIsNone(athlete.account_id)
+                    self.assertTrue(GuardianLink.objects.filter(athlete=athlete, parent=user, managing=True).exists())
+                else:
+                    self.assertEqual(athlete.account_id, user.pk)
+
+    def test_http_create_ineligible_account_still_denied(self):
+        for closed in [False, True]:
+            with self.subTest(closed=closed):
+                user = self.user(f"restricted-{closed}", "parent")
+                AthleteProfile.objects.create(
+                    account=user, display_name="Restricted", discipline="recurve",
+                    birth_date=date(2000 if closed else 2011, 1, 1),
+                    closed_at=NOW if closed else None,
+                )
+                self.client.force_login(user)
+                count = AthleteProfile.objects.count()
+                response = self.client.post(reverse("athletes"), {
+                    "display_name": "Denied child", "birth_date": "2020-01-01",
+                    "timezone": "Europe/Dublin", "discipline": "recurve",
+                    "child": "on", "declaration": "on",
+                })
+                self.assertContains(response, "Unable to create this profile.")
+                self.assertEqual(AthleteProfile.objects.count(), count)
+
     def test_http_multi_child_selector_and_profile_edit(self):
         self.client.force_login(self.parent)
         response = self.client.post(
@@ -839,3 +944,66 @@ class RelationshipTests(TestCase):
         self.adult.refresh_from_db()
         self.assertEqual(self.adult.account_id, self.owner.pk)
         self.assertEqual(self.owner.socialaccount_set.count(), 1)
+
+    def test_workflow_pages_and_user_graphics(self):
+        athlete_routes = [
+            "athlete-today",
+            "athlete-plans",
+            "athlete-score",
+            "athlete-progress",
+            "athlete-equipment",
+            "athlete-export",
+        ]
+        workspace_routes = [
+            "athlete-discovery",
+            "coach-contributions",
+            "manager-queue",
+            "admin-ops",
+        ]
+        home_response = self.client.get(reverse("home"))
+        self.assertEqual(home_response.status_code, 200)
+        for graphic in [
+            "accounts/target.svg",
+            "accounts/role-archer.svg",
+            "accounts/role-parent.svg",
+            "accounts/role-coach.svg",
+            "accounts/workflow-banner.svg",
+        ]:
+            self.assertContains(home_response, graphic)
+
+        for route in workspace_routes:
+            self.assertEqual(self.client.get(reverse(route)).status_code, 302)
+        for route in athlete_routes:
+            self.assertEqual(
+                self.client.get(reverse(route, args=[self.adult.pk])).status_code, 302
+            )
+
+        self.client.force_login(self.stranger)
+        for route in athlete_routes:
+            self.assertEqual(
+                self.client.get(reverse(route, args=[self.adult.pk])).status_code, 404
+            )
+        for route in workspace_routes:
+            response = self.client.get(reverse(route))
+            self.assertEqual(response.status_code, 200)
+            self.assertContains(response, "Page to be implemented")
+            self.assertNotContains(response, "Private Adult")
+            self.assertNotContains(response, "Private Child")
+
+        link = self.link_coach()
+        self.client.force_login(self.coach)
+        for route in athlete_routes:
+            response = self.client.get(reverse(route, args=[self.adult.pk]))
+            self.assertEqual(response.status_code, 200)
+            self.assertContains(response, "No plan yet" if route == "athlete-plans" else "Page to be implemented")
+            self.assertContains(response, self.adult.display_name)
+            for private in ["birth_date", "2000-01-01", self.owner.email]:
+                self.assertNotContains(response, private)
+
+        service.set_grant(
+            self.owner, self.adult.pk, "coach", link.pk, "none", self.version(self.adult)
+        )
+        for route in athlete_routes:
+            self.assertEqual(
+                self.client.get(reverse(route, args=[self.adult.pk])).status_code, 404
+            )

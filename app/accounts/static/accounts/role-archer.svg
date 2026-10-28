@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120" role="img" aria-label="Archer role graphic">
+  <rect width="120" height="120" rx="20" fill="#152d34"/>
+  <circle cx="60" cy="60" r="42" fill="none" stroke="#294852" stroke-width="2"/>
+  <circle cx="60" cy="60" r="28" fill="#5996ac" opacity=".25"/>
+  <circle cx="60" cy="60" r="18" fill="#cf695a" opacity=".85"/>
+  <circle cx="60" cy="60" r="9" fill="#e7b84c"/>
+  <path d="M32 24C52 38 52 82 32 96" fill="none" stroke="#f0eee5" stroke-width="3.5" stroke-linecap="round"/>
+  <line x1="32" y1="24" x2="32" y2="96" stroke="#e7b84c" stroke-width="1.5" stroke-dasharray="3 2"/>
+  <line x1="26" y1="60" x2="88" y2="60" stroke="#f0eee5" stroke-width="3" stroke-linecap="round"/>
+  <polygon points="94,60 84,55 84,65" fill="#e7b84c"/>
+</svg>

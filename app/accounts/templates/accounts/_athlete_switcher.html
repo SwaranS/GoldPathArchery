@@ -1,0 +1,10 @@
+{% if show_athlete_switcher %}
+<details class="athlete-switcher">
+  <summary>Switch athlete</summary>
+  <ul aria-label="Accessible athlete profiles">
+    {% for option in athlete_switcher_options %}
+    <li><a href="{% url 'athlete-detail' option.id %}"{% if athlete.id == option.id %} aria-current="page"{% endif %}>{{ option.name }}{% if athlete.id == option.id %}<span class="switcher-current"> (current athlete)</span>{% endif %}</a></li>
+    {% endfor %}
+  </ul>
+</details>
+{% endif %}

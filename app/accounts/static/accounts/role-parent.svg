@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120" role="img" aria-label="Parent and Guardian role graphic">
+  <rect width="120" height="120" rx="20" fill="#152d34"/>
+  <path d="M60 20L92 34V58C92 80 78 96 60 102C42 96 28 80 28 58V34L60 20Z" fill="#294852" stroke="#e7b84c" stroke-width="2.5"/>
+  <circle cx="52" cy="54" r="14" fill="#5996ac"/>
+  <circle cx="52" cy="54" r="6" fill="#e7b84c"/>
+  <circle cx="72" cy="66" r="11" fill="#cf695a"/>
+  <circle cx="72" cy="66" r="5" fill="#f0eee5"/>
+  <path d="M40 82C48 76 72 76 80 82" fill="none" stroke="#f0eee5" stroke-width="2.5" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="200" viewBox="0 0 960 200" role="img" aria-label="GoldPathArchery training workflow">
+  <defs>
+    <linearGradient id="wf-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#17343b"/>
+      <stop offset="1" stop-color="#254852"/>
+    </linearGradient>
+  </defs>
+  <rect width="960" height="200" rx="20" fill="url(#wf-bg)"/>
+  <g stroke="#e7b84c" stroke-width="2" stroke-dasharray="6 6" opacity=".55">
+    <line x1="175" y1="92" x2="315" y2="92"/>
+    <line x1="415" y1="92" x2="555" y2="92"/>
+    <line x1="655" y1="92" x2="795" y2="92"/>
+  </g>
+  <g transform="translate(125,92)">
+    <circle r="44" fill="#152d34" stroke="#e7b84c" stroke-width="2.5"/>
+    <circle r="18" fill="#5996ac"/>
+    <circle r="7" fill="#e7b84c"/>
+    <text y="72" text-anchor="middle" fill="#f0eee5" font-family="sans-serif" font-size="12" font-weight="700" letter-spacing="1.2">01 · ROLES &amp; PROFILE</text>
+  </g>
+  <g transform="translate(365,92)">
+    <circle r="44" fill="#152d34" stroke="#5996ac" stroke-width="2.5"/>
+    <path d="M-16 0H16M0 -16V16" stroke="#e7b84c" stroke-width="3" stroke-linecap="round"/>
+    <circle r="24" fill="none" stroke="#f0eee5" stroke-width="1.5" opacity=".6"/>
+    <text y="72" text-anchor="middle" fill="#f0eee5" font-family="sans-serif" font-size="12" font-weight="700" letter-spacing="1.2">02 · CONNECTIONS</text>
+  </g>
+  <g transform="translate(605,92)">
+    <circle r="44" fill="#152d34" stroke="#cf695a" stroke-width="2.5"/>
+    <polyline points="-18,10 -6,-6 6,2 18,-14" fill="none" stroke="#e7b84c" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <text y="72" text-anchor="middle" fill="#f0eee5" font-family="sans-serif" font-size="12" font-weight="700" letter-spacing="1.2">03 · 12-WEEK PLAN</text>
+  </g>
+  <g transform="translate(845,92)">
+    <circle r="44" fill="#152d34" stroke="#e7b84c" stroke-width="2.5"/>
+    <circle r="26" fill="#5996ac"/>
+    <circle r="16" fill="#cf695a"/>
+    <circle r="7" fill="#e7b84c"/>
+    <text y="72" text-anchor="middle" fill="#f0eee5" font-family="sans-serif" font-size="12" font-weight="700" letter-spacing="1.2">04 · SCORE &amp; REVIEW</text>
+  </g>
+</svg>

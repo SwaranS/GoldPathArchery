@@ -1,0 +1,29 @@
+{% load static %}
+<div class="athlete-banner" aria-label="Selected athlete context">
+  <div class="athlete-banner-identity">
+    <img class="athlete-banner-graphic" src="{% static 'accounts/role-archer.svg' %}" alt="" width="56" height="56">
+    <div>
+      <p class="eyebrow athlete-eyebrow"><span></span> SELECTED ATHLETE</p>
+      <div class="athlete-banner-title-row">
+        <strong class="athlete-banner-name">{{ athlete.display_name }}</strong>
+        <span class="badge badge-discipline">{{ athlete.discipline|title }}</span>
+        {% if permissions.edit_profile %}
+          <span class="badge badge-edit">Editing enabled</span>
+        {% elif permissions.edit_plan %}
+          <span class="badge badge-plan">Plan editing</span>
+        {% else %}
+          <span class="badge badge-view">View only</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% if show_athlete_switcher %}<div class="athlete-banner-actions">
+    {% include 'accounts/_athlete_switcher.html' %}
+  </div>{% endif %}
+</div>
+
+<nav class="workflow-tabs" aria-label="Athlete profile navigation">
+<a class="workflow-tab" href="{% url 'athlete-detail' athlete.id %}">Profile</a>
+<a class="workflow-tab" href="{% url 'athlete-detail' athlete.id %}#connections">Connections</a>
+<a class="workflow-tab {% if active_tab == 'plans' %}is-active{% endif %}" href="{% url 'athlete-plans' athlete.id %}">Plans</a>
+</nav>

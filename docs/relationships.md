@@ -8,6 +8,7 @@ Sign in through the existing Google flow, select all applicable account roles, t
 
 - Archer: create your own 16+ athlete profile.
 - Parent/Guardian: create multiple child profiles below 16 after declaring guardianship. Profiles have their own UUIDs and do not require a login. Choose an athlete explicitly from My athletes.
+- My athletes includes your own profile as well as linked profiles. Creation controls reflect saved roles and account eligibility. Deselecting a role does not revoke existing relationships; end those explicitly in Connections, subject to the last-managing-parent safeguard.
 - Managing parent: invite another guardian, a coach or, from age 14, a junior login using the recipient's Google email. A junior claim links the existing athlete record and keeps its ID. Under-14 profiles cannot be linked to a login. A login can own at most one athlete profile.
 - Private invitations: copy the link shown once and deliver it privately. No automatic email is sent. Accept using the matching verified account; choose the required Coach/Parent role first. A guardian accepting a child invitation must also declare guardianship. GET never grants access or reveals the target.
 - Athlete 16+ / managing parent below 16: grant coach view/plan-edit access, update parent permissions, or revoke invitations and relationships. Coaches can end their own relationship but cannot grant themselves editing. A removed relationship needs a fresh invitation to restart.

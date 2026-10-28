@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% block title %}Plans - GoldPathArchery{% endblock %}
+{% block page_class %}workspace-page{% endblock %}
+{% block content %}<section class="workspace-card"><p class="eyebrow">YOUR TRAINING</p><h1>Plans</h1>
+<h2>Start with your athlete profile</h2><p>Your plan setup belongs to your athlete profile. Create your own profile if you are 16 or older, or use a private invitation to claim an existing profile. Ages 14-15 can view their training only.</p>
+{% if has_archer_role %}<a class="button" href="{% url 'workspace' 'archer' %}">Open my profile</a>{% else %}<a class="button" href="{% url 'account-profile' %}">My account</a>{% endif %}
+</section>{% endblock %}

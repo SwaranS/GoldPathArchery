@@ -1,0 +1,40 @@
+{% extends 'base.html' %}{% load static %}
+{% block title %}{{ section.title }} - GoldPathArchery{% endblock %}
+{% block page_class %}workspace-page{% endblock %}
+{% block content %}
+<section class="workspace-card">
+  <nav class="workflow-tabs" aria-label="Workspace navigation">
+    <a class="workflow-tab" href="{% url 'account-profile' %}">My account</a>
+    <a class="workflow-tab" href="{% url 'athletes' %}">My athletes</a>
+    <a class="workflow-tab {% if active_workspace == 'discovery' %}is-active{% endif %}" href="{% url 'athlete-discovery' %}">Discovery</a>
+    <a class="workflow-tab {% if active_workspace == 'contributions' %}is-active{% endif %}" href="{% url 'coach-contributions' %}">My contributions</a>
+    <a class="workflow-tab {% if active_workspace == 'manager' %}is-active{% endif %}" href="{% url 'manager-queue' %}">Plan Manager</a>
+    <a class="workflow-tab {% if active_workspace == 'admin_ops' %}is-active{% endif %}" href="{% url 'admin-ops' %}">Admin ops</a>
+  </nav>
+
+  <div class="placeholder-panel">
+    <div class="placeholder-header">
+      <div>
+        <p class="eyebrow"><span></span> {{ section.eyebrow }}</p>
+        <h1>{{ section.title }}</h1>
+        <p class="placeholder-status">Page to be implemented</p>
+      </div>
+      <img class="placeholder-graphic" src="{% static section.graphic %}" alt="{{ section.title }} graphic" width="120" height="120">
+    </div>
+    <p class="placeholder-summary">{{ section.summary }}</p>
+    <div class="workflow-spec-box">
+      <h2>Planned workflow scope</h2>
+      <ul>
+        {% for item in section.highlights %}
+          <li>{{ item }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="placeholder-actions">
+      <a class="button" href="{% url 'athletes' %}">Go to My athletes →</a>
+      <a class="text-link" href="{% url 'account-profile' %}">My account &amp; roles</a>
+    </div>
+  </div>
+</section>
+{% endblock %}
+

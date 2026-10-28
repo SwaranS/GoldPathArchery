@@ -1,0 +1,5 @@
+{% extends 'base.html' %}
+{% block content %}<section class="workspace-card"><h1>Choose your workspace</h1>
+<p>Choose where to start. We will remember your last workspace.</p>
+{% for workspace in workspaces %}<p><a class="button" href="{% url 'workspace' workspace.key %}">{{ workspace.label }}</a></p>{% endfor %}
+</section>{% endblock %}

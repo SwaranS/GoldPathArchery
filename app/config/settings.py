@@ -39,13 +39,15 @@ ROOT_URLCONF = "config.urls"
 
 TEMPLATES = [{
     "BACKEND": "django.template.backends.django.DjangoTemplates",
-    "DIRS": [],
+    # Project overrides must precede allauth's bundled account templates.
+    "DIRS": [BASE_DIR / "accounts" / "templates"],
     "APP_DIRS": True,
     "OPTIONS": {
         "context_processors": [
             "django.template.context_processors.request",
             "django.contrib.auth.context_processors.auth",
             "django.contrib.messages.context_processors.messages",
+            "accounts.navigation.navigation",
         ],
     },
 }]
@@ -68,7 +70,7 @@ AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
 ]
-LOGIN_REDIRECT_URL = "/account/profile/"
+LOGIN_REDIRECT_URL = "/account/start/"
 LOGIN_URL = "/accounts/login/"
 ACCOUNT_LOGOUT_REDIRECT_URL = "/"
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
@@ -107,3 +109,6 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+# Keep Firefox form origins while withholding referrers from external sites.
+SECURE_REFERRER_POLICY = "same-origin"

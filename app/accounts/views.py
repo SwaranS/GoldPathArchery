@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.shortcuts import redirect, render
@@ -40,6 +41,7 @@ def profile(request):
             ).delete()
             for role in chosen:
                 UserRole.objects.get_or_create(user=request.user, role=role)
+        messages.success(request, "Your roles have been saved. Open your workspace to continue.")
         return redirect("account-profile")
     return render(
         request,

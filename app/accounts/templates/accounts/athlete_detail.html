@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base.html' %}{% load static %}
 {% block title %}{{ athlete.display_name }} - GoldPathArchery{% endblock %}
 {% block page_class %}workspace-page{% endblock %}
 {% block content %}<section class="workspace-card"><a href="{% url 'athletes' %}">My athletes</a><h1>{{ athlete.display_name }}</h1>

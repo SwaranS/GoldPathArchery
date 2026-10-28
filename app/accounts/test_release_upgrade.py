@@ -31,6 +31,6 @@ class AccountReleaseUpgradeTests(TransactionTestCase):
         MigrationExecutor(connection).migrate(latest)
         response = self.client.get(reverse("account-profile"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "My athletes and connections")
+        self.assertContains(response, "All linked athletes")
         self.assertEqual(list(user.role_assignments.values_list("role", flat=True)), ["parent"])
         self.assertEqual(int(self.client.session["_auth_user_id"]), user.pk)
