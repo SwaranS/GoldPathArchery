@@ -26,4 +26,5 @@
 <a class="workflow-tab {% if active_tab == 'profile' %}is-active{% endif %}" href="{% url 'athlete-detail' athlete.id %}">Profile</a>
 <a class="workflow-tab {% if active_tab == 'connections' %}is-active{% endif %}" href="{% url 'athlete-connections' athlete.id %}">Connections</a>
 <a class="workflow-tab {% if active_tab == 'plans' %}is-active{% endif %}" href="{% url 'athlete-plans' athlete.id %}">Plans</a>
+<a class="workflow-tab {% if active_tab == 'equipment' %}is-active{% endif %}" href="{% url 'athlete-equipment' athlete.id %}">Equipment</a>
 </nav>

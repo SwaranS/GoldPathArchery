@@ -1,5 +1,6 @@
 from django import forms
-from .models import Equipment, PhysicalArrow, RoundDefinition, ScoringRuleSet, TargetFace, DIVISIONS
+from .models import Equipment, EquipmentRevision, PhysicalArrow, SightMark, RoundDefinition, ScoringRuleSet, TargetFace, DIVISIONS
+from .equipment_services import SPEC_FIELDS, revision_choices
 
 
 class StartForm(forms.Form):
@@ -35,22 +36,50 @@ class StartForm(forms.Form):
 
 
 class EquipmentForm(forms.ModelForm):
+    kind = forms.ChoiceField(choices=Equipment._meta.get_field("kind").choices)
+    expected_revision = forms.IntegerField(required=False, widget=forms.HiddenInput)
+
     class Meta:
-        model = Equipment
-        fields = ("kind", "name", "division", "details")
+        model = EquipmentRevision
+        fields = SPEC_FIELDS
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.order_fields(["kind", *SPEC_FIELDS, "expected_revision"])
 
     def clean(self):
         data = super().clean()
         if data.get("kind") == "bow" and not data.get("division"):
             self.add_error("division", "Select a bow division.")
+        forbidden = ("spine", "length", "point_weight", "shaft_diameter") if data.get("kind") == "bow" else ("division", "handedness", "draw_weight", "draw_length")
+        for field in forbidden:
+            if data.get(field):
+                self.add_error(field, "This field does not apply to this equipment type.")
         return data
+
+    def service_data(self):
+        return {key: value for key, value in self.cleaned_data.items() if key in {"kind", *SPEC_FIELDS}}
 
 
 class ArrowForm(forms.ModelForm):
     class Meta:
         model = PhysicalArrow
-        fields = ("arrow_set", "identifier")
+        fields = ("arrow_set", "identifier", "notes")
 
     def __init__(self, *args, athlete, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["arrow_set"].queryset = Equipment.objects.filter(athlete=athlete, kind="arrow_set", active=True)
+
+
+class SightMarkForm(forms.ModelForm):
+    class Meta:
+        model = SightMark
+        fields = ("bow_revision", "arrow_revision", "distance", "distance_unit", "mark",
+                  "sight_extension", "windage", "date", "notes")
+        widgets = {"date": forms.DateInput(attrs={"type": "date"})}
+
+    def __init__(self, *args, athlete, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.instance.athlete_id = getattr(athlete, "pk", athlete)
+        self.fields["bow_revision"].queryset = revision_choices(athlete, "bow")
+        self.fields["arrow_revision"].queryset = revision_choices(athlete, "arrow_set")
