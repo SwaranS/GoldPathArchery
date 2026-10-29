@@ -1,5 +1,7 @@
 from django.urls import path
 
+from scoring.views import equipment
+
 from . import athlete_views
 from .views import profile
 from . import workspace_views, plan_views
@@ -40,8 +42,7 @@ urlpatterns = [
     ),
     path(
         "athletes/<uuid:athlete_id>/equipment/",
-        athlete_views.athlete_section,
-        {"section": "equipment"},
+        equipment,
         name="athlete-equipment",
     ),
     path(

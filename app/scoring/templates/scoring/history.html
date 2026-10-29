@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
 {% block title %}Scoring history - GoldPathArchery{% endblock %}
 {% block content %}<section class="workspace-card"><a href="{% url 'athlete-detail' athlete.id %}">{{ athlete.display_name }}</a><h1>Scoring history</h1>
-{% if writable %}<p><a href="{% url 'scoring-start' athlete.id %}">Start scoring</a> · <a href="{% url 'scoring-equipment' athlete.id %}">Equipment</a></p>{% endif %}
+<p><a href="{% url 'scoring-equipment' athlete.id %}">Equipment</a></p>
+{% if writable %}<p><a href="{% url 'scoring-start' athlete.id %}">Start scoring</a></p>{% endif %}
 <h2>Personal bests</h2><p>Training and competition are separate. Each result is compared using its division, category, distances, face geometry, rules and arrow format.</p>
 {% for best in bests %}<p><a href="{% url 'scoring-session' best.session.id %}">{{ best.session.get_context_display }} · {{ best.session.snapshot.name }} · {{ best.session.snapshot.division }}</a>: {{ best.total }}/{{ best.maximum }}{% for stage in best.session.snapshot.stages %} · {{ stage.distance_m }} m / {{ stage.diameter_cm }} cm / {{ stage.rules_name }}{% endfor %}</p>{% empty %}<p>No eligible completed sessions yet.</p>{% endfor %}
 <h2>Sessions and trends</h2><p>Compare results within the same comparison group. Deleted sessions can be opened and restored.</p>
@@ -9,5 +10,5 @@
 {% for row in rows %}<tr><td>{{ row.session.started_at|date:'Y-m-d' }}</td><td><a href="{% url 'scoring-session' row.session.id %}">{{ row.session.snapshot.name }}</a></td><td>{{ row.session.context }}</td><td>{% if row.session.deleted_at %}Deleted{% elif row.session.invalidated %}Invalidated{% else %}{{ row.session.status }}{% endif %}{% if row.session.verified_at %} (verified){% endif %}</td><td>{{ row.stats.total }}/{{ row.stats.maximum }}</td><td>{{ row.stats.average|default_if_none:'—' }}</td><td>{{ row.key }}</td></tr>{% empty %}<tr><td colspan="7">No scoring sessions yet.</td></tr>{% endfor %}</tbody></table></div>
 <h2>Physical arrow averages</h2><form method="get"><label>From <input type="date" name="from" value="{{ request.GET.from }}"></label><label>Through <input type="date" name="to" value="{{ request.GET.to }}"></label><button>Filter arrow reports</button></form>
 <p>Only identified shots are included. Misses count as zero; each row uses the same bow, distance and target/rules configuration.</p>
-{% for row in comparisons %}<p>{{ row.set_name }} / {{ row.identifier }} · {{ row.bow }} · {{ row.distance }} m · {{ row.target }}: {{ row.average }} from {{ row.count }} shots</p>{% empty %}<p>No identified arrows in this range.</p>{% endfor %}
+{% for row in comparisons %}<p>{{ row.set_name }} (set #{{ row.set_id }}) / {{ row.identifier }} · {{ row.bow }}{% if row.bow_revision %} (revision {{ row.bow_revision }}){% endif %} · {{ row.distance }} m · {{ row.target }}: {{ row.average }} from {{ row.count }} shots</p>{% empty %}<p>No identified arrows in this range.</p>{% endfor %}
 </section>{% endblock %}

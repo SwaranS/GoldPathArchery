@@ -1012,7 +1012,8 @@ class RelationshipTests(TestCase):
         for route in athlete_routes:
             response = self.client.get(reverse(route, args=[self.adult.pk]))
             self.assertEqual(response.status_code, 200)
-            self.assertContains(response, "No plan yet" if route == "athlete-plans" else "Page to be implemented")
+            expected = {"athlete-plans": "No plan yet", "athlete-equipment": "Equipment is read-only"}
+            self.assertContains(response, expected.get(route, "Page to be implemented"))
             self.assertContains(response, self.adult.display_name)
             for private in ["birth_date", "2000-01-01", self.owner.email]:
                 self.assertNotContains(response, private)

@@ -3,11 +3,19 @@ import uuid
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 from django.db import models
 from django.utils import timezone
 
 
 DIVISIONS = [(x, x.title()) for x in ("recurve", "compound", "barebow")]
+
+
+def positive_measurement(value):
+    try:
+        return not isinstance(value, bool) and math.isfinite(float(value)) and float(value) > 0
+    except (ValueError, TypeError, OverflowError):
+        return False
 
 
 def validate_geometry(value):
@@ -124,10 +132,77 @@ class Equipment(models.Model):
     def __str__(self):
         return self.name
 
+    def clean(self):
+        if not isinstance(self.name, str) or not self.name.strip():
+            raise ValidationError({"name": "Enter an equipment name."})
+        if self.kind == "bow" and not self.division:
+            raise ValidationError({"division": "Select a bow division."})
+        if self.kind == "arrow_set" and self.division:
+            raise ValidationError({"division": "Arrow sets do not have a bow division."})
+
+
+class EquipmentRevision(models.Model):
+    """Append-only specifications; Equipment remains the logical identity."""
+    equipment = models.ForeignKey(Equipment, on_delete=models.PROTECT, related_name="revisions")
+    number = models.PositiveIntegerField()
+    created_at = models.DateTimeField(default=timezone.now)
+    name = models.CharField(max_length=100)
+    division = models.CharField(max_length=20, choices=DIVISIONS, blank=True)
+    details = models.TextField(blank=True, max_length=2000, verbose_name="Setup notes / arrow-set notes")
+    brand = models.CharField(max_length=100, blank=True)
+    model = models.CharField(max_length=100, blank=True)
+    handedness = models.CharField(max_length=5, blank=True, choices=[("left", "Left"), ("right", "Right")])
+    draw_weight = models.DecimalField(max_digits=8, decimal_places=3, null=True, blank=True)
+    draw_weight_unit = models.CharField(max_length=2, blank=True, choices=[("lb", "lb"), ("kg", "kg")])
+    draw_length = models.DecimalField(max_digits=8, decimal_places=3, null=True, blank=True)
+    draw_length_unit = models.CharField(max_length=2, blank=True, choices=[("in", "in"), ("cm", "cm")])
+    spine = models.CharField(max_length=40, blank=True)
+    length = models.DecimalField(max_digits=8, decimal_places=3, null=True, blank=True)
+    length_unit = models.CharField(max_length=2, blank=True, choices=[("in", "in"), ("cm", "cm")])
+    point_weight = models.DecimalField(max_digits=8, decimal_places=3, null=True, blank=True)
+    point_weight_unit = models.CharField(max_length=2, blank=True, choices=[("gr", "grains"), ("g", "g")])
+    shaft_diameter = models.DecimalField(max_digits=8, decimal_places=3, null=True, blank=True)
+    shaft_diameter_unit = models.CharField(max_length=2, blank=True, choices=[("mm", "mm"), ("in", "in")])
+
+    class Meta:
+        ordering = ["-number"]
+        constraints = [models.UniqueConstraint(fields=["equipment", "number"], name="equipment_revision_number")]
+
+    def clean(self):
+        errors = {}
+        if not isinstance(self.name, str) or not self.name.strip():
+            errors["name"] = "Enter an equipment name."
+        for field in ("draw_weight", "draw_length", "length", "point_weight", "shaft_diameter"):
+            value, unit = getattr(self, field), getattr(self, field + "_unit")
+            if value is not None and not positive_measurement(value):
+                errors[field] = "Use a positive finite value."
+            if (value is not None) != bool(unit):
+                errors[field + "_unit"] = "Supply both a value and its unit, or leave both empty."
+        if self.equipment_id:
+            bow = self.equipment.kind == "bow"
+            if bow and not self.division:
+                errors["division"] = "Select a bow division."
+            forbidden = ("spine", "length", "point_weight", "shaft_diameter") if bow else ("division", "handedness", "draw_weight", "draw_length")
+            for field in forbidden:
+                if getattr(self, field):
+                    errors[field] = "This field does not apply to this equipment type."
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        if not self._state.adding:
+            raise ValidationError("Equipment revisions cannot be changed; create a new revision.")
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.name} · revision {self.number}"
+
 
 class PhysicalArrow(models.Model):
     arrow_set = models.ForeignKey(Equipment, on_delete=models.PROTECT, related_name="arrows")
-    identifier = models.CharField(max_length=40)
+    identifier = models.CharField(max_length=40, validators=[RegexValidator(r"\A[A-Za-z0-9]+\Z", "Use an alphanumeric identifier (letters and digits only).")])
+    notes = models.TextField(blank=True, max_length=2000)
     active = models.BooleanField(default=True)
 
     class Meta:
@@ -136,6 +211,34 @@ class PhysicalArrow(models.Model):
     def clean(self):
         if self.arrow_set_id and self.arrow_set.kind != "arrow_set":
             raise ValidationError("Physical arrows belong to an arrow set.")
+
+
+class SightMark(models.Model):
+    athlete = models.ForeignKey("accounts.AthleteProfile", on_delete=models.CASCADE)
+    bow_revision = models.ForeignKey(EquipmentRevision, on_delete=models.PROTECT, related_name="bow_marks")
+    arrow_revision = models.ForeignKey(EquipmentRevision, on_delete=models.PROTECT, related_name="arrow_marks", null=True, blank=True)
+    distance = models.DecimalField(max_digits=8, decimal_places=3)
+    distance_unit = models.CharField(max_length=2, choices=[("m", "m"), ("yd", "yards")])
+    mark = models.CharField(max_length=100)
+    sight_extension = models.CharField(max_length=100, blank=True)
+    windage = models.CharField(max_length=100, blank=True)
+    date = models.DateField(null=True, blank=True)
+    notes = models.TextField(blank=True, max_length=2000)
+    active = models.BooleanField(default=True)
+
+    def clean(self):
+        errors = {}
+        if self.distance is not None and not positive_measurement(self.distance):
+            errors["distance"] = "Use a positive finite distance."
+        if not isinstance(self.mark, str) or not self.mark.strip():
+            errors["mark"] = "Enter a sight mark."
+        for field, kind in (("bow_revision", "bow"), ("arrow_revision", "arrow_set")):
+            if getattr(self, field + "_id"):
+                item = getattr(self, field).equipment
+                if item.athlete_id != self.athlete_id or item.kind != kind:
+                    errors[field] = "Choose equipment belonging to this athlete with the correct type."
+        if errors:
+            raise ValidationError(errors)
 
 
 class ScoringSession(models.Model):
