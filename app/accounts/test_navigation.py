@@ -159,3 +159,55 @@ class WorkspaceTests(TestCase):
         self.user.save(update_fields=["is_staff"])
         admin_nav = self.client.get(reverse("account-profile")).content.decode().split('<nav aria-label="Main navigation">')[1].split('</nav>')[0]
         self.assertIn("Admin ops", admin_nav)
+
+    def test_multiple_disciplines_save_and_display(self):
+        self.roles("archer")
+        own = self.athlete(account=self.user, transitioned_at=timezone.now())
+        url = reverse("athlete-detail", args=[own.pk])
+        response = self.client.get(url)
+        self.assertEqual(response.context["form"].initial["discipline"], ["recurve"])
+        response = self.client.post(url, {
+            "version": own.version, "display_name": own.display_name,
+            "discipline": ["recurve", "compound", "barebow"],
+            "goals": "Practice", "availability": "Saturday",
+        })
+        self.assertRedirects(response, url)
+        own.refresh_from_db()
+        self.assertEqual(own.disciplines, ["recurve", "compound", "barebow"])
+        self.assertEqual(own.discipline, "recurve")
+        page = self.client.get(url)
+        self.assertContains(page, "Recurve, Compound, Barebow")
+        self.assertEqual(page.context["form"].initial["discipline"], own.disciplines)
+        response = self.client.post(url, {
+            "version": own.version, "display_name": own.display_name,
+            "discipline": ["compound", "barebow"],
+        })
+        self.assertRedirects(response, url)
+        own.refresh_from_db()
+        self.assertEqual(own.discipline, "compound")
+        self.assertEqual(own.disciplines, ["compound", "barebow"])
+
+    def test_disciplines_require_valid_selection(self):
+        self.roles("archer")
+        own = self.athlete(account=self.user, transitioned_at=timezone.now())
+        url = reverse("athlete-detail", args=[own.pk])
+        for selection in ([], ["invalid"], ["recurve", "invalid"]):
+            response = self.client.post(url, {
+                "version": own.version, "display_name": own.display_name,
+                "discipline": selection,
+            })
+            self.assertEqual(response.status_code, 200)
+            self.assertIn("discipline", response.context["form"].errors)
+        own.refresh_from_db()
+        self.assertEqual(own.selected_disciplines, ["recurve"])
+
+    def test_create_profile_with_multiple_disciplines(self):
+        self.roles("archer")
+        response = self.client.post(reverse("workspace", args=["archer"]), {
+            "display_name": "Multi archer", "birth_date": "2000-01-01",
+            "timezone": "Europe/Dublin", "discipline": ["compound", "barebow"],
+        })
+        own = AthleteProfile.objects.get(account=self.user)
+        self.assertRedirects(response, reverse("athlete-detail", args=[own.pk]))
+        self.assertEqual(own.disciplines, ["compound", "barebow"])
+        self.assertEqual(own.discipline, "compound")

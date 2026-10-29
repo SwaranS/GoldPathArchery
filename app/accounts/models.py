@@ -62,6 +62,7 @@ class AthleteProfile(models.Model):
         max_length=20,
         choices=[(v, v.title()) for v in ("recurve", "compound", "barebow")],
     )
+    disciplines = models.JSONField(default=list, blank=True)
     goals = models.TextField(blank=True, max_length=4000)
     availability = models.TextField(blank=True, max_length=4000)
     hidden = models.BooleanField(default=False)
@@ -71,6 +72,10 @@ class AthleteProfile(models.Model):
     parent_review_required = models.BooleanField(default=False)
     version = models.PositiveIntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def selected_disciplines(self):
+        return self.disciplines or [self.discipline]
 
     def age(self, at=None):
         today = (at or timezone.now()).astimezone(ZoneInfo(self.timezone)).date()
@@ -83,6 +88,13 @@ class AthleteProfile(models.Model):
     def clean(self):
         super().clean()
         validate_timezone(self.timezone)
+        allowed = {"recurve", "compound", "barebow"}
+        if not isinstance(self.disciplines, list) or any(
+            not isinstance(value, str) or value not in allowed for value in self.disciplines
+        ) or len(set(self.disciplines)) != len(self.disciplines):
+            raise ValidationError({"disciplines": "Choose valid, unique disciplines."})
+        if self.disciplines and self.discipline not in self.disciplines:
+            raise ValidationError({"discipline": "Default discipline must be selected."})
         if not isinstance(self.birth_date, date):
             return  # Field validation supplies missing/invalid birth-date errors.
         if self.age() < 0:

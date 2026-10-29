@@ -117,7 +117,7 @@ def update_profile(user, athlete_id, data, version):
     require(user, athlete, "edit_profile")
     check_version(athlete, version)
     # Birth date/timezone corrections could reverse age permissions. Separate reauthenticated workflow needed.
-    if set(data) - {"display_name", "discipline", "goals", "availability", "hidden"}:
+    if set(data) - {"display_name", "discipline", "disciplines", "goals", "availability", "hidden"}:
         raise ValidationError(
             "Birth date, timezone and login changes are not supported here."
         )
