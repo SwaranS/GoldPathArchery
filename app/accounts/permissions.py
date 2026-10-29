@@ -90,7 +90,7 @@ def training_fields(athlete):
     return {
         "id": str(athlete.pk),
         "display_name": athlete.display_name,
-        "discipline": athlete.discipline,
+        "discipline": ", ".join(athlete.selected_disciplines),
         "goals": athlete.goals,
         "availability": athlete.availability,
         "version": athlete.version,
