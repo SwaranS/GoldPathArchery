@@ -166,10 +166,26 @@ def athlete_detail(request, athlete_id):
     context = {
         "athlete": training_fields(athlete),
         "permissions": permissions,
-        "active_tab": "connections",
+        "active_tab": "profile",
     }
     if permissions["edit_profile"]:
         context["form"] = form
+    return render(request, "accounts/athlete_detail.html", context)
+
+
+@login_required
+@require_http_methods(["GET"])
+@relationship_errors
+def athlete_connections(request, athlete_id):
+    athlete = visible_athlete(request, athlete_id)
+    permissions = {
+        operation: can(request.user, athlete, operation) for operation in OPERATIONS
+    }
+    context = {
+        "athlete": training_fields(athlete),
+        "permissions": permissions,
+        "active_tab": "connections",
+    }
     managing = permissions["manage_grants"]
     claim_allowed = service.may_invite(request.user, athlete, "claim")
     context.update({"claim_allowed": claim_allowed, "version": athlete.version})
@@ -188,7 +204,7 @@ def athlete_detail(request, athlete_id):
         and athlete.parent_review_required
         and athlete.age() >= 16
     )
-    return render(request, "accounts/athlete_detail.html", context)
+    return render(request, "accounts/athlete_connections.html", context)
 
 
 @login_required
@@ -240,7 +256,7 @@ def invitation_revoke(request, athlete_id, invitation_id):
     service.revoke_invitation(
         request.user, athlete_id, invitation_id, request.POST.get("version")
     )
-    return redirect("athlete-detail", athlete_id=athlete_id)
+    return redirect("athlete-connections", athlete_id=athlete_id)
 
 
 @login_required
@@ -263,7 +279,7 @@ def grant_update(request, athlete_id, kind, link_id):
 @relationship_errors
 def parent_review(request, athlete_id):
     service.confirm_parent_review(request.user, athlete_id, request.POST.get("version"))
-    return redirect("athlete-detail", athlete_id=athlete_id)
+    return redirect("athlete-connections", athlete_id=athlete_id)
 
 
 ATHLETE_SECTIONS = {
