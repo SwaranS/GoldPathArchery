@@ -22,4 +22,5 @@ urlpatterns = [
     path("accounts/", include("allauth.urls")),
     path("account/", include("accounts.urls")),
     path("scoring/", include("scoring.urls")),
+    path("training/", include("training.urls")),
 ]

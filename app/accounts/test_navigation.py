@@ -36,7 +36,7 @@ class WorkspaceTests(TestCase):
         for label in ("My athletes", "Family", "Coaching"):
             self.assertNotIn(label, nav)
         self.assertRedirects(self.client.get(reverse("workspace", args=["archer"])+"?connections=1"),
-                             reverse("athlete-detail", args=[own.pk])+"#connections")
+                             reverse("athlete-connections", args=[own.pk]))
 
     def test_archer_setup_is_separate(self):
         self.roles("archer", "parent")
@@ -108,7 +108,7 @@ class WorkspaceTests(TestCase):
     def test_age_review_precedes_workspace_choice(self):
         self.roles("archer", "parent")
         own = self.athlete(account=self.user, transitioned_at=timezone.now(), parent_review_required=True)
-        self.assertRedirects(self.client.get(reverse("workspace-home")), reverse("athlete-detail", args=[own.pk]))
+        self.assertRedirects(self.client.get(reverse("workspace-home")), reverse("athlete-connections", args=[own.pk]))
 
     def test_closed_profile_has_no_duplicate_setup(self):
         self.roles("archer")
@@ -158,4 +158,76 @@ class WorkspaceTests(TestCase):
         self.user.is_staff = True
         self.user.save(update_fields=["is_staff"])
         admin_nav = self.client.get(reverse("account-profile")).content.decode().split('<nav aria-label="Main navigation">')[1].split('</nav>')[0]
-        self.assertIn("Admin ops", admin_nav)
+        self.assertIn(f'<a href="{reverse("admin:index")}">Admin ops</a>', admin_nav)
+        self.assertNotIn(reverse("admin-ops"), admin_nav)
+
+    def test_connections_is_separate_and_permission_checked(self):
+        self.roles("archer")
+        own = self.athlete(account=self.user, transitioned_at=timezone.now())
+        profile = self.client.get(reverse("athlete-detail", args=[own.pk]))
+        self.assertNotContains(profile, "Create private invitation")
+        self.assertNotIn("guardians", profile.context)
+        url = reverse("athlete-connections", args=[own.pk])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Connections for Own")
+        self.assertContains(response, "Create private invitation")
+        self.assertNotContains(response, "Save profile")
+        self.assertContains(response, f'class="workflow-tab is-active" href="{url}">Connections</a>')
+        self.assertEqual(self.client.post(url, {}).status_code, 405)
+        unrelated = self.athlete("Unrelated")
+        self.assertEqual(self.client.get(reverse("athlete-connections", args=[unrelated.pk])).status_code, 404)
+        self.client.logout()
+        self.assertEqual(self.client.get(url).status_code, 302)
+
+    def test_multiple_disciplines_save_and_display(self):
+        self.roles("archer")
+        own = self.athlete(account=self.user, transitioned_at=timezone.now())
+        url = reverse("athlete-detail", args=[own.pk])
+        response = self.client.get(url)
+        self.assertEqual(response.context["form"].initial["discipline"], ["recurve"])
+        response = self.client.post(url, {
+            "version": own.version, "display_name": own.display_name,
+            "discipline": ["recurve", "compound", "barebow"],
+            "goals": "Practice", "availability": "Saturday",
+        })
+        self.assertRedirects(response, url)
+        own.refresh_from_db()
+        self.assertEqual(own.disciplines, ["recurve", "compound", "barebow"])
+        self.assertEqual(own.discipline, "recurve")
+        page = self.client.get(url)
+        self.assertContains(page, "Recurve, Compound, Barebow")
+        self.assertEqual(page.context["form"].initial["discipline"], own.disciplines)
+        response = self.client.post(url, {
+            "version": own.version, "display_name": own.display_name,
+            "discipline": ["compound", "barebow"],
+        })
+        self.assertRedirects(response, url)
+        own.refresh_from_db()
+        self.assertEqual(own.discipline, "compound")
+        self.assertEqual(own.disciplines, ["compound", "barebow"])
+
+    def test_disciplines_require_valid_selection(self):
+        self.roles("archer")
+        own = self.athlete(account=self.user, transitioned_at=timezone.now())
+        url = reverse("athlete-detail", args=[own.pk])
+        for selection in ([], ["invalid"], ["recurve", "invalid"]):
+            response = self.client.post(url, {
+                "version": own.version, "display_name": own.display_name,
+                "discipline": selection,
+            })
+            self.assertEqual(response.status_code, 200)
+            self.assertIn("discipline", response.context["form"].errors)
+        own.refresh_from_db()
+        self.assertEqual(own.selected_disciplines, ["recurve"])
+
+    def test_create_profile_with_multiple_disciplines(self):
+        self.roles("archer")
+        response = self.client.post(reverse("workspace", args=["archer"]), {
+            "display_name": "Multi archer", "birth_date": "2000-01-01",
+            "timezone": "Europe/Dublin", "discipline": ["compound", "barebow"],
+        })
+        own = AthleteProfile.objects.get(account=self.user)
+        self.assertRedirects(response, reverse("athlete-detail", args=[own.pk]))
+        self.assertEqual(own.disciplines, ["compound", "barebow"])
+        self.assertEqual(own.discipline, "compound")

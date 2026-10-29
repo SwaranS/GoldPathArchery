@@ -25,7 +25,7 @@ def profile(request):
                 and current.age() >= 16
                 and current.parent_review_required
             ):
-                return redirect("athlete-detail", athlete_id=current.pk)
+                return redirect("athlete-connections", athlete_id=current.pk)
     # Role declarations do not grant permissions or athlete relationships.
     allowed = {role for role, _label in RolesForm.base_fields["roles"].choices}
     existing = set(request.user.role_assignments.values_list("role", flat=True))
