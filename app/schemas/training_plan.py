@@ -421,13 +421,7 @@ class GeneratePlanRequest(BaseModel):
                         "Poundage Lockout Violation: Mechanical draw weight increase cannot be scheduled "
                         "within 6 weeks (42 days) of an A-tier competition."
                     )
-            elif (
-                (
-                    self.goal.primary_archetype == PlanArchetype.COMPETITION_PEAK
-                    or self.goal.secondary_archetype == PlanArchetype.POUNDAGE_INCREASE
-                )
-                and days_until_event < 42
-            ):
+            elif days_until_event < 42:
                 raise ValueError(
                     "Poundage Lockout Violation: Cannot schedule Poundage Increase or raise draw weight "
                     "within 6 weeks (42 days) of a Competition Peak / A-tier competition."

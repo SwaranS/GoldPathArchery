@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}Create training plan - GoldPathArchery{% endblock %}
+{% block page_class %}workspace-page{% endblock %}
+{% block content %}<section class="workspace-card">
+<p class="eyebrow">TRAINING</p><h1>Create a training plan</h1>
+<p>Build a periodized draft around your goals and available training days. Drafts require human review before use; generation does not activate a plan.</p>
+{% if form.fields.athlete.queryset.exists %}
+<form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Generate draft</button></form>
+{% else %}<p>You need an athlete profile with permission to edit training plans.</p><a href="{% url 'my-plans' %}">Open my planning setup</a>{% endif %}
+<h2>Recent drafts</h2><ul>{% for job in recent %}<li><a href="{% url 'training-detail' job.pk %}">{{ job.athlete.display_name }} — {{ job.created_at|date:"j M Y H:i" }}</a> ({{ job.status }})</li>{% empty %}<li>No drafts yet.</li>{% endfor %}</ul>
+</section>{% endblock %}

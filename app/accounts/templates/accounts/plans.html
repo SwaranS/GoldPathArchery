@@ -4,6 +4,7 @@
 {% block content %}<section class="workspace-card">
 {% include 'accounts/_athlete_header.html' %}
 <p class="eyebrow">TRAINING PLANS</p><h1>Plans for {{ athlete.display_name }}</h1>
+<p><a href="{% url 'training-new' %}?athlete={{ athlete.id }}">Create or view generated training drafts</a></p>
 <div class="workspace-panel"><h2>No plan yet</h2>
 <p>A planning brief helps prepare training around your goals, current workload and available time.</p>
 <p>Discipline: <strong>{{ athlete.discipline|title }}</strong>. This comes from the athlete profile.</p>
