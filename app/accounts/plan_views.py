@@ -11,6 +11,7 @@ from .permissions import can, training_fields
 from .plan_forms import DAYS, PlanSetupForm
 from .plan_models import PlanSetup
 from django.utils import timezone
+from training.models import GeneratedPlan
 
 
 @login_required
@@ -30,6 +31,7 @@ def my_plans(request):
 @relationship_errors
 def plans(request, athlete_id):
     athlete = visible_athlete(request, athlete_id)
+    generated_plans = GeneratedPlan.objects.filter(athlete=athlete).order_by("-created_at", "-pk")
     setup = PlanSetup.objects.filter(athlete=athlete).first()
     allowed = can(request.user, athlete, "edit_profile")
     if request.method == "POST":
@@ -70,6 +72,8 @@ def plans(request, athlete_id):
         status = 200
     return render(request, "accounts/plans.html", {
         "athlete": training_fields(athlete), "setup": setup,
+        "generated_plans": generated_plans,
+        "latest_generated_plan": generated_plans.filter(status="ready").first(),
         "setup_form": form if allowed and not (setup and setup.submitted_at) else None,
         "can_setup": allowed, "active_tab": "plans",
         "review_day_label": dict(DAYS).get(setup.review_day) if setup else None,
