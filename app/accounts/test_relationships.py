@@ -1003,7 +1003,7 @@ class RelationshipTests(TestCase):
         admin_response = self.client.get(reverse("admin-ops"))
         self.assertEqual(admin_response.status_code, 200)
         self.assertContains(admin_response, "Administrator Operations")
-        self.assertContains(admin_response, reverse("admin-ops"))
+        self.assertContains(admin_response, reverse("admin:index"))
         manager_response = self.client.get(reverse("manager-queue"))
         self.assertEqual(manager_response.status_code, 200)
         self.assertContains(manager_response, "Plan Manager Review Queue")

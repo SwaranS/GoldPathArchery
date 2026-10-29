@@ -158,7 +158,8 @@ class WorkspaceTests(TestCase):
         self.user.is_staff = True
         self.user.save(update_fields=["is_staff"])
         admin_nav = self.client.get(reverse("account-profile")).content.decode().split('<nav aria-label="Main navigation">')[1].split('</nav>')[0]
-        self.assertIn("Admin ops", admin_nav)
+        self.assertIn(f'<a href="{reverse("admin:index")}">Admin ops</a>', admin_nav)
+        self.assertNotIn(reverse("admin-ops"), admin_nav)
 
     def test_connections_is_separate_and_permission_checked(self):
         self.roles("archer")
