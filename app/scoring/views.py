@@ -12,8 +12,9 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
 
+from accounts.models import AthleteProfile
 from accounts.permissions import accessible_athletes, can
-from . import services, equipment_services
+from . import services, equipment_services, advanced_equipment
 from .forms import ArrowForm, EquipmentForm, SightMarkForm, StartForm
 from .models import PhysicalArrow, ScoringSession
 
@@ -149,5 +150,34 @@ def equipment(request, athlete_id):
                 active_form.add_error(None, "; ".join(error.messages))
             else:
                 context["action_error"] = "; ".join(error.messages)
+    from .forms import ComponentForm
+    from .models import EquipmentComponent
+    from .component_specs import NUMBERS, TEXT, STATUSES
+    athlete = AthleteProfile.objects.get(pk=athlete_id)
+    components = list(advanced_equipment.component_workspace(request.user, athlete))
+    component_edit = next((c for c in components if str(c.pk) == str(request.GET.get("component_edit", request.POST.get("component_id", "")))), None)
+    component_initial = {}
+    if component_edit:
+        rev = component_edit.revisions.first()
+        component_initial = {k: getattr(rev, k) for k in advanced_equipment.COMPONENT_FIELDS}
+        component_initial.update(category=component_edit.category, expected_revision=rev.pk)
+    component_form = ComponentForm(request.POST if action == "component" else None, initial=component_initial)
+    if request.method == "POST" and action in ("component", "component_status"):
+        try:
+            if action == "component" and component_form.is_valid():
+                data = component_form.cleaned_data
+                advanced_equipment.save_component(request.user, athlete_id, data["category"],
+                    {k: data[k] for k in advanced_equipment.COMPONENT_FIELDS},
+                    component_id=request.POST.get("component_id") or None, expected_revision=data["expected_revision"])
+                return redirect("athlete-equipment", athlete_id=athlete_id)
+            elif action == "component_status":
+                advanced_equipment.set_component_status(request.user, athlete_id, request.POST["component_id"], request.POST["status"], request.POST.get("reason", ""))
+                return redirect("athlete-equipment", athlete_id=athlete_id)
+        except ValidationError as error:
+            component_form.add_error(None, "; ".join(error.messages))
+    context.pop("action_error", None) if action in ("component", "component_status") else None
+    context.update(components=components, component_form=component_form, component_edit=component_edit,
+        component_statuses=[(v, v.replace("_", " ").title()) for v in STATUSES],
+        component_schema=[(k, NUMBERS[k] + " " + TEXT[k]) for k in NUMBERS])
     context.update(form=form, arrow_form=arrow_form, mark_form=mark_form, editing=editing)
     return render(request, "scoring/equipment.html", context)

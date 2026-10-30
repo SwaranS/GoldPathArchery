@@ -295,3 +295,68 @@ class MutationReceipt(models.Model):
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=["session", "key"], name="scoring_retry_key")]
+
+
+# Advanced equipment extends the legacy identities; it never rewrites score snapshots.
+from .component_specs import CATEGORIES, STATUSES, validate_specs
+
+
+class EquipmentComponent(models.Model):
+    owner = models.ForeignKey("accounts.AthleteProfile", on_delete=models.PROTECT, related_name="components")
+    category = models.CharField(max_length=20, choices=[(v, v.replace("_", " ").title()) for v in CATEGORIES])
+    status = models.CharField(max_length=12, default="active", choices=[(v, v.replace("_", " ").title()) for v in STATUSES])
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [models.CheckConstraint(condition=models.Q(status__in=STATUSES), name="component_valid_status"),
+                       models.CheckConstraint(condition=models.Q(category__in=CATEGORIES), name="component_valid_category")]
+
+    def __str__(self):
+        revision = self.revisions.first()
+        return revision.name if revision else f"Component {self.pk}"
+
+
+class ComponentRevision(models.Model):
+    component = models.ForeignKey(EquipmentComponent, on_delete=models.PROTECT, related_name="revisions")
+    number = models.PositiveIntegerField()
+    owner_at_revision = models.ForeignKey("accounts.AthleteProfile", on_delete=models.PROTECT)
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
+    created_at = models.DateTimeField(auto_now_add=True)
+    name = models.CharField(max_length=100)
+    manufacturer = models.CharField(max_length=100, blank=True)
+    model = models.CharField(max_length=100, blank=True)
+    serial_reference = models.CharField(max_length=100, blank=True)
+    notes = models.TextField(max_length=2000, blank=True)
+    specs = models.JSONField(default=dict, blank=True)
+    schema_version = models.PositiveSmallIntegerField(default=1)
+
+    class Meta:
+        ordering = ["-number"]
+        constraints = [models.UniqueConstraint(fields=["component", "number"], name="component_revision_number")]
+
+    def clean(self):
+        if not self.name.strip():
+            raise ValidationError("Enter a component name.")
+        validate_specs(self.component.category, self.specs)
+
+    def save(self, *args, **kwargs):
+        if not self._state.adding:
+            raise ValidationError("Component revisions are immutable.")
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise ValidationError("Component revisions are immutable.")
+
+
+class EquipmentActivity(models.Model):
+    owner = models.ForeignKey("accounts.AthleteProfile", on_delete=models.PROTECT)
+    component = models.ForeignKey(EquipmentComponent, null=True, on_delete=models.PROTECT)
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
+    event = models.CharField(max_length=50)
+    at = models.DateTimeField(auto_now_add=True)
+    detail = models.JSONField(default=dict)
+
+    class Meta:
+        ordering = ["-at", "-pk"]

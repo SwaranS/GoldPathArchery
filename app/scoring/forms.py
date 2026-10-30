@@ -83,3 +83,23 @@ class SightMarkForm(forms.ModelForm):
         self.instance.athlete_id = getattr(athlete, "pk", athlete)
         self.fields["bow_revision"].queryset = revision_choices(athlete, "bow")
         self.fields["arrow_revision"].queryset = revision_choices(athlete, "arrow_set")
+
+
+class ComponentForm(forms.Form):
+    from .component_specs import CATEGORIES
+    category = forms.ChoiceField(choices=[(v, v.replace("_", " ").title()) for v in CATEGORIES])
+    name = forms.CharField(max_length=100)
+    manufacturer = forms.CharField(max_length=100, required=False)
+    model = forms.CharField(max_length=100, required=False)
+    serial_reference = forms.CharField(max_length=100, required=False)
+    notes = forms.CharField(max_length=2000, required=False, widget=forms.Textarea)
+    specs = forms.JSONField(required=False, initial=dict, help_text="Optional specification JSON. Field names include units; see the category schema below.")
+    expected_revision = forms.IntegerField(required=False, widget=forms.HiddenInput)
+
+    def clean(self):
+        from .component_specs import validate_specs
+        data = super().clean()
+        data["specs"] = data.get("specs") or {}
+        if data.get("category"):
+            validate_specs(data["category"], data["specs"])
+        return data
