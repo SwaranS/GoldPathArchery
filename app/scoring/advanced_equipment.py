@@ -81,7 +81,12 @@ def compatibility(division, revisions):
 
 
 def available(component, athlete):
-    return component.status == "active" and component.owner_id == athlete.pk
+    if component.status != "active":
+        return False
+    if component.owner_id == athlete.pk:
+        return True
+    return connected(component.owner, athlete) and EquipmentShare.objects.filter(component=component,
+        owner_id=component.owner_id, recipient=athlete, status="approved").exists()
 
 
 def configuration_available(revision, athlete):
@@ -105,9 +110,11 @@ def save_configuration(actor, athlete_id, name, division, revision_ids, *, confi
     if len(ids) != len(set(ids)):
         raise ValidationError("Select each component revision once.")
     revisions = list(ComponentRevision.objects.filter(pk__in=ids).select_related("component"))
+    list(EquipmentComponent.objects.select_for_update().filter(pk__in=[r.component_id for r in revisions]).order_by("pk"))
     if len(revisions) != len(ids) or len({r.component_id for r in revisions}) != len(ids):
         raise ValidationError("Invalid component selection.")
     for revision in revisions:
+        revision.component.refresh_from_db()
         if not available(revision.component, athlete):
             raise ValidationError("A selected component is unavailable.")
     arrows = Equipment.objects.get(pk=preferred_arrows_id, athlete=athlete, kind="arrow_set", active=True) if preferred_arrows_id else None
@@ -153,7 +160,7 @@ def configuration_snapshot(revision, athlete):
         name=revision.name, division=revision.division, warnings=revision.warnings, rule_version=revision.rule_version,
         components=[dict(id=m.component_id, revision_id=m.component_revision_id, revision=m.component_revision.number,
             owner_id=str(m.component_revision.owner_at_revision_id), category=m.component.category,
-            **{k: getattr(m.component_revision, k) for k in COMPONENT_FIELDS if k != "serial_reference"})
+            **{k: getattr(m.component_revision, k) for k in COMPONENT_FIELDS if k not in ("serial_reference", "notes")})
             for m in revision.members.select_related("component", "component_revision")])
 
 
@@ -174,4 +181,102 @@ def scoring_equipment(athlete, data, division):
             if kind == "bow" and item.division != division:
                 raise ValidationError("Bow division must match the session.")
             result[key] = revision_snapshot(item)
+    return result
+
+
+from django.core.exceptions import PermissionDenied
+from django.db.models import Q
+from django.utils import timezone
+from accounts.models import AthleteProfile, GuardianLink, CoachRelationship
+from .models import EquipmentShare, EquipmentTransfer
+
+
+def connected(left, right):
+    if left.pk == right.pk or left.closed_at or right.closed_at:
+        return False
+    # Existing explicit relationship links only; never self-selected roles.
+    parents = GuardianLink.objects.filter(athlete=left, revoked_at__isnull=True, access__in=["view", "edit"]).values("parent_id")
+    return (GuardianLink.objects.filter(athlete=right, parent_id__in=parents, revoked_at__isnull=True, access__in=["view", "edit"]).exists()
+        or CoachRelationship.objects.filter(athlete=left, coach_id=right.account_id, revoked_at__isnull=True).exists()
+        or CoachRelationship.objects.filter(athlete=right, coach_id=left.account_id, revoked_at__isnull=True).exists())
+
+
+def lock_pair(left_id, right_id):
+    rows = list(AthleteProfile.objects.select_for_update().filter(pk__in=[left_id, right_id]).order_by("pk"))
+    if len(rows) != 2:
+        raise ValidationError("Choose a connected recipient.")
+    by_id = {str(r.pk): r for r in rows}
+    left, right = by_id[str(left_id)], by_id[str(right_id)]
+    if not connected(left, right):
+        raise ValidationError("Choose a connected recipient.")
+    return left, right
+
+
+@transaction.atomic
+def invite_component(actor, athlete_id, component_id, recipient_id, *, transfer=False, permit_photos=False):
+    owner, recipient = lock_pair(athlete_id, recipient_id)
+    authorize(actor, owner, True)
+    component = EquipmentComponent.objects.select_for_update().get(pk=component_id, owner=owner)
+    if component.status != "active":
+        raise ValidationError("Only active components can be shared or transferred.")
+    if transfer:
+        if component.transfers.filter(status="pending").exists():
+            raise ValidationError("A transfer is already pending.")
+        obj = EquipmentTransfer.objects.create(component=component, sender=owner, recipient=recipient, initiated_by=actor)
+    else:
+        if component.shares.filter(recipient=recipient, status__in=["pending", "approved"]).exists():
+            raise ValidationError("This share already exists.")
+        obj = EquipmentShare.objects.create(component=component, owner=owner, recipient=recipient, initiated_by=actor, permit_photos=permit_photos)
+    activity(actor, owner, "transfer.invited" if transfer else "share.invited", component, invitation=obj.pk)
+    return obj
+
+
+@transaction.atomic
+def decide_invitation(actor, athlete_id, invitation_id, decision, *, transfer=False):
+    model = EquipmentTransfer if transfer else EquipmentShare
+    candidate = model.objects.get(pk=invitation_id)
+    source_id = candidate.sender_id if transfer else candidate.owner_id
+    # Cancellation/revocation remains possible after connection revocation.
+    rows = list(AthleteProfile.objects.select_for_update().filter(pk__in=[source_id, candidate.recipient_id]).order_by("pk"))
+    athletes = {r.pk: r for r in rows}
+    source, recipient = athletes[source_id], athletes[candidate.recipient_id]
+    obj = model.objects.select_for_update().get(pk=invitation_id)
+    component = EquipmentComponent.objects.select_for_update().get(pk=obj.component_id)
+    source_action = decision in ("cancelled", "revoked")
+    acting = source if source_action else recipient
+    if str(athlete_id) != str(acting.pk):
+        raise PermissionDenied
+    authorize(actor, acting, True)
+    allowed = ("accepted", "cancelled", "rejected") if transfer else ("approved", "revoked", "rejected")
+    if decision not in allowed or (obj.status != "pending" and not (not transfer and obj.status == "approved" and decision == "revoked")):
+        raise ValidationError("Invitation already decided or invalid action.")
+    if decision in ("accepted", "approved"):
+        if component.owner_id != source.pk or component.status != "active" or not connected(source, recipient):
+            raise ValidationError("Invitation is no longer available.")
+        if transfer:
+            component.owner = recipient; component.save()
+            EquipmentShare.objects.filter(component=component, status__in=["pending", "approved"]).update(status="revoked", decided_by=actor, decided_at=timezone.now())
+            # New owner's revision records the ownership transition without modifying older versions.
+            previous = component.revisions.first()
+            ComponentRevision.objects.create(component=component, owner_at_revision=recipient, actor=actor,
+                number=previous.number + 1, **{k: getattr(previous, k) for k in COMPONENT_FIELDS})
+    obj.status, obj.decided_by, obj.decided_at = decision, actor, timezone.now()
+    obj.save()
+    event = ("transfer." if transfer else "share.") + decision
+    activity(actor, source, event, component, invitation=obj.pk)
+    activity(actor, recipient, event, component, invitation=obj.pk)
+    return obj
+
+
+def shared_components(actor, athlete):
+    authorize(actor, athlete)
+    rows = EquipmentShare.objects.filter(recipient=athlete, status="approved", component__status="active").select_related("component__owner", "owner")
+    # Explicit safe payload: excludes serials, private notes, purchases and histories.
+    result = []
+    for share in rows:
+        if share.owner_id != share.component.owner_id or not connected(share.owner, athlete):
+            continue
+        rev = share.component.revisions.first()
+        result.append(dict(id=share.component_id, name=rev.name, category=share.component.category,
+            manufacturer=rev.manufacturer, model=rev.model, specs=rev.specs, revision_id=rev.pk))
     return result

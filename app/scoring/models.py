@@ -429,3 +429,29 @@ class ConfigurationMember(models.Model):
 class AthleteEquipmentDefaults(models.Model):
     athlete = models.OneToOneField("accounts.AthleteProfile", on_delete=models.PROTECT)
     configuration = models.ForeignKey(BowConfiguration, null=True, blank=True, on_delete=models.PROTECT)
+
+
+class EquipmentShare(models.Model):
+    component = models.ForeignKey(EquipmentComponent, on_delete=models.PROTECT, related_name="shares")
+    owner = models.ForeignKey("accounts.AthleteProfile", on_delete=models.PROTECT, related_name="equipment_shares_sent")
+    recipient = models.ForeignKey("accounts.AthleteProfile", on_delete=models.PROTECT, related_name="equipment_shares_received")
+    status = models.CharField(max_length=10, default="pending", choices=[(s, s.title()) for s in ("pending", "approved", "revoked", "rejected")])
+    initiated_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="equipment_shares_initiated")
+    decided_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="equipment_shares_decided")
+    at = models.DateTimeField(auto_now_add=True)
+    decided_at = models.DateTimeField(null=True)
+    permit_photos = models.BooleanField(default=False)
+
+
+class EquipmentTransfer(models.Model):
+    component = models.ForeignKey(EquipmentComponent, on_delete=models.PROTECT, related_name="transfers")
+    sender = models.ForeignKey("accounts.AthleteProfile", on_delete=models.PROTECT, related_name="equipment_transfers_sent")
+    recipient = models.ForeignKey("accounts.AthleteProfile", on_delete=models.PROTECT, related_name="equipment_transfers_received")
+    status = models.CharField(max_length=10, default="pending", choices=[(s, s.title()) for s in ("pending", "accepted", "cancelled", "rejected")])
+    initiated_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="equipment_transfers_initiated")
+    decided_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="equipment_transfers_decided")
+    at = models.DateTimeField(auto_now_add=True)
+    decided_at = models.DateTimeField(null=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["component"], condition=models.Q(status="pending"), name="component_one_pending_transfer")]

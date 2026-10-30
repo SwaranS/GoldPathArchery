@@ -30,3 +30,12 @@ All physical fit remains unverified and requires acknowledgement; declared disci
 conflicts are rejected. Interface mismatch is an acknowledged warning, not fit advice.
 Seven statuses apply to physical components; only active components are selectable.
 Legacy equipment retains its existing active/archive behavior.
+
+## Sharing connection policy
+Connected means existing athletes with a common unrevoked guardian (view/edit), or
+an athlete whose account has an explicit unrevoked coach relationship to the other.
+A common self-selected coach role is insufficient. UUID entry never discovers a
+recipient inventory. Each recipient must approve through its own edit-profile grant.
+Live relationship and share checks apply to future selections. Shared payloads exclude
+private notes and serial references. Transfers append an ownership revision, revoke
+all prior shares and preserve original revisions and configuration snapshots.

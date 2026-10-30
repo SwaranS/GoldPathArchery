@@ -136,3 +136,45 @@ class ConfigurationScoringTests(EquipmentTests):
         with self.assertRaises(ValidationError):
             legacy.save_mark(self.owner, self.athlete.pk, dict(configuration_revision=revision.pk, distance=18, distance_unit="m", mark="Stale"))
         mark.refresh_from_db(); self.assertEqual(mark.configuration_revision_id, revision.pk)
+
+
+from accounts.models import GuardianLink
+class SharingTests(ComponentTests):
+    def test_pending_approval_revocation_transfer_and_privacy(self):
+        recipient = AthleteProfile.objects.create(account=self.other, display_name="Recipient", birth_date=date(1990, 1, 1), discipline="recurve")
+        guardian = User.objects.create_user(username="shared-guardian")
+        for athlete in (self.athlete, recipient):
+            GuardianLink.objects.create(athlete=athlete, parent=guardian, access="view")
+        component = a.save_component(self.owner, self.athlete.pk, "riser", dict(name="Shared riser", serial_reference="SECRET", notes="PRIVATE"))
+        share = a.invite_component(self.owner, self.athlete.pk, component.pk, recipient.pk)
+        self.assertEqual(a.shared_components(self.other, recipient), [])
+        with self.assertRaises(ValidationError):
+            a.save_configuration(self.other, recipient.pk, "Pending", "recurve", [component.revisions.first().pk], acknowledged=True)
+        a.decide_invitation(self.other, recipient.pk, share.pk, "approved")
+        payload = a.shared_components(self.other, recipient)
+        self.assertEqual(payload[0]["name"], "Shared riser")
+        self.assertNotIn("PRIVATE", str(payload)); self.assertNotIn("SECRET", str(payload))
+        config = a.save_configuration(self.other, recipient.pk, "Shared", "recurve", [component.revisions.first().pk], acknowledged=True)
+        snapshot = a.configuration_snapshot(config.revisions.first(), recipient)
+        a.decide_invitation(self.owner, self.athlete.pk, share.pk, "revoked")
+        self.assertEqual(a.shared_components(self.other, recipient), [])
+        self.assertFalse(a.configuration_available(config.revisions.first(), recipient))
+        self.assertEqual(snapshot["components"][0]["name"], "Shared riser")
+        transfer = a.invite_component(self.owner, self.athlete.pk, component.pk, recipient.pk, transfer=True)
+        component.refresh_from_db(); self.assertEqual(component.owner_id, self.athlete.pk)
+        with self.assertRaises(PermissionDenied):
+            a.decide_invitation(self.owner, recipient.pk, transfer.pk, "accepted", transfer=True)
+        a.decide_invitation(self.other, recipient.pk, transfer.pk, "accepted", transfer=True)
+        component.refresh_from_db(); self.assertEqual(component.owner_id, recipient.pk)
+        self.assertEqual(component.revisions.first().owner_at_revision_id, recipient.pk)
+        with self.assertRaises(ValidationError):
+            a.decide_invitation(self.other, recipient.pk, transfer.pk, "accepted", transfer=True)
+
+    def test_unconnected_and_cancelled_transfer(self):
+        recipient = AthleteProfile.objects.create(account=self.other, display_name="Other", birth_date=date(1990, 1, 1), discipline="recurve")
+        component = a.save_component(self.owner, self.athlete.pk, "string", dict(name="String"))
+        with self.assertRaises(ValidationError): a.invite_component(self.owner, self.athlete.pk, component.pk, recipient.pk)
+        CoachRelationship.objects.create(athlete=self.athlete, coach=self.other)
+        transfer = a.invite_component(self.owner, self.athlete.pk, component.pk, recipient.pk, transfer=True)
+        a.decide_invitation(self.owner, self.athlete.pk, transfer.pk, "cancelled", transfer=True)
+        component.refresh_from_db(); self.assertEqual(component.owner_id, self.athlete.pk)

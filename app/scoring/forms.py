@@ -130,8 +130,11 @@ class ConfigurationForm(forms.Form):
     reason = forms.CharField(max_length=500, required=False)
     expected_revision = forms.IntegerField(required=False, widget=forms.HiddenInput)
 
-    def __init__(self, *args, athlete, **kwargs):
+    def __init__(self, *args, athlete, actor=None, **kwargs):
         from .models import ComponentRevision
         super().__init__(*args, **kwargs)
-        self.fields["components"].queryset = ComponentRevision.objects.filter(component__owner=athlete, component__status="active").select_related("component")
+        from django.db.models import Q
+        from .advanced_equipment import shared_components
+        shared_ids = [r["revision_id"] for r in shared_components(actor, athlete)] if actor else []
+        self.fields["components"].queryset = ComponentRevision.objects.filter(Q(component__owner=athlete, component__status="active") | Q(pk__in=shared_ids)).select_related("component")
         self.fields["preferred_arrows"].queryset = Equipment.objects.filter(athlete=athlete, kind="arrow_set", active=True)

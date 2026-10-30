@@ -188,7 +188,7 @@ def equipment(request, athlete_id):
         rev = config_edit.revisions.first()
         config_initial = dict(name=rev.name, division=rev.division, components=list(rev.components.all()),
             preferred_arrows=rev.preferred_arrows_id, expected_revision=rev.pk)
-    configuration_form = ConfigurationForm(request.POST if action == "configuration" else None, athlete=athlete, initial=config_initial)
+    configuration_form = ConfigurationForm(request.POST if action == "configuration" else None, athlete=athlete, actor=request.user, initial=config_initial)
     if request.method == "POST" and action in ("configuration", "configuration_default", "configuration_status"):
         try:
             if action == "configuration" and configuration_form.is_valid():
@@ -212,5 +212,19 @@ def equipment(request, athlete_id):
         c.available = advanced_equipment.configuration_available(c.current, athlete)
     context.update(configurations=configs, configuration_form=configuration_form, configuration_edit=config_edit,
         equipment_default=AthleteEquipmentDefaults.objects.filter(athlete=athlete).first())
+    from .models import EquipmentShare, EquipmentTransfer
+    from django.db.models import Q
+    if request.method == "POST" and action in ("share_invite", "transfer_invite", "invitation_decide"):
+        try:
+            if action == "invitation_decide":
+                advanced_equipment.decide_invitation(request.user, athlete_id, request.POST["invitation_id"], request.POST["decision"], transfer=request.POST.get("transfer") == "true")
+            else:
+                advanced_equipment.invite_component(request.user, athlete_id, request.POST["component_id"], request.POST["recipient_id"], transfer=action == "transfer_invite", permit_photos=request.POST.get("permit_photos") == "on")
+            return redirect("athlete-equipment", athlete_id=athlete_id)
+        except ValidationError as error:
+            context["action_error"] = "; ".join(error.messages)
+    context.update(shared_components=advanced_equipment.shared_components(request.user, athlete),
+        shares=EquipmentShare.objects.filter(Q(owner=athlete) | Q(recipient=athlete)).order_by("-pk"),
+        transfers=EquipmentTransfer.objects.filter(Q(sender=athlete) | Q(recipient=athlete)).order_by("-pk"))
     context.update(form=form, arrow_form=arrow_form, mark_form=mark_form, editing=editing)
     return render(request, "scoring/equipment.html", context)
