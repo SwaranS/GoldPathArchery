@@ -21,6 +21,7 @@ INSTALLED_APPS = [
     "allauth.socialaccount.providers.google",
     "accounts.apps.AccountsConfig",
     "scoring",
+    "training",
 ]
 SITE_ID = 1
 

@@ -18,7 +18,7 @@ def landing(request):
     for athlete in accessible_athletes(request.user):
         current = relationships.transition(athlete.pk)
         if current.account_id == request.user.pk and current.age() >= 16 and current.parent_review_required:
-            return redirect("athlete-detail", athlete_id=current.pk)
+            return redirect("athlete-connections", athlete_id=current.pk)
     roles = set(request.user.role_assignments.values_list("role", flat=True)) & WORKSPACES.keys()
     remembered = request.session.get("workspace")
     if remembered in roles:
@@ -40,6 +40,6 @@ def workspace(request, workspace):
     if workspace == "archer":
         own = accessible_athletes(request.user).filter(account=request.user).first()
         if own:
-            url = reverse("athlete-detail", args=[own.pk])
-            return redirect(url + ("#connections" if request.GET.get("connections") else ""))
+            route = "athlete-connections" if request.GET.get("connections") else "athlete-detail"
+            return redirect(reverse(route, args=[own.pk]))
     return athletes(request, scope=workspace)

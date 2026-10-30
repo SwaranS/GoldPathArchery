@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block title %}Training draft - GoldPathArchery{% endblock %}
+{% block page_class %}workspace-page{% endblock %}
+{% block content %}<section class="workspace-card">
+<h1>Training draft for {{ job.athlete.display_name }}</h1>
+{% if job.status == 'queued' %}<p>Your draft is queued for generation. Refresh this page to check progress.</p><a href="">Check progress</a>
+{% elif job.status == 'failed' %}<p role="alert">{{ job.error }}</p>
+{% else %}{% include 'training/_roadmap.html' %}{% endif %}
+<p><a href="{% url 'training-new' %}">Create another draft</a></p></section>{% endblock %}

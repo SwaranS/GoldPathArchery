@@ -29,5 +29,17 @@ services:
       db:
         condition: service_healthy
 
+  training-worker:
+    build: .
+    user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
+    env_file: .env
+    command: ["python", "manage.py", "generate_training"]
+    restart: unless-stopped
+    volumes:
+      - ./app:/app
+    depends_on:
+      db:
+        condition: service_healthy
+
 volumes:
   pgdata:
