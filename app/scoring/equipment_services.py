@@ -94,6 +94,13 @@ def save_mark(actor, athlete_id, data):
             if revision.pk != current_revision(revision.equipment).pk:
                 raise ValidationError("The setup changed. Reload and choose its current revision.")
             revisions[field] = revision
+    if data.get("configuration_revision"):
+        from .models import ConfigurationRevision
+        from .advanced_equipment import configuration_available
+        revision = ConfigurationRevision.objects.select_related("configuration").get(pk=data["configuration_revision"], configuration__owner=athlete)
+        if revision.pk != revision.configuration.revisions.first().pk or not configuration_available(revision, athlete):
+            raise ValidationError("Choose the current available configuration version.")
+        revisions["configuration_revision"] = revision
     mark = SightMark(athlete=athlete, **revisions, **{key: data[key] for key in (
         "distance", "distance_unit", "mark", "sight_extension", "windage", "date", "notes") if key in data})
     mark.full_clean()
@@ -133,12 +140,12 @@ def workspace(actor, athlete_id, *, bow=None):
         for revision in revisions:
             revision.specifications = specification_rows(revision)
     marks = SightMark.objects.filter(athlete=athlete).select_related(
-        "bow_revision__equipment", "arrow_revision__equipment")
+        "bow_revision__equipment", "arrow_revision__equipment", "configuration_revision__configuration")
     if bow:
         # A foreign/invalid filter cannot disclose another athlete's setup.
         selected = Equipment.objects.get(pk=bow, athlete=athlete, kind="bow")
         marks = marks.filter(bow_revision__equipment=selected)
-    rows = list(marks)
+    rows = list(marks.filter(configuration_revision__isnull=True))
     for mark in rows:
         mark.current_setup = (mark.bow_revision.equipment.active and
             current.get(mark.bow_revision.equipment_id) == mark.bow_revision_id and
@@ -146,7 +153,13 @@ def workspace(actor, athlete_id, *, bow=None):
              current.get(mark.arrow_revision.equipment_id) == mark.arrow_revision_id)))
     rows.sort(key=lambda mark: (mark.bow_revision.equipment_id,
         mark.distance * (Decimal("0.9144") if mark.distance_unit == "yd" else 1), -mark.pk))
-    return dict(athlete=training_fields(athlete), items=items, marks=rows,
+    advanced_marks = list(marks.filter(configuration_revision__isnull=False))
+    from .advanced_equipment import configuration_available
+    for mark in advanced_marks:
+        rev = mark.configuration_revision
+        mark.current_setup = (rev.pk == rev.configuration.revisions.first().pk and configuration_available(rev, athlete)
+            and (not mark.arrow_revision_id or (mark.arrow_revision.equipment.active and current.get(mark.arrow_revision.equipment_id) == mark.arrow_revision_id)))
+    return dict(athlete=training_fields(athlete), items=items, marks=rows, advanced_marks=advanced_marks,
         bows=[item for item in items if item.kind == "bow"], selected_bow=str(bow or ""),
         writable=can(actor, athlete, "edit_profile"), permissions={"edit_profile": can(actor, athlete, "edit_profile")},
         active_tab="equipment")

@@ -109,6 +109,8 @@
 
 {% empty %}<p>No equipment saved for this athlete.{% if writable %} Add a bow or arrow set to begin.{% endif %}</p>{% endfor %}
 
+<h2>Configuration sight marks</h2>
+{% for mark in advanced_marks %}<article><h3>{{ mark.configuration_revision }} / {{ mark.distance }} {{ mark.distance_unit }} / {{ mark.mark }}</h3><p>{% if not mark.active %}Archived{% elif mark.current_setup %}Current setup{% else %}Historical — Recheck Required{% endif %}</p><p>{{ mark.notes }}</p>{% if writable %}<form method="post">{% csrf_token %}<input type="hidden" name="entity" value="mark"><input type="hidden" name="item" value="{{ mark.pk }}"><button name="action" value="{% if mark.active %}archive{% else %}restore{% endif %}">{% if mark.active %}Archive{% else %}Restore{% endif %} mark</button></form>{% endif %}</article>{% empty %}<p>No configuration sight marks.</p>{% endfor %}
 <h2>Sight marks by bow and distance</h2>
 
 <form method="get"><label for="filter-bow">Bow</label><select name="bow" id="filter-bow"><option value="">All bows</option>{% for bow in bows %}<option value="{{ bow.pk }}" {% if selected_bow == bow.pk|stringformat:'s' %}selected{% endif %}>{{ bow.name }}{% if not bow.active %} (Archived){% endif %}</option>{% endfor %}</select><button type="submit">Filter marks</button></form>

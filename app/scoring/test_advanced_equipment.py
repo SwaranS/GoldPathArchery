@@ -91,3 +91,48 @@ class ConfigurationTests(ComponentTests):
         other_athlete = AthleteProfile.objects.create(account=self.other, display_name="Other", birth_date=date(1990, 1, 1), discipline="recurve")
         with self.assertRaises(ValidationError):
             a.save_configuration(self.other, other_athlete.pk, "Private", "compound", [item.revisions.first().pk], acknowledged=True)
+
+
+from .test_equipment import EquipmentTests
+from . import services as scoring, equipment_services as legacy
+from .forms import StartForm
+import uuid
+from copy import deepcopy
+
+class ConfigurationScoringTests(EquipmentTests):
+    def config(self):
+        item = a.save_component(self.owner, self.athlete.pk, "riser", dict(name="Scoring riser"))
+        config = a.save_configuration(self.owner, self.athlete.pk, "Match", "recurve", [item.revisions.first().pk], preferred_arrows_id=self.arrows.pk, acknowledged=True)
+        return item, config
+
+    def test_default_snapshot_and_first_arrow_lock(self):
+        item, config = self.config()
+        a.set_default(self.owner, self.athlete.pk, config.pk)
+        form = StartForm(athlete=self.athlete)
+        self.assertEqual(form.fields["configuration"].initial, config.pk)
+        self.assertEqual(form.fields["arrow_set"].initial, self.arrows.pk)
+        session = self.start()
+        def change(**data):
+            session.refresh_from_db()
+            return scoring.mutate(self.owner, session.pk, dict(action="equipment", key=str(uuid.uuid4()), version=session.version, **data))
+        change(configuration=config.pk, arrow_set=self.arrows.pk)
+        session.refresh_from_db(); original = deepcopy(session.equipment)
+        arrow = self.arrow()
+        self.shot(session, 0, arrow)
+        for data in (dict(configuration=config.pk), dict(bow=self.bow.pk), dict(arrow_set=self.arrows.pk), {}):
+            with self.assertRaises(ValidationError): change(**data)
+        a.save_component(self.owner, self.athlete.pk, "riser", dict(name="Changed"), component_id=item.pk, expected_revision=item.revisions.first().pk)
+        a.set_component_status(self.owner, self.athlete.pk, item.pk, "retired")
+        session.refresh_from_db(); self.assertEqual(session.equipment, original)
+        with self.assertRaises(ValidationError): a.configuration_snapshot(config.revisions.first(), self.athlete)
+
+    def test_exact_marks_and_stale_versions(self):
+        item, config = self.config()
+        revision = config.revisions.first()
+        mark = legacy.save_mark(self.owner, self.athlete.pk, dict(configuration_revision=revision.pk, distance=18, distance_unit="m", mark="4"))
+        self.assertTrue(legacy.workspace(self.owner, self.athlete.pk)["advanced_marks"][0].current_setup)
+        a.save_configuration(self.owner, self.athlete.pk, "Changed", "recurve", [item.revisions.first().pk], configuration_id=config.pk, expected_revision=revision.pk, acknowledged=True)
+        self.assertFalse(legacy.workspace(self.owner, self.athlete.pk)["advanced_marks"][0].current_setup)
+        with self.assertRaises(ValidationError):
+            legacy.save_mark(self.owner, self.athlete.pk, dict(configuration_revision=revision.pk, distance=18, distance_unit="m", mark="Stale"))
+        mark.refresh_from_db(); self.assertEqual(mark.configuration_revision_id, revision.pk)

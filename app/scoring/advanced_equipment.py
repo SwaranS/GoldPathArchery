@@ -155,3 +155,23 @@ def configuration_snapshot(revision, athlete):
             owner_id=str(m.component_revision.owner_at_revision_id), category=m.component.category,
             **{k: getattr(m.component_revision, k) for k in COMPONENT_FIELDS if k != "serial_reference"})
             for m in revision.members.select_related("component", "component_revision")])
+
+
+def scoring_equipment(athlete, data, division):
+    from .equipment_services import revision_snapshot
+    result = {}
+    if data.get("configuration"):
+        config = BowConfiguration.objects.get(pk=data["configuration"], owner=athlete, active=True)
+        revision = config.revisions.first()
+        if revision.division != division:
+            raise ValidationError("Configuration division must match the session.")
+        if data.get("bow"):
+            raise ValidationError("Choose either a configuration or a basic bow.")
+        result["configuration"] = configuration_snapshot(revision, athlete)
+    for key, kind in (("bow", "bow"), ("arrow_set", "arrow_set")):
+        if data.get(key):
+            item = Equipment.objects.get(pk=data[key], athlete=athlete, kind=kind, active=True)
+            if kind == "bow" and item.division != division:
+                raise ValidationError("Bow division must match the session.")
+            result[key] = revision_snapshot(item)
+    return result

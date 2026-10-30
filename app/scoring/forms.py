@@ -14,6 +14,7 @@ class StartForm(forms.Form):
     distance_m = forms.FloatField(min_value=0.01, required=False)
     ends = forms.IntegerField(min_value=1, max_value=100, initial=10, required=False)
     arrows_per_end = forms.IntegerField(min_value=1, max_value=36, initial=3, required=False)
+    configuration = forms.ModelChoiceField(queryset=Equipment.objects.none(), required=False)
     bow = forms.ModelChoiceField(queryset=Equipment.objects.none(), required=False)
     arrow_set = forms.ModelChoiceField(queryset=Equipment.objects.none(), required=False)
 
@@ -22,6 +23,18 @@ class StartForm(forms.Form):
         for field, kind in (("bow", "bow"), ("arrow_set", "arrow_set")):
             self.fields[field].queryset = Equipment.objects.filter(athlete=athlete, kind=kind, active=True)
         self.fields["division"].initial = athlete.discipline
+        from .models import BowConfiguration, AthleteEquipmentDefaults
+        from .advanced_equipment import configuration_available
+        configs = BowConfiguration.objects.filter(owner=athlete, active=True)
+        self.fields["configuration"].queryset = configs.filter(pk__in=[c.pk for c in configs if configuration_available(c.revisions.first(), athlete)])
+        default = AthleteEquipmentDefaults.objects.filter(athlete=athlete).select_related("configuration").first()
+        self.equipment_warning = "No usable default configuration. Choose equipment manually."
+        if default and default.configuration and configuration_available(default.configuration.revisions.first(), athlete):
+            rev = default.configuration.revisions.first()
+            self.fields["configuration"].initial = default.configuration_id
+            self.fields["division"].initial = rev.division
+            self.fields["arrow_set"].initial = rev.preferred_arrows_id if rev.preferred_arrows and rev.preferred_arrows.active else None
+            self.equipment_warning = ""
 
     def clean(self):
         data = super().clean()
@@ -74,13 +87,16 @@ class ArrowForm(forms.ModelForm):
 class SightMarkForm(forms.ModelForm):
     class Meta:
         model = SightMark
-        fields = ("bow_revision", "arrow_revision", "distance", "distance_unit", "mark",
+        fields = ("configuration_revision", "bow_revision", "arrow_revision", "distance", "distance_unit", "mark",
                   "sight_extension", "windage", "date", "notes")
         widgets = {"date": forms.DateInput(attrs={"type": "date"})}
 
     def __init__(self, *args, athlete, **kwargs):
         super().__init__(*args, **kwargs)
         self.instance.athlete_id = getattr(athlete, "pk", athlete)
+        from .models import ConfigurationRevision, BowConfiguration
+        self.fields["configuration_revision"].queryset = ConfigurationRevision.objects.filter(
+            pk__in=[c.revisions.first().pk for c in BowConfiguration.objects.filter(owner=athlete, active=True)])
         self.fields["bow_revision"].queryset = revision_choices(athlete, "bow")
         self.fields["arrow_revision"].queryset = revision_choices(athlete, "arrow_set")
 
