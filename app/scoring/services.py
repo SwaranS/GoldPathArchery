@@ -13,6 +13,7 @@ from django.utils import timezone
 
 from accounts.models import AthleteProfile
 from accounts.permissions import can
+from .equipment_services import revision_snapshot
 from .models import (
     ArrowShot, Equipment, MutationReceipt, PhysicalArrow, RoundDefinition,
     ScoreChangeAudit, ScoringSession, ScoringRuleSet, TargetFace,
@@ -72,7 +73,7 @@ def start(actor, athlete, data):
             item = Equipment.objects.get(pk=data[field], athlete=athlete, kind=kind, active=True)
             if kind == "bow" and item.division != division:
                 raise ValidationError("Bow division must match the session.")
-            equipment[field] = dict(id=item.pk, name=item.name, division=item.division, details=item.details)
+            equipment[field] = revision_snapshot(item)
     snapshot = dict(evaluator=1, name=name, division=division, category=category,
                     verification_required=verification_required, stages=stages)
     session = ScoringSession.objects.create(athlete=athlete, mode=mode, context=context,
@@ -179,7 +180,8 @@ def mutate(actor, session_id, data):
             shot.arrow_snapshot = {}
         elif previous_arrow_id != arrow.pk or not shot.arrow_snapshot:
             shot.arrow_snapshot = dict(id=arrow.pk, identifier=arrow.identifier, set_id=arrow.arrow_set_id,
-                                       set_name=arrow.arrow_set.name)
+                                       set_name=session.equipment["arrow_set"]["name"],
+                                       set_revision_id=session.equipment["arrow_set"].get("revision_id"))
         shot.save()
         after = shot_state(shot)
     else:
@@ -289,7 +291,8 @@ def arrow_comparisons(sessions, start_date=None, end_date=None):
             conditions = json.dumps(dict(stage=stage, bow=session.equipment.get("bow")), sort_keys=True)
             key = (shot.arrow_snapshot["id"], conditions)
             groups[key].append((shot, session, stage))
-    return [dict(identifier=items[0][0].arrow_snapshot["identifier"], set_name=items[0][0].arrow_snapshot["set_name"],
+    return [dict(identifier=items[0][0].arrow_snapshot["identifier"], set_id=items[0][0].arrow_snapshot["set_id"], set_name=items[0][0].arrow_snapshot["set_name"],
                  bow=items[0][1].equipment.get("bow", {}).get("name", "Unspecified bow"),
+                 bow_revision=items[0][1].equipment.get("bow", {}).get("revision"),
                  distance=items[0][2]["distance_m"], target=items[0][2]["target_name"], count=len(items),
                  average=round(sum(i[0].points for i in items) / len(items), 2)) for items in groups.values()]

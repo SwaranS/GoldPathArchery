@@ -22,6 +22,10 @@
     }
     $('spot').replaceChildren(...s.geometry.spots.map((_, i) => new Option(`Spot ${i + 1}`, i)));
     const old = shots.get(Number(position.value));
+    for (const option of $('physical-arrow').options) {
+      const unavailable = option.dataset.active === 'false' && option.value !== String(old?.arrow_id || '');
+      option.disabled = unavailable; option.hidden = unavailable;
+    }
     $('physical-arrow').value = old?.arrow_id || '';
     $('reason').value = '';
     $('plot-x').value = old?.x ?? 0; $('plot-y').value = old?.y ?? 0;
