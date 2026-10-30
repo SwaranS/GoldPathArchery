@@ -70,6 +70,8 @@ def save_equipment(actor, athlete_id, data, *, item_id=None, expected_revision=N
     if previous and all(getattr(previous, field) == getattr(revision, field) for field in SPEC_FIELDS):
         return item
     revision.save()
+    from .advanced_equipment import activity
+    activity(actor, athlete, "legacy_equipment.revised", equipment=item.pk, revision=revision.number)
     return item
 
 
@@ -80,6 +82,8 @@ def save_arrow(actor, athlete_id, data):
     arrow = PhysicalArrow(arrow_set=item, identifier=data["identifier"], notes=data.get("notes", ""))
     arrow.full_clean()
     arrow.save()
+    from .advanced_equipment import activity
+    activity(actor, athlete, "arrow.created", arrow=arrow.pk)
     return arrow
 
 
@@ -105,6 +109,8 @@ def save_mark(actor, athlete_id, data):
         "distance", "distance_unit", "mark", "sight_extension", "windage", "date", "notes") if key in data})
     mark.full_clean()
     mark.save()
+    from .advanced_equipment import activity
+    activity(actor, athlete, "mark.created", mark=mark.pk)
     return mark
 
 
@@ -123,6 +129,8 @@ def set_active(actor, athlete_id, entity, item_id, active):
         raise ValidationError("Unknown equipment action.")
     obj.active = active
     obj.save(update_fields=["active"])
+    from .advanced_equipment import activity
+    activity(actor, athlete, "legacy.status", entity=entity, identity=obj.pk, active=active)
     return obj
 
 

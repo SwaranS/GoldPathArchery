@@ -62,3 +62,80 @@ retain active keys, remove inactive keys only after the agreed retention interva
 and remove unreferenced keys older than 24 hours (never delete fresh uploads).
 Failed metadata writes attempt immediate blob cleanup. Do not publicly serve the
 local private directory. Test storage uses temporary directories only.
+
+## Schema overview
+```mermaid
+erDiagram
+  AthleteProfile ||--o{ EquipmentComponent : owns
+  EquipmentComponent ||--|{ ComponentRevision : versions
+  AthleteProfile ||--o{ BowConfiguration : owns
+  BowConfiguration ||--|{ ConfigurationRevision : versions
+  ConfigurationRevision ||--o{ ConfigurationMember : freezes
+  ComponentRevision ||--o{ ConfigurationMember : references
+  AthleteProfile ||--o| AthleteEquipmentDefaults : default
+  BowConfiguration ||--o{ AthleteEquipmentDefaults : selected
+  EquipmentComponent ||--o{ EquipmentShare : shares
+  EquipmentComponent ||--o{ EquipmentTransfer : transfers
+  EquipmentComponent ||--o{ EquipmentMaintenanceEntry : maintains
+  EquipmentComponent ||--o{ EquipmentPurchaseRecord : purchases
+  EquipmentComponent ||--o{ EquipmentPhoto : photos
+  EquipmentShare }o--o{ EquipmentPhoto : permitted
+  ConfigurationRevision ||--o{ SightMark : calibrates
+```
+Existing Equipment/EquipmentRevision/PhysicalArrow remain unchanged identities.
+ScoringSession.equipment stores values, not live configuration dereferences. Photos
+are never copied into scoring snapshots. New scoring contexts cannot change equipment
+after their first arrow, and first-arrow recording rechecks current availability.
+The dashboard uses accessible section links, native forms and responsive wrapping.
+Activity pagination uses stable (time, primary key) order; per-component activity
+filters only the viewing athlete's audit events, including historical transfer events.
+Shared recipients receive only selected photo access; future uploads are not inherited.
+Comparisons use completed, valid, undeleted results, verification requirements, exact
+snapshot associations and separate training/competition contexts. At least two sessions
+are required before displaying a group mean. This threshold is a display convention,
+not a statistical significance claim. Dates use the athlete timezone.
+
+## Migration review and rollout
+Review scoring migrations 0002 through 0008 and accounts 0005. 0002/0005 are existing
+prerequisite migrations reused with their original identities. 0003/0004/0006/0007
+create additive tables; 0005 adds an optional configuration sight-mark reference and
+makes the legacy bow reference nullable; 0008 adds scoped photo sharing and checks.
+No scorecard or biomechanics tables are changed. No deployment pipeline was triggered.
+No application/shared database has been migrated by this work; tests migrate only
+isolated disposable databases.
+
+Before rollout, back up database and private blobs, review migration SQL and assess
+locks against actual row counts; configure private storage and test authorized reads.
+Deploy only after release approval. Existing startup can automatically migrate:
+**do not deploy this branch just to preview it**. Keep basic equipment available during
+transition. Existing bows are not auto-expanded into invented components. Users create
+named configurations explicitly and can leave their default unset.
+
+Prefer code rollback with schema retained after new equipment data exists. Reversing
+additive migrations drops new records and may invalidate new sight marks: export a
+backup and obtain explicit approval before schema rollback. Never rewrite historical
+scoring snapshots to make an older release understand new equipment; legacy fallbacks
+must remain. Media removal is logical first; retention cleanup is an operator task.
+
+## Verification commands (run from app)
+- ../.venv/Scripts/python.exe manage.py check --settings=config.test_settings
+- ../.venv/Scripts/python.exe manage.py makemigrations --check --dry-run --settings=config.test_settings
+- ../.venv/Scripts/python.exe manage.py test --settings=config.test_settings --noinput
+- ../.venv/Scripts/python.exe manage.py test --settings=config.equipment_test_settings --noinput
+
+PostgreSQL test settings are fixed to a disposable localhost:55439 instance and never
+inherit production connection configuration. Start a fresh postgres:17-bookworm
+container named goldpath-equipment-phase2-tests, with no existing volumes, database/user
+equipment_test and local test password equipment_test_local_only. Stop the container
+afterward; Docker --rm removes the disposable container. These credentials are only
+for the dedicated local test instance, never deployment configuration.
+
+## Manual release checks and limitations
+- Inspect 375px/mobile and desktop layout, keyboard focus, error announcements and screen-reader labels.
+- Confirm default/preferred-arrow selection and a first-arrow concurrent request in two browsers.
+- Review junior/guardian invitations, revoked shares, accepted transfers and historical purchases.
+- Exercise Azure private-container rejection, upload/download failures, retention reconciliation and key-safe logging in staging with non-production data.
+- Validate backup/restore and migration duration on a realistically sized sanitized database copy.
+- Receipts currently accept images only; ISO currencies are the supported form subset.
+- No public galleries, manufacturer fit certification, import/export, equipment segments or automatic tuning advice.
+- No live Azure storage or browser/screen-reader visual QA has been claimed.

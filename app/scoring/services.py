@@ -146,6 +146,17 @@ def mutate(actor, session_id, data):
     elif action == "shot":
         if session.status not in ("draft",):
             raise ValidationError("Resume or reopen the session before scoring.")
+        if not session.shots.exists():
+            from .advanced_equipment import configuration_snapshot
+            from .models import ConfigurationRevision
+            config_snapshot = session.equipment.get("configuration")
+            if config_snapshot:
+                frozen = ConfigurationRevision.objects.get(pk=config_snapshot["revision_id"], configuration__owner=athlete)
+                configuration_snapshot(frozen, athlete)
+            for field, kind in (("bow", "bow"), ("arrow_set", "arrow_set")):
+                selection = session.equipment.get(field)
+                if selection and not Equipment.objects.filter(pk=selection["id"], athlete=athlete, kind=kind, active=True).exists():
+                    raise ValidationError("Selected equipment is unavailable; update it before the first arrow.")
         position = int(data["position"])
         slot = next((s for s in slots(session) if s[0] == position), None)
         if slot is None:

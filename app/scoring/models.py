@@ -369,6 +369,15 @@ class EquipmentActivity(models.Model):
     class Meta:
         ordering = ["-at", "-pk"]
 
+    def save(self, *args, **kwargs):
+        if not self._state.adding:
+            raise ValidationError("Equipment activity is append-only.")
+        return super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise ValidationError("Equipment activity is append-only.")
+
+
 
 class BowConfiguration(models.Model):
     owner = models.ForeignKey("accounts.AthleteProfile", on_delete=models.PROTECT, related_name="bow_configurations")
@@ -402,6 +411,12 @@ class ConfigurationRevision(models.Model):
             raise ValidationError("Configuration revisions are immutable.")
         self.full_clean()
         return super().save(*args, **kwargs)
+
+    def clean(self):
+        if not isinstance(self.name, str) or not self.name.strip():
+            raise ValidationError("Enter a configuration name.")
+        if self.preferred_arrows_id and (self.preferred_arrows.kind != "arrow_set" or self.preferred_arrows.athlete_id != self.configuration.owner_id):
+            raise ValidationError("Choose this athlete's arrow set.")
 
     def __str__(self):
         return f"{self.name} / version {self.number}"
@@ -441,6 +456,11 @@ class EquipmentShare(models.Model):
     at = models.DateTimeField(auto_now_add=True)
     decided_at = models.DateTimeField(null=True)
     permit_photos = models.BooleanField(default=False)
+    permitted_photos = models.ManyToManyField("EquipmentPhoto", blank=True)
+
+    class Meta:
+        constraints = [models.CheckConstraint(condition=~models.Q(owner=models.F("recipient")), name="share_distinct_athletes"),
+            models.CheckConstraint(condition=models.Q(status__in=["pending", "approved", "revoked", "rejected"]), name="share_valid_status")]
 
 
 class EquipmentTransfer(models.Model):
@@ -454,7 +474,9 @@ class EquipmentTransfer(models.Model):
     decided_at = models.DateTimeField(null=True)
 
     class Meta:
-        constraints = [models.UniqueConstraint(fields=["component"], condition=models.Q(status="pending"), name="component_one_pending_transfer")]
+        constraints = [models.UniqueConstraint(fields=["component"], condition=models.Q(status="pending"), name="component_one_pending_transfer"),
+            models.CheckConstraint(condition=~models.Q(sender=models.F("recipient")), name="transfer_distinct_athletes"),
+            models.CheckConstraint(condition=models.Q(status__in=["pending", "accepted", "cancelled", "rejected"]), name="transfer_valid_status")]
 
 
 class EquipmentPhoto(models.Model):

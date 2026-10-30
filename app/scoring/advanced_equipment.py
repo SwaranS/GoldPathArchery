@@ -115,6 +115,8 @@ def save_configuration(actor, athlete_id, name, division, revision_ids, *, confi
         raise ValidationError("Invalid component selection.")
     for revision in revisions:
         revision.component.refresh_from_db()
+        if revision.component.owner_id != athlete.pk and revision.pk != revision.component.revisions.first().pk:
+            raise ValidationError("Choose the current shared component revision.")
         if not available(revision.component, athlete):
             raise ValidationError("A selected component is unavailable.")
     arrows = Equipment.objects.get(pk=preferred_arrows_id, athlete=athlete, kind="arrow_set", active=True) if preferred_arrows_id else None
@@ -154,6 +156,9 @@ def archive_configuration(actor, athlete_id, configuration_id, active):
 
 
 def configuration_snapshot(revision, athlete):
+    from django.db import connection
+    if connection.in_atomic_block:
+        list(EquipmentComponent.objects.select_for_update().filter(pk__in=revision.members.values("component_id")).order_by("pk"))
     if not configuration_available(revision, athlete):
         raise ValidationError("Configuration contains unavailable components.")
     return dict(id=revision.configuration_id, revision_id=revision.pk, revision=revision.number,
@@ -213,7 +218,7 @@ def lock_pair(left_id, right_id):
 
 
 @transaction.atomic
-def invite_component(actor, athlete_id, component_id, recipient_id, *, transfer=False, permit_photos=False):
+def invite_component(actor, athlete_id, component_id, recipient_id, *, transfer=False, permit_photos=False, photo_ids=()):
     owner, recipient = lock_pair(athlete_id, recipient_id)
     authorize(actor, owner, True)
     component = EquipmentComponent.objects.select_for_update().get(pk=component_id, owner=owner)
@@ -226,7 +231,11 @@ def invite_component(actor, athlete_id, component_id, recipient_id, *, transfer=
     else:
         if component.shares.filter(recipient=recipient, status__in=["pending", "approved"]).exists():
             raise ValidationError("This share already exists.")
+        photos = list(EquipmentPhoto.objects.filter(pk__in=photo_ids, component=component, owner=owner, active=True, receipt=False))
+        if len(photos) != len(set(photo_ids)):
+            raise ValidationError("Invalid shared photo selection.")
         obj = EquipmentShare.objects.create(component=component, owner=owner, recipient=recipient, initiated_by=actor, permit_photos=permit_photos)
+        obj.permitted_photos.set(photos if permit_photos else [])
     activity(actor, owner, "transfer.invited" if transfer else "share.invited", component, invitation=obj.pk)
     return obj
 
@@ -278,7 +287,8 @@ def shared_components(actor, athlete):
             continue
         rev = share.component.revisions.first()
         result.append(dict(id=share.component_id, name=rev.name, category=share.component.category,
-            manufacturer=rev.manufacturer, model=rev.model, specs=rev.specs, revision_id=rev.pk))
+            manufacturer=rev.manufacturer, model=rev.model, specs=rev.specs, revision_id=rev.pk,
+            photo_ids=list(share.permitted_photos.filter(active=True, receipt=False).values_list("pk", flat=True)) if share.permit_photos else []))
     return result
 
 
@@ -381,7 +391,7 @@ def photo_bytes(actor, photo_id, athlete_id=None):
         recipient = AthleteProfile.objects.get(pk=athlete_id)
         authorize(actor, recipient)
         if not available(photo.component, recipient) or not EquipmentShare.objects.filter(component=photo.component,
-                owner=photo.component.owner, recipient=recipient, status="approved", permit_photos=True).exists():
+                owner=photo.component.owner, recipient=recipient, status="approved", permit_photos=True, permitted_photos=photo).exists():
             raise PermissionDenied
     else:
         raise PermissionDenied
@@ -391,7 +401,7 @@ def photo_bytes(actor, photo_id, athlete_id=None):
 @transaction.atomic
 def remove_photo(actor, athlete_id, photo_id):
     athlete = locked_athlete(actor, athlete_id)
-    photo = EquipmentPhoto.objects.select_for_update().select_related("component", "configuration").get(pk=photo_id, active=True)
+    photo = EquipmentPhoto.objects.select_for_update(of=("self",)).select_related("component", "configuration").get(pk=photo_id, active=True)
     if photo.receipt:
         private_authorize(actor, photo.owner)
         if photo.owner_id != athlete.pk:
@@ -402,3 +412,55 @@ def remove_photo(actor, athlete_id, photo_id):
     activity(actor, athlete, "photo.removed", photo.component, photo=photo.pk)
     # Blob retained for explicit operator retention cleanup; inaccessible immediately.
     return photo
+
+
+def performance_comparisons(actor, athlete, *, start_date=None, end_date=None):
+    from collections import defaultdict
+    from .models import ScoringSession
+    from .services import comparison_key, statistics
+    authorize(actor, athlete)
+    groups = defaultdict(list)
+    sessions = ScoringSession.objects.filter(athlete=athlete, status="completed", deleted_at__isnull=True, invalidated=False).prefetch_related("shots")
+    for session in sessions:
+        local_date = timezone.localdate(session.started_at, timezone=__import__("zoneinfo").ZoneInfo(athlete.timezone))
+        if (start_date and local_date < start_date) or (end_date and local_date > end_date):
+            continue
+        if session.context == "competition" and session.snapshot.get("verification_required") and not session.verified_at:
+            continue
+        stats = statistics(session)
+        if stats["count"] != stats["expected"]:
+            continue
+        config, arrows = session.equipment.get("configuration"), session.equipment.get("arrow_set")
+        identities = []
+        if config:
+            identities.append(("configuration", config["id"], config.get("revision_id"), config["name"]))
+            for component in config.get("components", []):
+                identities.append(("component", component["id"], component.get("revision_id"), component["name"]))
+        if arrows:
+            identities.append(("arrow set", arrows["id"], arrows.get("revision_id"), arrows["name"]))
+        for kind, identity, revision, name in identities:
+            groups[(kind, identity, revision, session.context, comparison_key(session))].append((session, stats, local_date, name))
+    rows = []
+    for (kind, identity, revision, context, conditions), entries in groups.items():
+        count = sum(e[1]["count"] for e in entries)
+        rows.append(dict(kind=kind, identity=identity, revision=revision, name=entries[0][3], context=context,
+            conditions=conditions, sessions=len(entries), arrows=count, start=min(e[2] for e in entries), end=max(e[2] for e in entries),
+            average=round(sum(e[1]["total"] for e in entries) / count, 2) if count else None,
+            sufficient=len(entries) >= 2))
+    return sorted(rows, key=lambda r: (r["kind"], r["identity"], r["revision"] or 0, r["context"], r["conditions"]))
+
+
+def timeline(actor, athlete, *, page=1, component_id=None):
+    from django.core.paginator import Paginator
+    authorize(actor, athlete)
+    rows = EquipmentActivity.objects.filter(owner=athlete)
+    try:
+        private_authorize(actor, athlete)
+    except PermissionDenied:
+        rows = rows.exclude(event__startswith="purchase.").exclude(event__startswith="receipt.")
+    if component_id:
+        # Entity filter must never turn into an inventory lookup for another athlete.
+        if not EquipmentActivity.objects.filter(component_id=component_id, owner=athlete).exists():
+            raise PermissionDenied
+        rows = rows.filter(component_id=component_id)
+    return Paginator(rows.order_by("-at", "-pk"), 30).get_page(page)

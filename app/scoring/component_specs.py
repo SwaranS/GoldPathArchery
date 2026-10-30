@@ -26,9 +26,13 @@ def validate_specs(category, specs):
     if category not in CATEGORIES or not isinstance(specs, dict):
         raise ValidationError("Choose a component category and a specification object.")
     numeric, text = NUMBERS[category].split(), TEXT[category].split()
-    if set(specs) - set(numeric + text + ["discipline"]):
+    if set(specs) - set(numeric + text + ["discipline"] + (["attributes"] if category == "other" else [])):
         raise ValidationError("Unsupported specification field or unit for this category.")
     for key, value in specs.items():
+        if key == "attributes":
+            if not isinstance(value, dict) or len(value) > 20 or any(not isinstance(k, str) or not k.strip() or len(k) > 60 or not isinstance(v, str) or len(v) > 250 for k, v in value.items()):
+                raise ValidationError("Other-accessory attributes need at most 20 short text key/value pairs.")
+            continue
         if key in numeric:
             if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value <= 0:
                 raise ValidationError(f"{key} must be a positive finite number in its named unit.")

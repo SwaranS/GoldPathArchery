@@ -109,15 +109,54 @@ class ComponentForm(forms.Form):
     model = forms.CharField(max_length=100, required=False)
     serial_reference = forms.CharField(max_length=100, required=False)
     notes = forms.CharField(max_length=2000, required=False, widget=forms.Textarea)
-    specs = forms.JSONField(required=False, initial=dict, help_text="Optional specification JSON. Field names include units; see the category schema below.")
+    specs = forms.JSONField(required=False, widget=forms.HiddenInput)
     expected_revision = forms.IntegerField(required=False, widget=forms.HiddenInput)
+    accessory_attributes = forms.CharField(required=False, widget=forms.Textarea, max_length=6000,
+        label="Other accessory details (one label=value per line)")
+
+    def __init__(self, *args, **kwargs):
+        from .component_specs import NUMBERS, TEXT
+        super().__init__(*args, **kwargs)
+        specs = self.initial.get("specs", {})
+        selected = self.initial.get("category")
+        self.fields["accessory_attributes"].component_category = "other"
+        self.initial["accessory_attributes"] = "\n".join(f"{k}={v}" for k, v in specs.get("attributes", {}).items())
+        for category in NUMBERS:
+            for key in NUMBERS[category].split() + TEXT[category].split() + ["discipline"]:
+                numeric = key in NUMBERS[category].split()
+                field_type = forms.IntegerField if key.endswith("count") else forms.FloatField if numeric else forms.CharField
+                options = dict(required=False, label=category.replace("_", " ").title() + " / " + key.replace("_", " "))
+                options.update(min_value=1 if key.endswith("count") else 0.001) if numeric else options.update(max_length=1000)
+                field = field_type(**options)
+                field.component_category = category
+                name = f"spec__{category}__{key}"
+                self.fields[name] = field
+                if category == selected:
+                    self.initial[name] = specs.get(key)
+        self.initial["specs"] = None
 
     def clean(self):
-        from .component_specs import validate_specs
+        from .component_specs import validate_specs, NUMBERS, TEXT
         data = super().clean()
-        data["specs"] = data.get("specs") or {}
-        if data.get("category"):
-            validate_specs(data["category"], data["specs"])
+        category = data.get("category")
+        specs = data.get("specs") or {}
+        if category:
+            for key in NUMBERS[category].split() + TEXT[category].split() + ["discipline"]:
+                value = data.get(f"spec__{category}__{key}")
+                if value is not None and value != "":
+                    specs[key] = value
+            if category == "other" and data.get("accessory_attributes"):
+                attributes = {}
+                for line in data["accessory_attributes"].splitlines():
+                    if "=" not in line:
+                        raise forms.ValidationError("Use label=value for each accessory detail.")
+                    key, value = line.split("=", 1)
+                    if key.strip() in attributes:
+                        raise forms.ValidationError("Accessory labels must be unique.")
+                    attributes[key.strip()] = value.strip()
+                specs["attributes"] = attributes
+            data["specs"] = specs
+            validate_specs(category, specs)
         return data
 
 
@@ -141,6 +180,7 @@ class ConfigurationForm(forms.Form):
 
 
 class MaintenanceForm(forms.Form):
+    photos = forms.ModelMultipleChoiceField(queryset=Equipment.objects.none(), required=False)
     component = forms.ModelChoiceField(queryset=Equipment.objects.none())
     kind = forms.ChoiceField(choices=[(v, v.title()) for v in ("inspection", "service", "repair", "replacement")])
     event_date = forms.DateField(widget=forms.DateInput(attrs={"type": "date"}))
@@ -151,6 +191,8 @@ class MaintenanceForm(forms.Form):
     def __init__(self, *args, athlete, **kwargs):
         from .models import EquipmentComponent
         super().__init__(*args, **kwargs)
+        from .models import EquipmentPhoto
+        self.fields["photos"].queryset = EquipmentPhoto.objects.filter(owner=athlete, receipt=False, active=True)
         for field in ("component", "replacement"):
             self.fields[field].queryset = EquipmentComponent.objects.filter(owner=athlete)
 
@@ -171,3 +213,19 @@ class PurchaseForm(forms.Form):
         self.fields["component"].queryset = EquipmentComponent.objects.filter(owner=athlete)
         self.fields["receipt"].queryset = EquipmentPhoto.objects.filter(owner=athlete, receipt=True, active=True)
         self.fields["currency"].choices = [("", "---------")] + [(c, c) for c in sorted(CURRENCIES)]
+
+
+class SessionEquipmentForm(forms.Form):
+    configuration = forms.ModelChoiceField(queryset=Equipment.objects.none(), required=False)
+    bow = forms.ModelChoiceField(queryset=Equipment.objects.none(), required=False)
+    arrow_set = forms.ModelChoiceField(queryset=Equipment.objects.none(), required=False)
+    version = forms.IntegerField(widget=forms.HiddenInput)
+    key = forms.UUIDField(widget=forms.HiddenInput)
+    def __init__(self, *args, athlete, **kwargs):
+        from .models import BowConfiguration
+        from .advanced_equipment import configuration_available
+        super().__init__(*args, **kwargs)
+        self.fields["configuration"].queryset = BowConfiguration.objects.filter(owner=athlete, active=True, pk__in=[
+            c.pk for c in BowConfiguration.objects.filter(owner=athlete, active=True) if configuration_available(c.revisions.first(), athlete)])
+        for key, kind in (("bow", "bow"), ("arrow_set", "arrow_set")):
+            self.fields[key].queryset = Equipment.objects.filter(athlete=athlete, active=True, kind=kind)

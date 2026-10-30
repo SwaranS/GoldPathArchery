@@ -28,7 +28,7 @@ Check the effective edition before enabling an official-labelled preset. An even
 
 ## Entry and saving
 
-Choose athlete, bow/type, distance, face/format and optional arrow set before scoring. Allow several rounds and mixed practice formats in a training session; preserve each round's context. Equipment changes after scoring begins create a new segment with its own context, not retrospective relabelling.
+Choose athlete, bow/type, distance, face/format and optional arrow set before scoring. Allow several rounds and mixed practice formats in a training session; preserve each round's context. Phase 2 supersedes the earlier segment proposal: equipment locks at the first recorded arrow. A different configuration or arrow set requires a new scoring session; no mid-session equipment segments are supported.
 
 Each shot stores end/position, raw score symbol, optional physical-arrow ID, optional plot coordinates/spot, entry method and version. Blank is unrecorded; M is an actual scored miss. Never infer shaft identity from sequence. No ID is required; selectors show only that athlete's active saved arrows. Do not prefill guessed physical IDs.
 

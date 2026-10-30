@@ -74,11 +74,26 @@ def history(request, athlete_id):
 
 
 @login_required
-@require_GET
+@require_http_methods(["GET", "POST"])
 @errors
 def session(request, session_id):
     obj = get_object_or_404(ScoringSession.objects.select_related("athlete"), pk=session_id)
     services.authorize(request.user, obj.athlete)
+    import uuid
+    from .forms import SessionEquipmentForm
+    initial = {k: obj.equipment.get(k, {}).get("id") for k in ("configuration", "bow", "arrow_set")}
+    initial.update(version=obj.version, key=uuid.uuid4())
+    equipment_form = SessionEquipmentForm(request.POST if request.method == "POST" else None, athlete=obj.athlete, initial=initial)
+    if request.method == "POST":
+        services.authorize(request.user, obj.athlete, True)
+        if equipment_form.is_valid():
+            d = equipment_form.cleaned_data
+            try:
+                services.mutate(request.user, obj.pk, dict(action="equipment", key=str(d["key"]), version=d["version"],
+                    **{k: d[k].pk if d[k] else None for k in ("configuration", "bow", "arrow_set")}))
+                return redirect("scoring-session", session_id=obj.pk)
+            except ValidationError as error:
+                equipment_form.add_error(None, "; ".join(error.messages))
     stats = services.statistics(obj)
     arrows = PhysicalArrow.objects.select_related("arrow_set").filter(arrow_set_id=obj.equipment.get("arrow_set", {}).get("id"),
         arrow_set__athlete=obj.athlete).filter(
@@ -87,7 +102,7 @@ def session(request, session_id):
     payload = dict(version=obj.version, stages=obj.snapshot["stages"], shots=shot_data, next_position=stats["next_position"],
                    slots=[dict(position=p, stage=i, end=e, arrow=a) for p, i, e, a, _ in services.slots(obj)])
     return render(request, "scoring/session.html", dict(session=obj, stats=stats, payload=payload, arrows=arrows,
-        writable=can(request.user, obj.athlete, "log_scores")))
+        writable=can(request.user, obj.athlete, "log_scores"), equipment_form=equipment_form, equipment_unlocked=not obj.shots.exists() and not obj.audit.filter(operation="shot").exists()))
 
 
 @login_required
@@ -219,7 +234,7 @@ def equipment(request, athlete_id):
             if action == "invitation_decide":
                 advanced_equipment.decide_invitation(request.user, athlete_id, request.POST["invitation_id"], request.POST["decision"], transfer=request.POST.get("transfer") == "true")
             else:
-                advanced_equipment.invite_component(request.user, athlete_id, request.POST["component_id"], request.POST["recipient_id"], transfer=action == "transfer_invite", permit_photos=request.POST.get("permit_photos") == "on")
+                advanced_equipment.invite_component(request.user, athlete_id, request.POST["component_id"], request.POST["recipient_id"], transfer=action == "transfer_invite", permit_photos=request.POST.get("permit_photos") == "on", photo_ids=[int(v) for v in request.POST.getlist("shared_photo_ids")])
             return redirect("athlete-equipment", athlete_id=athlete_id)
         except ValidationError as error:
             context["action_error"] = "; ".join(error.messages)
@@ -243,7 +258,11 @@ def equipment(request, athlete_id):
                             if value:
                                 d[key + "_id"] = value.pk if hasattr(value, "pk") else value
                     fn = advanced_equipment.add_maintenance if action == "maintenance" else advanced_equipment.add_purchase
-                    fn(request.user, athlete_id, component_id, d)
+                    photo_ids = [p.pk for p in d.pop("photos", [])]
+                    if action == "maintenance":
+                        fn(request.user, athlete_id, component_id, d, photo_ids=photo_ids)
+                    else:
+                        fn(request.user, athlete_id, component_id, d)
                     return redirect("athlete-equipment", athlete_id=athlete_id)
             elif action == "photo":
                 if not request.FILES.get("image"):
@@ -267,6 +286,17 @@ def equipment(request, athlete_id):
         purchase_entries=EquipmentPurchaseRecord.objects.filter(owner=athlete).order_by("-pk")[:100] if private_access else [],
         photos=EquipmentPhoto.objects.filter(Q(component__owner=athlete) | Q(configuration__owner=athlete), active=True, receipt=False),
         receipts=EquipmentPhoto.objects.filter(owner=athlete, active=True, receipt=True) if private_access else [])
+    comparison_from = date.fromisoformat(request.GET["from"]) if request.GET.get("from") else None
+    comparison_to = date.fromisoformat(request.GET["to"]) if request.GET.get("to") else None
+    if comparison_from and comparison_to and comparison_from > comparison_to:
+        raise ValidationError("Start date must precede end date.")
+    context.update(activity_page=advanced_equipment.timeline(request.user, athlete, page=request.GET.get("page", 1), component_id=request.GET.get("history_component")),
+        equipment_comparisons=advanced_equipment.performance_comparisons(request.user, athlete, start_date=comparison_from, end_date=comparison_to),
+        component_count=len(components), configuration_count=len(configs), unavailable_count=sum(not c.available for c in configs))
+    search = request.GET.get("search", "").strip().casefold()
+    category = request.GET.get("category", "")
+    context["components"] = [c for c in components if (not category or c.category == category) and (not search or search in str(c).casefold())]
+    context.update(component_search=request.GET.get("search", ""), selected_category=category)
     context.update(form=form, arrow_form=arrow_form, mark_form=mark_form, editing=editing)
     return render(request, "scoring/equipment.html", context)
 

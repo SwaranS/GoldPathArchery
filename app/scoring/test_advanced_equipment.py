@@ -93,13 +93,13 @@ class ConfigurationTests(ComponentTests):
             a.save_configuration(self.other, other_athlete.pk, "Private", "compound", [item.revisions.first().pk], acknowledged=True)
 
 
-from .test_equipment import EquipmentTests
+from . import test_equipment as equipment_test_helpers
 from . import services as scoring, equipment_services as legacy
 from .forms import StartForm
 import uuid
 from copy import deepcopy
 
-class ConfigurationScoringTests(EquipmentTests):
+class ConfigurationScoringTests(equipment_test_helpers.EquipmentTests):
     def config(self):
         item = a.save_component(self.owner, self.athlete.pk, "riser", dict(name="Scoring riser"))
         config = a.save_configuration(self.owner, self.athlete.pk, "Match", "recurve", [item.revisions.first().pk], preferred_arrows_id=self.arrows.pk, acknowledged=True)
@@ -209,6 +209,18 @@ class MediaMaintenanceTests(ComponentTests):
             a.remove_photo(self.owner, self.athlete.pk, first.pk)
             from django.core.exceptions import ObjectDoesNotExist
             with self.assertRaises(ObjectDoesNotExist): a.photo_bytes(self.owner, first.pk)
+            recipient = AthleteProfile.objects.create(account=self.other, display_name="Media recipient", birth_date=date(1990, 1, 1), discipline="recurve")
+            CoachRelationship.objects.create(athlete=self.athlete, coach=self.other)
+            share = a.invite_component(self.owner, self.athlete.pk, component.pk, recipient.pk, permit_photos=True, photo_ids=[second.pk])
+            a.decide_invitation(self.other, recipient.pk, share.pk, "approved")
+            # A coach already has normal view access; use grant revocation to prove share isolation.
+            CoachRelationship.objects.filter(athlete=self.athlete, coach=self.other).delete()
+            guardian = User.objects.create_user(username="media-guardian")
+            for athlete in (self.athlete, recipient):
+                GuardianLink.objects.create(athlete=athlete, parent=guardian, access="view")
+            self.assertTrue(a.photo_bytes(self.other, second.pk, recipient.pk))
+            a.decide_invitation(self.owner, self.athlete.pk, share.pk, "revoked")
+            with self.assertRaises(PermissionDenied): a.photo_bytes(self.other, second.pk, recipient.pk)
             receipt = a.upload_photo(self.owner, self.athlete.pk, self.image(), component_id=component.pk, receipt=True)
             CoachRelationship.objects.create(athlete=self.athlete, coach=self.other)
             with self.assertRaises(PermissionDenied): a.photo_bytes(self.other, receipt.pk)
@@ -226,3 +238,76 @@ class MediaMaintenanceTests(ComponentTests):
         with self.assertRaises(ValidationError): original.save()
         purchase = a.add_purchase(self.owner, self.athlete.pk, component.pk, dict(retailer="Private shop"))
         with self.assertRaises(ValidationError): purchase.save()
+
+
+class DashboardTests(ConfigurationScoringTests):
+    def test_comparisons_conditions_and_timeline_privacy(self):
+        item, config = self.config()
+        sessions = [self.start(), self.start()]
+        for session in sessions:
+            scoring.mutate(self.owner, session.pk, dict(action="equipment", configuration=config.pk, arrow_set=self.arrows.pk, key=str(uuid.uuid4()), version=session.version))
+            for position in range(3): self.shot(session, position, self.arrow(str(session.pk).replace("-", "")[:8]+str(position)))
+            for action in ("review", "complete"):
+                session.refresh_from_db()
+                scoring.mutate(self.owner, session.pk, dict(action=action, key=str(uuid.uuid4()), version=session.version))
+        rows = a.performance_comparisons(self.owner, self.athlete)
+        self.assertEqual(len(rows), 3)  # configuration + component + arrows
+        self.assertTrue(all(row["sessions"] == 2 and row["arrows"] == 6 and row["sufficient"] for row in rows))
+        sessions[0].refresh_from_db(); sessions[0].invalidated=True; sessions[0].save(update_fields=["invalidated"])
+        self.assertTrue(all(not row["sufficient"] for row in a.performance_comparisons(self.owner, self.athlete)))
+        a.add_purchase(self.owner, self.athlete.pk, item.pk, dict(retailer="Private"))
+        CoachRelationship.objects.create(athlete=self.athlete, coach=self.coach)
+        events = list(a.timeline(self.coach, self.athlete))
+        self.assertFalse(any(event.event.startswith("purchase.") for event in events))
+        self.client.force_login(self.owner)
+        page = self.client.get(reverse("athlete-equipment", args=[self.athlete.pk]))
+        self.assertContains(page, "Insufficient comparable data")
+        self.assertContains(page, 'aria-label="Equipment sections"')
+
+
+from django.test import TransactionTestCase, skipUnlessDBFeature
+from django.db import connections, close_old_connections
+from concurrent.futures import ThreadPoolExecutor
+from threading import Barrier
+
+class EquipmentConcurrencyTests(TransactionTestCase):
+    @skipUnlessDBFeature("has_select_for_update")
+    def test_transfer_acceptance_and_revision_races(self):
+        owner = User.objects.create_user(username="race-owner")
+        recipient_user = User.objects.create_user(username="race-recipient")
+        athlete = AthleteProfile.objects.create(account=owner, display_name="Race owner", birth_date=date(1990, 1, 1), discipline="recurve")
+        recipient = AthleteProfile.objects.create(account=recipient_user, display_name="Race recipient", birth_date=date(1990, 1, 1), discipline="recurve")
+        CoachRelationship.objects.create(athlete=athlete, coach=recipient_user)
+        component = a.save_component(owner, athlete.pk, "riser", dict(name="Race riser"))
+        old = component.revisions.first()
+        barrier = Barrier(2)
+        def revise(name):
+            close_old_connections()
+            try:
+                actor = User.objects.get(pk=owner.pk); barrier.wait(timeout=10)
+                a.save_component(actor, athlete.pk, "riser", dict(name=name), component_id=component.pk, expected_revision=old.pk)
+                return "ok"
+            except ValidationError:
+                return "stale"
+            finally:
+                connections.close_all()
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            futures = [pool.submit(revise, name) for name in ("First", "Second")]
+            self.assertEqual(sorted(f.result(timeout=20) for f in futures), ["ok", "stale"])
+        transfer = a.invite_component(owner, athlete.pk, component.pk, recipient.pk, transfer=True)
+        barrier = Barrier(2)
+        def accept():
+            close_old_connections()
+            try:
+                actor = User.objects.get(pk=recipient_user.pk); barrier.wait(timeout=10)
+                a.decide_invitation(actor, recipient.pk, transfer.pk, "accepted", transfer=True)
+                return "ok"
+            except ValidationError:
+                return "decided"
+            finally:
+                connections.close_all()
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            futures = [pool.submit(accept) for _ in range(2)]
+            self.assertEqual(sorted(f.result(timeout=20) for f in futures), ["decided", "ok"])
+        component.refresh_from_db(); self.assertEqual(component.owner_id, recipient.pk)
+        self.assertEqual(component.revisions.count(), 3)
