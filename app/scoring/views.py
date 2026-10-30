@@ -179,5 +179,38 @@ def equipment(request, athlete_id):
     context.update(components=components, component_form=component_form, component_edit=component_edit,
         component_statuses=[(v, v.replace("_", " ").title()) for v in STATUSES],
         component_schema=[(k, NUMBERS[k] + " " + TEXT[k]) for k in NUMBERS])
+    from .forms import ConfigurationForm
+    from .models import BowConfiguration, AthleteEquipmentDefaults
+    configs = list(BowConfiguration.objects.filter(owner=athlete).prefetch_related("revisions__members__component_revision"))
+    config_edit = next((c for c in configs if str(c.pk) == str(request.GET.get("configuration_edit", request.POST.get("configuration_id", "")))), None)
+    config_initial = {}
+    if config_edit:
+        rev = config_edit.revisions.first()
+        config_initial = dict(name=rev.name, division=rev.division, components=list(rev.components.all()),
+            preferred_arrows=rev.preferred_arrows_id, expected_revision=rev.pk)
+    configuration_form = ConfigurationForm(request.POST if action == "configuration" else None, athlete=athlete, initial=config_initial)
+    if request.method == "POST" and action in ("configuration", "configuration_default", "configuration_status"):
+        try:
+            if action == "configuration" and configuration_form.is_valid():
+                d = configuration_form.cleaned_data
+                advanced_equipment.save_configuration(request.user, athlete_id, d["name"], d["division"],
+                    [r.pk for r in d["components"]], configuration_id=request.POST.get("configuration_id") or None,
+                    expected_revision=d["expected_revision"], preferred_arrows_id=d["preferred_arrows"].pk if d["preferred_arrows"] else None,
+                    acknowledged=d["acknowledged"], reason=d["reason"])
+                return redirect("athlete-equipment", athlete_id=athlete_id)
+            elif action == "configuration_default":
+                advanced_equipment.set_default(request.user, athlete_id, request.POST.get("configuration_id") or None)
+                return redirect("athlete-equipment", athlete_id=athlete_id)
+            elif action == "configuration_status":
+                advanced_equipment.archive_configuration(request.user, athlete_id, request.POST["configuration_id"], request.POST.get("active") == "true")
+                return redirect("athlete-equipment", athlete_id=athlete_id)
+        except ValidationError as error:
+            configuration_form.add_error(None, "; ".join(error.messages))
+        context.pop("action_error", None)
+    for c in configs:
+        c.current = c.revisions.first()
+        c.available = advanced_equipment.configuration_available(c.current, athlete)
+    context.update(configurations=configs, configuration_form=configuration_form, configuration_edit=config_edit,
+        equipment_default=AthleteEquipmentDefaults.objects.filter(athlete=athlete).first())
     context.update(form=form, arrow_form=arrow_form, mark_form=mark_form, editing=editing)
     return render(request, "scoring/equipment.html", context)

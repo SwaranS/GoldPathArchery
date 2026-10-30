@@ -48,6 +48,13 @@
 
 {% endif %}
 
+<h2 id="configurations">Bow configurations</h2>
+<p>Default: {{ equipment_default.configuration|default:"None selected" }}. Unavailable components prevent new scoring starts.</p>
+{% if writable %}<details {% if configuration_form.is_bound or configuration_edit %}open{% endif %}><summary>Save named configuration</summary><form method="post">{% csrf_token %}<input type="hidden" name="action" value="configuration">{% if configuration_edit %}<input type="hidden" name="configuration_id" value="{{ configuration_edit.pk }}">{% endif %}{{ configuration_form.as_p }}<button>Save configuration</button></form></details>{% endif %}
+{% for config in configurations %}<article><h3>{{ config.current }}{% if not config.available %} (Unavailable for new scores){% endif %}</h3>
+{% if writable %}{% if config.active %}<a href="?configuration_edit={{ config.pk }}#configurations">Revise configuration</a><form method="post">{% csrf_token %}<input type="hidden" name="action" value="configuration_default"><input type="hidden" name="configuration_id" value="{{ config.pk }}"><button>Set default</button></form>{% endif %}
+<form method="post">{% csrf_token %}<input type="hidden" name="action" value="configuration_status"><input type="hidden" name="configuration_id" value="{{ config.pk }}"><input type="hidden" name="active" value="{% if config.active %}false{% else %}true{% endif %}"><button>{% if config.active %}Archive{% else %}Restore{% endif %} configuration</button></form>{% endif %}
+<details><summary>Configuration history</summary>{% for rev in config.revisions.all %}<h4>{{ rev }}</h4><p>{{ rev.at }} {{ rev.reason }}</p><ul>{% for member in rev.members.all %}<li>{{ member.component_revision }}</li>{% endfor %}</ul><p>Compatibility rule {{ rev.rule_version }}; acknowledged: {{ rev.acknowledged|yesno:"Yes,No" }}</p>{% endfor %}</details></article>{% empty %}<p>No advanced configurations. Basic equipment remains available.</p>{% endfor %}
 <h2 id="components">Components</h2>
 
 {% if writable %}<details {% if component_form.is_bound or component_edit %}open{% endif %}><summary>{% if component_edit %}Revise component{% else %}Add component{% endif %}</summary>

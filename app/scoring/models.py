@@ -118,7 +118,7 @@ class RoundStage(models.Model):
         if ((self.distance_m is not None and (not math.isfinite(self.distance_m) or self.distance_m <= 0))
             or (self.ends is not None and not 1 <= self.ends <= 100)
             or (self.arrows_per_end is not None and not 1 <= self.arrows_per_end <= 36)):
-            raise ValidationError("Use positive distance, 1–100 ends and 1–36 arrows per end.")
+            raise ValidationError("Use positive distance, 1Ã¢â‚¬â€œ100 ends and 1Ã¢â‚¬â€œ36 arrows per end.")
 
 
 class Equipment(models.Model):
@@ -196,7 +196,7 @@ class EquipmentRevision(models.Model):
         return super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.name} · revision {self.number}"
+        return f"{self.name} Ã‚Â· revision {self.number}"
 
 
 class PhysicalArrow(models.Model):
@@ -349,6 +349,9 @@ class ComponentRevision(models.Model):
     def delete(self, *args, **kwargs):
         raise ValidationError("Component revisions are immutable.")
 
+    def __str__(self):
+        return f"{self.name} / revision {self.number}"
+
 
 class EquipmentActivity(models.Model):
     owner = models.ForeignKey("accounts.AthleteProfile", on_delete=models.PROTECT)
@@ -360,3 +363,64 @@ class EquipmentActivity(models.Model):
 
     class Meta:
         ordering = ["-at", "-pk"]
+
+
+class BowConfiguration(models.Model):
+    owner = models.ForeignKey("accounts.AthleteProfile", on_delete=models.PROTECT, related_name="bow_configurations")
+    active = models.BooleanField(default=True)
+
+    def __str__(self):
+        revision = self.revisions.first()
+        return revision.name if revision else f"Configuration {self.pk}"
+
+
+class ConfigurationRevision(models.Model):
+    configuration = models.ForeignKey(BowConfiguration, on_delete=models.PROTECT, related_name="revisions")
+    number = models.PositiveIntegerField()
+    name = models.CharField(max_length=100)
+    division = models.CharField(max_length=20, choices=DIVISIONS)
+    preferred_arrows = models.ForeignKey(Equipment, null=True, blank=True, on_delete=models.PROTECT)
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
+    at = models.DateTimeField(auto_now_add=True)
+    reason = models.CharField(max_length=500, blank=True)
+    warnings = models.JSONField(default=list, blank=True)
+    rule_version = models.PositiveSmallIntegerField(default=1)
+    acknowledged = models.BooleanField(default=False)
+    components = models.ManyToManyField(ComponentRevision, through="ConfigurationMember")
+
+    class Meta:
+        ordering = ["-number"]
+        constraints = [models.UniqueConstraint(fields=["configuration", "number"], name="configuration_revision_number")]
+
+    def save(self, *args, **kwargs):
+        if not self._state.adding:
+            raise ValidationError("Configuration revisions are immutable.")
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.name} / version {self.number}"
+
+
+class ConfigurationMember(models.Model):
+    revision = models.ForeignKey(ConfigurationRevision, on_delete=models.PROTECT, related_name="members")
+    component = models.ForeignKey(EquipmentComponent, on_delete=models.PROTECT)
+    component_revision = models.ForeignKey(ComponentRevision, on_delete=models.PROTECT)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["revision", "component"], name="configuration_unique_component")]
+
+    def clean(self):
+        if self.component_revision.component_id != self.component_id:
+            raise ValidationError("Component revision identity mismatch.")
+
+    def save(self, *args, **kwargs):
+        if not self._state.adding:
+            raise ValidationError("Configuration membership is immutable.")
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+
+class AthleteEquipmentDefaults(models.Model):
+    athlete = models.OneToOneField("accounts.AthleteProfile", on_delete=models.PROTECT)
+    configuration = models.ForeignKey(BowConfiguration, null=True, blank=True, on_delete=models.PROTECT)

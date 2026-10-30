@@ -103,3 +103,19 @@ class ComponentForm(forms.Form):
         if data.get("category"):
             validate_specs(data["category"], data["specs"])
         return data
+
+
+class ConfigurationForm(forms.Form):
+    name = forms.CharField(max_length=100)
+    division = forms.ChoiceField(choices=DIVISIONS)
+    components = forms.ModelMultipleChoiceField(queryset=Equipment.objects.none(), required=False)
+    preferred_arrows = forms.ModelChoiceField(queryset=Equipment.objects.none(), required=False)
+    acknowledged = forms.BooleanField(required=False, label="I acknowledge physical fit is unverified; these rules are not a safety certification")
+    reason = forms.CharField(max_length=500, required=False)
+    expected_revision = forms.IntegerField(required=False, widget=forms.HiddenInput)
+
+    def __init__(self, *args, athlete, **kwargs):
+        from .models import ComponentRevision
+        super().__init__(*args, **kwargs)
+        self.fields["components"].queryset = ComponentRevision.objects.filter(component__owner=athlete, component__status="active").select_related("component")
+        self.fields["preferred_arrows"].queryset = Equipment.objects.filter(athlete=athlete, kind="arrow_set", active=True)

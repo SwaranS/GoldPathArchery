@@ -57,3 +57,37 @@ class ComponentTests(TestCase):
         self.client.force_login(self.other)
         self.assertNotContains(self.client.get(url), "Save component")
         self.assertEqual(self.client.post(url, dict(action="component", category="string", name="Forbidden")).status_code, 404)
+
+
+class ConfigurationTests(ComponentTests):
+    def test_versions_reuse_defaults_and_frozen_membership(self):
+        item = a.save_component(self.owner, self.athlete.pk, "riser", dict(name="Riser", specs={"length_in": 25}))
+        old = item.revisions.first()
+        with self.assertRaises(ValidationError):
+            a.save_configuration(self.owner, self.athlete.pk, "Indoor", "recurve", [old.pk])
+        config = a.save_configuration(self.owner, self.athlete.pk, "Indoor", "recurve", [old.pk], acknowledged=True)
+        rev = config.revisions.first()
+        a.save_configuration(self.owner, self.athlete.pk, "Outdoor", "recurve", [old.pk], acknowledged=True)
+        a.save_configuration(self.owner, self.athlete.pk, "Indoor", "recurve", [old.pk], configuration_id=config.pk, expected_revision=rev.pk, acknowledged=True)
+        self.assertEqual(config.revisions.count(), 1)
+        a.save_component(self.owner, self.athlete.pk, "riser", dict(name="Revised", specs={"length_in": 27}), component_id=item.pk, expected_revision=old.pk)
+        self.assertEqual(rev.components.get().pk, old.pk)
+        a.set_default(self.owner, self.athlete.pk, config.pk)
+        a.save_configuration(self.owner, self.athlete.pk, "Renamed", "recurve", [old.pk], configuration_id=config.pk, expected_revision=rev.pk, acknowledged=True)
+        self.assertEqual(config.revisions.count(), 2)
+        a.set_component_status(self.owner, self.athlete.pk, item.pk, "in_repair")
+        self.assertFalse(a.configuration_available(config.revisions.first(), self.athlete))
+        with self.assertRaises(ValidationError): a.set_default(self.owner, self.athlete.pk, config.pk)
+        self.client.force_login(self.owner)
+        self.assertContains(self.client.get(reverse("athlete-equipment", args=[self.athlete.pk])), "Unavailable for new scores")
+
+    def test_compatibility_and_private_references(self):
+        item = a.save_component(self.owner, self.athlete.pk, "limbs", dict(name="Compound limbs", specs={"discipline": "compound"}))
+        with self.assertRaises(ValidationError):
+            a.save_configuration(self.owner, self.athlete.pk, "Invalid", "recurve", [item.revisions.first().pk], acknowledged=True)
+        for division in ("recurve", "compound", "barebow"):
+            a.save_configuration(self.owner, self.athlete.pk, division, division, [], acknowledged=True)
+        with self.assertRaises(ValidationError): a.save_configuration(self.owner, self.athlete.pk, "Longbow", "longbow", [], acknowledged=True)
+        other_athlete = AthleteProfile.objects.create(account=self.other, display_name="Other", birth_date=date(1990, 1, 1), discipline="recurve")
+        with self.assertRaises(ValidationError):
+            a.save_configuration(self.other, other_athlete.pk, "Private", "compound", [item.revisions.first().pk], acknowledged=True)
