@@ -1,0 +1,12 @@
+<h2>Arrow sets</h2>
+{% include "scoring/equipment/_basic_form.html" %}
+{% if writable %}
+<details {% if arrow_form.is_bound %}open{% endif %}><summary>Identify a physical arrow</summary>
+
+<p>Choose a saved active set. Identifiers use letters and digits and must be unique within the set.</p>
+
+<form method="post">{% csrf_token %}<input type="hidden" name="action" value="arrow">{{ arrow_form.as_p }}<button type="submit">Save arrow</button></form></details>
+
+{% endif %}
+
+{% include "scoring/equipment/_basic_inventory.html" %}

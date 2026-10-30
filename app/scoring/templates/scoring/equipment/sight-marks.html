@@ -1,0 +1,36 @@
+{% if writable %}
+<details {% if mark_form.is_bound %}open{% endif %}><summary>Add sight mark</summary>
+
+<p>Choose the current bow revision and optional arrow-set revision. Marks are text, for example 5.25 or a scale reference. To correct a saved mark, archive it and record a replacement.</p>
+
+<form method="post">{% csrf_token %}<input type="hidden" name="action" value="mark">{{ mark_form.as_p }}<button type="submit">Save sight mark</button></form></details>
+
+{% endif %}
+
+<h2 id="sight-marks">Configuration sight marks</h2>
+<form method="get"><label>Configuration version <select name="mark_configuration"><option value="">All versions</option>{% for rev in mark_configuration_choices %}<option value="{{ rev.pk }}">{{ rev }}</option>{% endfor %}</select></label><label>Arrow-set revision <select name="mark_arrows"><option value="">All arrow sets</option>{% for rev in mark_arrow_choices %}<option value="{{ rev.pk }}">{{ rev }}</option>{% endfor %}</select></label><label>Distance <input name="mark_distance" type="number" min="0.001" step="any"></label><label>Distance unit <select name="mark_unit"><option value="m">Metres</option><option value="yd">Yards</option></select></label><button>Filter sight marks</button></form>
+{% for mark in advanced_marks %}<article><h3>{{ mark.configuration_revision }} / {{ mark.distance }} {{ mark.distance_unit }} / {{ mark.mark }}</h3><p>{% if not mark.active %}Archived{% elif mark.current_setup %}Current setup{% else %}Historical — Recheck Required{% endif %}</p><p>{{ mark.notes }}</p>{% if writable %}<form method="post">{% csrf_token %}<input type="hidden" name="entity" value="mark"><input type="hidden" name="item" value="{{ mark.pk }}"><button name="action" value="{% if mark.active %}archive{% else %}restore{% endif %}">{% if mark.active %}Archive{% else %}Restore{% endif %} mark</button></form>{% endif %}</article>{% empty %}<p>No configuration sight marks.</p>{% endfor %}
+<h2>Sight marks by bow and distance</h2>
+
+<form method="get"><label for="filter-bow">Bow</label><select name="bow" id="filter-bow"><option value="">All bows</option>{% for bow in bows %}<option value="{{ bow.pk }}" {% if selected_bow == bow.pk|stringformat:'s' %}selected{% endif %}>{{ bow.name }}{% if not bow.active %} (Archived){% endif %}</option>{% endfor %}</select><button type="submit">Filter marks</button></form>
+
+{% regroup marks by bow_revision.equipment_id as bow_groups %}
+
+{% for group in bow_groups %}<h3>{{ group.list.0.bow_revision.equipment.name }}</h3>
+
+{% for mark in group.list %}<article>
+
+<h4>{{ mark.distance }} {{ mark.get_distance_unit_display }} · {{ mark.mark }}</h4>
+
+<p>{{ mark.bow_revision }}{% if mark.arrow_revision %} / {{ mark.arrow_revision }}{% endif %}</p>
+
+<p>{% if not mark.active %}Archived mark{% elif mark.current_setup %}Current setup{% else %}Historical setup — check against current equipment before use{% endif %}</p>
+
+{% if mark.sight_extension %}<p>Sight extension: {{ mark.sight_extension }}</p>{% endif %}{% if mark.windage %}<p>Windage: {{ mark.windage }}</p>{% endif %}{% if mark.date %}<p>Date: {{ mark.date }}</p>{% endif %}{% if mark.notes %}<p>{{ mark.notes|linebreaksbr }}</p>{% endif %}
+
+{% if writable %}<form method="post">{% csrf_token %}<input type="hidden" name="entity" value="mark"><input type="hidden" name="item" value="{{ mark.pk }}"><button name="action" value="{% if mark.active %}archive{% else %}restore{% endif %}">{% if mark.active %}Archive{% else %}Restore{% endif %} sight mark</button></form>{% endif %}
+
+</article>{% endfor %}
+
+{% empty %}<p>No sight marks saved for this selection.</p>{% endfor %}
+

@@ -1,0 +1,6 @@
+<h2>My Equipment</h2>
+<p>{{ component_count }} components / {{ configuration_count }} configurations</p>
+{% if unavailable_count %}<p role="status">{{ unavailable_count }} configurations are unavailable for new scores. Review their components before shooting.</p>{% endif %}
+<p>Default configuration: {{ equipment_default.configuration|default:"None selected" }}</p>
+<p>Choose a section above to manage your equipment. Specifications are saved as revisions; past scores retain their recorded setup.</p>
+<p><a href="{% url 'scoring-start' athlete.id %}">Start scoring</a> · <a href="{% url 'scoring-history' athlete.id %}">Scoring history</a></p>

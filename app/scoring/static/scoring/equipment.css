@@ -7,3 +7,5 @@
 .workspace-card :focus-visible { outline:3px solid #356da2; outline-offset:3px; }
 .workspace-card table { border-collapse:collapse; }
 .workspace-card th, .workspace-card td { padding:.5rem; text-align:left; }
+
+.equipment-section-nav a[aria-current="page"] { font-weight:700; border-bottom:3px solid currentColor; }

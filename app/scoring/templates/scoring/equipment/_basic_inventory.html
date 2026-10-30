@@ -1,0 +1,40 @@
+
+
+{% for item in items %}
+
+<article class="workspace-card">
+
+<h3>{{ item.name }} · {{ item.get_kind_display }} {% if not item.active %}(Archived){% endif %}</h3>
+
+{% if item.current %}<p>Current revision {{ item.current.number }}</p>
+
+<dl>{% for label, value in item.specifications %}<dt>{{ label }}</dt><dd>{{ value|linebreaksbr }}</dd>{% endfor %}</dl>
+
+{% else %}<p>{{ item.details|linebreaksbr }}</p>{% endif %}
+
+{% if writable %}
+
+{% if item.active %}<p><a href="?edit={{ item.pk }}">Revise {{ item.name }}</a></p>{% endif %}
+
+<form method="post">{% csrf_token %}<input type="hidden" name="entity" value="equipment"><input type="hidden" name="item" value="{{ item.pk }}"><button name="action" value="{% if item.active %}archive{% else %}restore{% endif %}">{% if item.active %}Archive{% else %}Restore{% endif %} {{ item.name }}</button></form>
+
+{% endif %}
+
+{% if item.kind == 'arrow_set' %}
+
+<h4>Physical arrows</h4>
+
+{% for arrow in item.arrows.all %}<p>{{ item.name }} / {{ arrow.identifier }} {% if not arrow.active %}(Individually archived){% elif not item.active %}(Unavailable: set archived){% endif %}{% if arrow.notes %} — {{ arrow.notes }}{% endif %}</p>
+
+{% if writable %}{% if arrow.active or item.active %}<form method="post">{% csrf_token %}<input type="hidden" name="entity" value="arrow"><input type="hidden" name="item" value="{{ arrow.pk }}"><button name="action" value="{% if arrow.active %}archive{% else %}restore{% endif %}">{% if arrow.active %}Archive{% else %}Restore{% endif %} arrow {{ arrow.identifier }}</button></form>{% endif %}{% endif %}
+
+{% empty %}<p>No physical arrows saved in this set.</p>{% endfor %}
+
+{% endif %}
+
+<details><summary>Specification history</summary>{% for revision in item.history %}<h4>Revision {{ revision.number }} · {{ revision.created_at }}</h4><dl>{% for label, value in revision.specifications %}<dt>{{ label }}</dt><dd>{{ value|linebreaksbr }}</dd>{% endfor %}</dl>{% empty %}<p>No revision recorded yet.</p>{% endfor %}</details>
+
+</article>
+
+{% empty %}<p>No equipment saved for this athlete.{% if writable %} Add a bow or arrow set to begin.{% endif %}</p>{% endfor %}
+

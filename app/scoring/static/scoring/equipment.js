@@ -1,4 +1,9 @@
 (() => {
+  if (document.querySelector('[data-equipment-section="overview"]') && location.hash) {
+    const key = location.hash.slice(1);
+    const link = [...document.querySelectorAll('[data-equipment-link]')].find(a => a.dataset.equipmentLink === key);
+    if (link) location.replace(link.href);
+  }
   const category = document.getElementById('id_category');
   if (!category) return;
   function refresh() {

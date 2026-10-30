@@ -1,0 +1,16 @@
+<h2 id="components">Components</h2><form method="get"><label>Search components <input name="search" value="{{ component_search }}"></label><label>Category <select name="category"><option value="">All categories</option>{% for category, fields in component_schema %}<option value="{{ category }}" {% if selected_category == category %}selected{% endif %}>{{ category }}</option>{% endfor %}</select></label><button>Filter components</button></form>
+
+{% if writable %}<details {% if component_form.is_bound or component_edit %}open{% endif %}><summary>{% if component_edit %}Revise component{% else %}Add component{% endif %}</summary>
+
+<form method="post">{% csrf_token %}<input type="hidden" name="action" value="component">{% if component_edit %}<input type="hidden" name="component_id" value="{{ component_edit.pk }}">{% endif %}{{ component_form.non_field_errors }}{% for field in component_form %}{% if field.is_hidden %}{{ field }}{% else %}<p data-component-category="{{ field.field.component_category|default:'' }}">{{ field.errors }}{{ field.label_tag }} {{ field }}{% if field.help_text %}<span>{{ field.help_text }}</span>{% endif %}</p>{% endif %}{% endfor %}<button>Save component</button></form>
+
+<details><summary>Specification field reference</summary><p>All fields are optional. Numbers must be positive; counts must be integers. Text fields may include discipline (recurve, compound, barebow).</p><dl>{% for category, fields in component_schema %}<dt>{{ category }}</dt><dd>{{ fields }}</dd>{% endfor %}</dl></details></details>{% endif %}
+
+{% for component in components %}<article class="workspace-card" id="component-{{ component.pk }}"><h3>{{ component }} · {{ component.get_category_display }}</h3><p>{{ component.get_status_display }}</p>
+
+{% if writable %}<a href="?component_edit={{ component.pk }}#components">Revise component</a><form method="post">{% csrf_token %}<input type="hidden" name="action" value="component_status"><input type="hidden" name="component_id" value="{{ component.pk }}"><label>Status <select name="status">{% for value, label in component_statuses %}<option value="{{ value }}" {% if component.status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label><label>Reason <input name="reason" maxlength="500"></label><button>Save status</button></form>{% endif %}
+
+<p><a href="{% url 'athlete-equipment-section' athlete.id 'history' %}?history_component={{ component.pk }}">Component activity</a></p><details><summary>Component history</summary>{% for revision in component.revisions.all %}<h4>{{ revision.name }} · revision {{ revision.number }}</h4><p>{{ revision.manufacturer }} {{ revision.model }} · {{ revision.created_at }}</p><p>{{ revision.notes|linebreaksbr }}</p><dl>{% for key, value in revision.specs.items %}<dt>{{ key }}</dt><dd>{{ value }}</dd>{% endfor %}</dl>{% endfor %}</details></article>{% empty %}<p>No components saved. Basic bows and arrow sets remain available below.</p>{% endfor %}
+
+
+{% include "scoring/equipment/_photos.html" %}

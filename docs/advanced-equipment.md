@@ -165,3 +165,14 @@ Review migrations and private storage configuration before applying anything. Th
 an implementation for review, not a production release approval. Remaining external
 verification is private Azure integration, browser/mobile/screen-reader QA and migration
 performance/restore testing with a sanitized deployment-size copy.
+
+## Equipment section pages
+The equipment entry point now shows Overview. Each navigation item has a dedicated
+`/account/athletes/<uuid>/equipment/<section>/` page (also available under the scoring
+route). Forms, filters, validation errors and successful saves stay on that page.
+Basic bows appear under Configurations; arrow-set identity and physical arrows are
+under Arrow sets. Photos are managed beside Components/Configurations, and receipts
+beside Purchases. Purchase pages require the same owner/editing-guardian permission
+as purchase records. Unknown sections return 404. Older fragment links redirect to
+the corresponding page in browsers; both original equipment entry URLs remain valid.
+This layout change requires no database migrations.

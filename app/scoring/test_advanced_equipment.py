@@ -51,7 +51,7 @@ class ComponentTests(TestCase):
         self.client.force_login(self.owner)
         for route in ("athlete-equipment", "scoring-equipment"):
             url = reverse(route, args=[self.athlete.pk])
-            self.assertContains(self.client.get(url), "Private riser")
+            self.assertContains(self.client.get(reverse("athlete-equipment-section", args=[self.athlete.pk, "components"])), "Private riser")
             response = self.client.post(url, dict(action="component", category="string", name="Spare string", specs='{"strand_count": 16}'))
             self.assertEqual(response.status_code, 302)
         self.client.force_login(self.other)
@@ -79,7 +79,7 @@ class ConfigurationTests(ComponentTests):
         self.assertFalse(a.configuration_available(config.revisions.first(), self.athlete))
         with self.assertRaises(ValidationError): a.set_default(self.owner, self.athlete.pk, config.pk)
         self.client.force_login(self.owner)
-        self.assertContains(self.client.get(reverse("athlete-equipment", args=[self.athlete.pk])), "Unavailable for new scores")
+        self.assertContains(self.client.get(reverse("athlete-equipment-section", args=[self.athlete.pk, "configurations"])), "Unavailable for new scores")
 
     def test_compatibility_and_private_references(self):
         item = a.save_component(self.owner, self.athlete.pk, "limbs", dict(name="Compound limbs", specs={"discipline": "compound"}))
@@ -264,7 +264,7 @@ class DashboardTests(ConfigurationScoringTests):
         events = list(a.timeline(self.coach, self.athlete))
         self.assertFalse(any(event.event.startswith("purchase.") for event in events))
         self.client.force_login(self.owner)
-        page = self.client.get(reverse("athlete-equipment", args=[self.athlete.pk]))
+        page = self.client.get(reverse("athlete-equipment-section", args=[self.athlete.pk, "comparisons"]))
         self.assertContains(page, "Insufficient comparable data")
         self.assertContains(page, 'aria-label="Equipment sections"')
 

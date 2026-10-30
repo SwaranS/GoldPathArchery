@@ -1,0 +1,15 @@
+{% if writable %}
+
+<details {% if form.is_bound or editing %}open{% endif %}>
+
+<summary>{% if editing %}Revise {{ editing.name }}{% else %}Add bow or arrow set{% endif %}</summary>
+
+<p>Use bow fields for bows and arrow fields for sets. Leave optional measurements and their units empty together. Notes describe your actual equipment.</p>
+
+{% if editing %}<p>Saving creates a new revision when specifications change. Older sight marks remain attached to their recorded setup. <a href="{% url 'scoring-equipment' athlete.id %}">Cancel revision</a></p>{% endif %}
+
+<form method="post">{% csrf_token %}<input type="hidden" name="action" value="{% if editing %}revise{% else %}equipment{% endif %}">{% if editing %}<input type="hidden" name="item" value="{{ editing.pk }}">{% endif %}{{ form.as_p }}<button type="submit">{% if editing %}Save new revision{% else %}Save equipment{% endif %}</button></form>
+
+</details>
+
+{% endif %}

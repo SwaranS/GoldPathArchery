@@ -119,12 +119,36 @@ def save(request, session_id):
 @login_required
 @require_http_methods(["GET", "POST"])
 @errors
-def equipment(request, athlete_id):
+def equipment(request, athlete_id, section=None):
+    sections = [
+        ("overview", "Overview"), ("configurations", "Configurations"), ("components", "Components"),
+        ("arrow-sets", "Arrow sets"), ("sight-marks", "Sight marks"), ("maintenance", "Maintenance"),
+        ("sharing", "Sharing & transfers"), ("purchases", "Purchases"), ("history", "History"),
+        ("comparisons", "Comparisons"),
+    ]
+    if section is not None and section not in dict(sections):
+        raise Http404("Unavailable.")
+    def saved_equipment(route, **kwargs):
+        if section is not None:
+            return redirect("athlete-equipment-section", athlete_id=athlete_id, section=section)
+        return redirect(route, **kwargs)
+
     context = equipment_services.workspace(request.user, athlete_id, bow=request.GET.get("bow"),
         configuration_revision=request.GET.get("mark_configuration"), arrow_revision=request.GET.get("mark_arrows"),
         distance=request.GET.get("mark_distance"), distance_unit=request.GET.get("mark_unit"))
     if request.method == "POST" and not context["writable"]:
         raise PermissionDenied
+    if section is not None and request.method == "POST":
+        allowed_actions = {
+            "overview": set(), "configurations": {"configuration", "configuration_default", "configuration_status", "equipment", "revise", "archive", "restore", "photo", "photo_remove"},
+            "components": {"component", "component_status", "photo", "photo_remove"},
+            "arrow-sets": {"equipment", "revise", "arrow", "archive", "restore"},
+            "sight-marks": {"mark", "archive", "restore"}, "maintenance": {"maintenance"},
+            "sharing": {"share_invite", "transfer_invite", "invitation_decide"},
+            "purchases": {"purchase", "photo", "photo_remove"}, "history": set(), "comparisons": set(),
+        }
+        if request.POST.get("action") not in allowed_actions[section]:
+            raise ValidationError("This action belongs to another equipment section.")
     edit_id = request.POST.get("item") if request.POST.get("action") == "revise" else request.GET.get("edit")
     editing = next((item for item in context["items"] if str(item.pk) == str(edit_id)), None)
     if (edit_id and editing is None) or (request.POST.get("action") == "revise" and not edit_id):
@@ -136,6 +160,9 @@ def equipment(request, athlete_id):
         initial.update(kind=editing.kind, expected_revision=editing.current.pk if editing.current else None)
     action = request.POST.get("action")
     form = EquipmentForm(request.POST if action in ("equipment", "revise") else None, initial=initial)
+    if section in ("configurations", "arrow-sets"):
+        kind = "bow" if section == "configurations" else "arrow_set"
+        form.fields["kind"].choices = [(kind, "Bow" if kind == "bow" else "Arrow set")]
     arrow_form = ArrowForm(request.POST if action == "arrow" else None, athlete=athlete_id)
     mark_form = SightMarkForm(request.POST if action == "mark" else None, athlete=athlete_id)
     if request.method == "POST":
@@ -154,12 +181,12 @@ def equipment(request, athlete_id):
                     equipment_services.save_mark(request.user, athlete_id, {
                         key: value.pk if hasattr(value, "pk") else value for key, value in mark_form.cleaned_data.items()})
                 messages.success(request, "Equipment record saved.")
-                return redirect("scoring-equipment", athlete_id=athlete_id)
+                return saved_equipment("scoring-equipment", athlete_id=athlete_id)
             if action in ("archive", "restore"):
                 equipment_services.set_active(request.user, athlete_id, request.POST.get("entity", "equipment"),
                     request.POST["item"], action == "restore")
                 messages.success(request, "Record archived." if action == "archive" else "Record restored.")
-                return redirect("scoring-equipment", athlete_id=athlete_id)
+                return saved_equipment("scoring-equipment", athlete_id=athlete_id)
             if active_form is None:
                 raise ValidationError("Unknown equipment action.")
         except ValidationError as error:
@@ -186,10 +213,10 @@ def equipment(request, athlete_id):
                 advanced_equipment.save_component(request.user, athlete_id, data["category"],
                     {k: data[k] for k in advanced_equipment.COMPONENT_FIELDS},
                     component_id=request.POST.get("component_id") or None, expected_revision=data["expected_revision"])
-                return redirect("athlete-equipment", athlete_id=athlete_id)
+                return saved_equipment("athlete-equipment", athlete_id=athlete_id)
             elif action == "component_status":
                 advanced_equipment.set_component_status(request.user, athlete_id, request.POST["component_id"], request.POST["status"], request.POST.get("reason", ""))
-                return redirect("athlete-equipment", athlete_id=athlete_id)
+                return saved_equipment("athlete-equipment", athlete_id=athlete_id)
         except ValidationError as error:
             component_form.add_error(None, "; ".join(error.messages))
     context.pop("action_error", None) if action in ("component", "component_status") else None
@@ -214,13 +241,13 @@ def equipment(request, athlete_id):
                     [r.pk for r in d["components"]], configuration_id=request.POST.get("configuration_id") or None,
                     expected_revision=d["expected_revision"], preferred_arrows_id=d["preferred_arrows"].pk if d["preferred_arrows"] else None,
                     acknowledged=d["acknowledged"], reason=d["reason"])
-                return redirect("athlete-equipment", athlete_id=athlete_id)
+                return saved_equipment("athlete-equipment", athlete_id=athlete_id)
             elif action == "configuration_default":
                 advanced_equipment.set_default(request.user, athlete_id, request.POST.get("configuration_id") or None)
-                return redirect("athlete-equipment", athlete_id=athlete_id)
+                return saved_equipment("athlete-equipment", athlete_id=athlete_id)
             elif action == "configuration_status":
                 advanced_equipment.archive_configuration(request.user, athlete_id, request.POST["configuration_id"], request.POST.get("active") == "true")
-                return redirect("athlete-equipment", athlete_id=athlete_id)
+                return saved_equipment("athlete-equipment", athlete_id=athlete_id)
         except ValidationError as error:
             configuration_form.add_error(None, "; ".join(error.messages))
         context.pop("action_error", None)
@@ -240,7 +267,7 @@ def equipment(request, athlete_id):
                 advanced_equipment.decide_invitation(request.user, athlete_id, request.POST["invitation_id"], request.POST["decision"], transfer=request.POST.get("transfer") == "true")
             else:
                 advanced_equipment.invite_component(request.user, athlete_id, request.POST["component_id"], request.POST["recipient_id"], transfer=action == "transfer_invite", permit_photos=request.POST.get("permit_photos") == "on", photo_ids=[int(v) for v in request.POST.getlist("shared_photo_ids")])
-            return redirect("athlete-equipment", athlete_id=athlete_id)
+            return saved_equipment("athlete-equipment", athlete_id=athlete_id)
         except ValidationError as error:
             context["action_error"] = "; ".join(error.messages)
     context.update(shared_components=advanced_equipment.shared_components(request.user, athlete),
@@ -268,17 +295,17 @@ def equipment(request, athlete_id):
                         fn(request.user, athlete_id, component_id, d, photo_ids=photo_ids)
                     else:
                         fn(request.user, athlete_id, component_id, d)
-                    return redirect("athlete-equipment", athlete_id=athlete_id)
+                    return saved_equipment("athlete-equipment", athlete_id=athlete_id)
             elif action == "photo":
                 if not request.FILES.get("image"):
                     raise ValidationError("Choose an image to upload.")
                 advanced_equipment.upload_photo(request.user, athlete_id, request.FILES["image"],
                     component_id=request.POST.get("component_id") or None, configuration_id=request.POST.get("configuration_id") or None,
                     primary=request.POST.get("primary") == "on", receipt=request.POST.get("receipt") == "on")
-                return redirect("athlete-equipment", athlete_id=athlete_id)
+                return saved_equipment("athlete-equipment", athlete_id=athlete_id)
             else:
                 advanced_equipment.remove_photo(request.user, athlete_id, request.POST["photo_id"])
-                return redirect("athlete-equipment", athlete_id=athlete_id)
+                return saved_equipment("athlete-equipment", athlete_id=athlete_id)
         except ValidationError as error:
             context["action_error"] = "; ".join(error.messages)
     private_access = False
@@ -306,6 +333,36 @@ def equipment(request, athlete_id):
     category = request.GET.get("category", "")
     context["components"] = [c for c in components if (not category or c.category == category) and (not search or search in str(c).casefold())]
     context.update(component_search=request.GET.get("search", ""), selected_category=category)
+    selected_section = section or "overview"
+    # Legacy form submissions/bookmarks still show the relevant errors and editor.
+    if section is None:
+        if editing:
+            selected_section = "configurations" if editing.kind == "bow" else "arrow-sets"
+        elif request.GET.get("component_edit"):
+            selected_section = "components"
+        elif request.GET.get("configuration_edit"):
+            selected_section = "configurations"
+        elif request.GET.get("history_component"):
+            selected_section = "history"
+        elif request.method == "POST":
+            selected_section = {"equipment": "arrow-sets", "revise": "arrow-sets", "arrow": "arrow-sets", "mark": "sight-marks",
+                "component": "components", "component_status": "components", "configuration": "configurations",
+                "configuration_default": "configurations", "configuration_status": "configurations", "maintenance": "maintenance",
+                "purchase": "purchases", "share_invite": "sharing", "transfer_invite": "sharing", "invitation_decide": "sharing",
+                "photo": "components", "photo_remove": "components"}.get(action, "overview")
+    if selected_section == "purchases" and not private_access:
+        raise PermissionDenied
+    context["items"] = [item for item in context["items"] if item.kind == ("bow" if selected_section == "configurations" else "arrow_set")]
+    if not form.is_bound and not editing:
+        form.initial["kind"] = "bow" if selected_section == "configurations" else "arrow_set"
+    if selected_section == "purchases":
+        context["photos"] = []
+    elif selected_section == "configurations":
+        context["photos"] = context["photos"].filter(configuration__isnull=False)
+    elif selected_section == "components":
+        context["photos"] = context["photos"].filter(component__isnull=False)
+    context.update(equipment_section=selected_section, equipment_section_title=dict(sections)[selected_section],
+        equipment_sections=sections, equipment_section_template=f"scoring/equipment/{selected_section}.html")
     context.update(form=form, arrow_form=arrow_form, mark_form=mark_form, editing=editing)
     return render(request, "scoring/equipment.html", context)
 
