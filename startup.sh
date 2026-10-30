@@ -2,7 +2,7 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/app"
-
+export PYTHONPATH="$(dirname "$PWD")${PYTHONPATH:+:$PYTHONPATH}"
 # CI migrates a disposable database, not the App Service database. Apply the
 # deployed release's migrations before any worker can serve its new models.
 # set -e stops startup if the database upgrade fails.
