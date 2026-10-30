@@ -280,3 +280,125 @@ def shared_components(actor, athlete):
         result.append(dict(id=share.component_id, name=rev.name, category=share.component.category,
             manufacturer=rev.manufacturer, model=rev.model, specs=rev.specs, revision_id=rev.pk))
     return result
+
+
+from accounts.permissions import can
+from .models import EquipmentPhoto, EquipmentMaintenanceEntry, EquipmentPurchaseRecord
+
+
+def private_authorize(actor, athlete):
+    # Editing coaches never gain access to financial data; explicit athlete/guardian only.
+    if not can(actor, athlete, "edit_profile") or not (athlete.account_id == actor.pk or GuardianLink.objects.filter(
+            athlete=athlete, parent=actor, revoked_at__isnull=True, access="edit").exists()):
+        raise PermissionDenied
+
+
+@transaction.atomic
+def add_maintenance(actor, athlete_id, component_id, data, photo_ids=()):
+    athlete = locked_athlete(actor, athlete_id)
+    component = EquipmentComponent.objects.select_for_update().get(pk=component_id, owner=athlete)
+    if set(data) - {"kind", "event_date", "notes", "condition", "replacement_id", "correction_of_id"}:
+        raise ValidationError("Unsupported maintenance fields.")
+    if data.get("replacement_id"):
+        EquipmentComponent.objects.get(pk=data["replacement_id"], owner=athlete)
+        if str(data["replacement_id"]) == str(component.pk):
+            raise ValidationError("Choose a different replacement component.")
+    if data.get("correction_of_id"):
+        EquipmentMaintenanceEntry.objects.get(pk=data["correction_of_id"], component=component, owner=athlete)
+    photos = list(EquipmentPhoto.objects.filter(pk__in=photo_ids, owner=athlete, component=component, active=True, receipt=False))
+    if len(photos) != len(set(photo_ids)):
+        raise ValidationError("Invalid maintenance photos.")
+    entry = EquipmentMaintenanceEntry.objects.create(component=component, owner=athlete, actor=actor, **data)
+    entry.photos.set(photos)
+    activity(actor, athlete, "maintenance.recorded", component, entry=entry.pk)
+    return entry
+
+
+CURRENCIES = {"USD", "EUR", "GBP", "CAD", "AUD", "NZD", "INR", "JPY", "CNY", "CHF", "SEK", "NOK", "DKK", "PLN", "ZAR", "AED", "SGD", "HKD", "KRW", "BRL", "MXN"}
+
+@transaction.atomic
+def add_purchase(actor, athlete_id, component_id, data):
+    from decimal import Decimal, InvalidOperation
+    athlete = locked_athlete(actor, athlete_id)
+    private_authorize(actor, athlete)
+    component = EquipmentComponent.objects.select_for_update().get(pk=component_id, owner=athlete)
+    if set(data) - {"purchase_date", "retailer", "amount", "currency", "warranty_expiry", "receipt_id", "correction_of_id"}:
+        raise ValidationError("Unsupported purchase fields.")
+    if data.get("amount") is not None:
+        try:
+            amount = Decimal(data["amount"])
+            if not amount.is_finite() or amount < 0 or data.get("currency") not in CURRENCIES:
+                raise ValueError
+        except (ValueError, InvalidOperation, TypeError):
+            raise ValidationError("Use a nonnegative amount and a supported ISO currency.") from None
+    elif data.get("currency"):
+        raise ValidationError("Supply amount and currency together.")
+    if data.get("receipt_id"):
+        EquipmentPhoto.objects.get(pk=data["receipt_id"], owner=athlete, component=component, receipt=True, active=True)
+    if data.get("correction_of_id"):
+        EquipmentPurchaseRecord.objects.get(pk=data["correction_of_id"], component=component, owner=athlete)
+    entry = EquipmentPurchaseRecord.objects.create(component=component, owner=athlete, actor=actor, **data)
+    activity(actor, athlete, "purchase.recorded", component, entry=entry.pk)
+    return entry
+
+
+def upload_photo(actor, athlete_id, upload, *, component_id=None, configuration_id=None, primary=False, receipt=False):
+    from .private_media import normalize_image, PrivateMediaStore
+    content = normalize_image(upload)
+    storage = None; key = None
+    try:
+        with transaction.atomic():
+            athlete = locked_athlete(actor, athlete_id)
+            if receipt:
+                private_authorize(actor, athlete)
+            if bool(component_id) == bool(configuration_id) or (receipt and configuration_id):
+                raise ValidationError("Choose exactly one valid photo target.")
+            component = EquipmentComponent.objects.select_for_update().get(pk=component_id, owner=athlete) if component_id else None
+            config = BowConfiguration.objects.select_for_update().get(pk=configuration_id, owner=athlete) if configuration_id else None
+            if primary and not receipt:
+                EquipmentPhoto.objects.filter(component=component, configuration=config, receipt=False, active=True).update(primary=False)
+            storage = PrivateMediaStore(); key = storage.put(content)
+            photo = EquipmentPhoto.objects.create(component=component, configuration=config, owner=athlete, uploader=actor,
+                blob_key=key, primary=primary and not receipt, receipt=receipt)
+            activity(actor, athlete, "receipt.uploaded" if receipt else "photo.uploaded", component, photo=photo.pk)
+            return photo
+    except Exception:
+        if key and storage:
+            storage.delete(key)
+        raise
+
+
+def photo_bytes(actor, photo_id, athlete_id=None):
+    from .private_media import PrivateMediaStore
+    photo = EquipmentPhoto.objects.select_related("owner", "component__owner", "configuration__owner").get(pk=photo_id, active=True)
+    if photo.receipt:
+        private_authorize(actor, photo.owner)
+    elif photo.configuration_id:
+        authorize(actor, photo.configuration.owner)
+    elif can(actor, photo.component.owner, "view"):
+        pass
+    elif athlete_id:
+        recipient = AthleteProfile.objects.get(pk=athlete_id)
+        authorize(actor, recipient)
+        if not available(photo.component, recipient) or not EquipmentShare.objects.filter(component=photo.component,
+                owner=photo.component.owner, recipient=recipient, status="approved", permit_photos=True).exists():
+            raise PermissionDenied
+    else:
+        raise PermissionDenied
+    return PrivateMediaStore().get(photo.blob_key)
+
+
+@transaction.atomic
+def remove_photo(actor, athlete_id, photo_id):
+    athlete = locked_athlete(actor, athlete_id)
+    photo = EquipmentPhoto.objects.select_for_update().select_related("component", "configuration").get(pk=photo_id, active=True)
+    if photo.receipt:
+        private_authorize(actor, photo.owner)
+        if photo.owner_id != athlete.pk:
+            raise PermissionDenied
+    elif (photo.component_id and photo.component.owner_id != athlete.pk) or (photo.configuration_id and photo.configuration.owner_id != athlete.pk):
+        raise PermissionDenied
+    photo.active = False; photo.primary = False; photo.save(update_fields=["active", "primary"])
+    activity(actor, athlete, "photo.removed", photo.component, photo=photo.pk)
+    # Blob retained for explicit operator retention cleanup; inaccessible immediately.
+    return photo

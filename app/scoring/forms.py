@@ -138,3 +138,36 @@ class ConfigurationForm(forms.Form):
         shared_ids = [r["revision_id"] for r in shared_components(actor, athlete)] if actor else []
         self.fields["components"].queryset = ComponentRevision.objects.filter(Q(component__owner=athlete, component__status="active") | Q(pk__in=shared_ids)).select_related("component")
         self.fields["preferred_arrows"].queryset = Equipment.objects.filter(athlete=athlete, kind="arrow_set", active=True)
+
+
+class MaintenanceForm(forms.Form):
+    component = forms.ModelChoiceField(queryset=Equipment.objects.none())
+    kind = forms.ChoiceField(choices=[(v, v.title()) for v in ("inspection", "service", "repair", "replacement")])
+    event_date = forms.DateField(widget=forms.DateInput(attrs={"type": "date"}))
+    notes = forms.CharField(max_length=2000, required=False, widget=forms.Textarea)
+    condition = forms.CharField(max_length=100, required=False)
+    replacement = forms.ModelChoiceField(queryset=Equipment.objects.none(), required=False)
+    correction_of = forms.IntegerField(required=False, min_value=1)
+    def __init__(self, *args, athlete, **kwargs):
+        from .models import EquipmentComponent
+        super().__init__(*args, **kwargs)
+        for field in ("component", "replacement"):
+            self.fields[field].queryset = EquipmentComponent.objects.filter(owner=athlete)
+
+
+class PurchaseForm(forms.Form):
+    component = forms.ModelChoiceField(queryset=Equipment.objects.none())
+    purchase_date = forms.DateField(required=False, widget=forms.DateInput(attrs={"type": "date"}))
+    retailer = forms.CharField(max_length=150, required=False)
+    amount = forms.DecimalField(min_value=0, max_digits=12, decimal_places=2, required=False)
+    currency = forms.ChoiceField(required=False)
+    warranty_expiry = forms.DateField(required=False, widget=forms.DateInput(attrs={"type": "date"}))
+    receipt = forms.ModelChoiceField(queryset=Equipment.objects.none(), required=False)
+    correction_of = forms.IntegerField(required=False, min_value=1)
+    def __init__(self, *args, athlete, **kwargs):
+        from .models import EquipmentComponent, EquipmentPhoto
+        from .advanced_equipment import CURRENCIES
+        super().__init__(*args, **kwargs)
+        self.fields["component"].queryset = EquipmentComponent.objects.filter(owner=athlete)
+        self.fields["receipt"].queryset = EquipmentPhoto.objects.filter(owner=athlete, receipt=True, active=True)
+        self.fields["currency"].choices = [("", "---------")] + [(c, c) for c in sorted(CURRENCIES)]

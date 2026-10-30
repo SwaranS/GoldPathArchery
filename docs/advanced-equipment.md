@@ -39,3 +39,26 @@ recipient inventory. Each recipient must approve through its own edit-profile gr
 Live relationship and share checks apply to future selections. Shared payloads exclude
 private notes and serial references. Transfers append an ownership revision, revoke
 all prior shares and preserve original revisions and configuration snapshots.
+
+## Private media, purchases and maintenance
+Install requirements.txt. Local development: EQUIPMENT_MEDIA_BACKEND=local and
+EQUIPMENT_MEDIA_ROOT to a private directory outside static/media hosting. Production:
+EQUIPMENT_MEDIA_BACKEND=azure, EQUIPMENT_AZURE_CONNECTION_STRING from environment
+secret management and EQUIPMENT_AZURE_CONTAINER naming an existing private container.
+No container is created or made public. Storage checks reject public containers.
+Every download passes live authorization; keys are never included in HTML payloads.
+Receipts currently support photographed JPEG/PNG/WebP images, not PDF or office files.
+Uploads accept at most 8 MB / 20 million pixels and re-encode to metadata-free JPEG
+bounded to 2400 pixels. Active content formats are rejected. Images are not claimed
+virus-scanned; Azure malware scanning can be applied as an operational defense.
+
+Maintenance and purchases are append-only with correction links. Supported ISO
+currencies are listed by the purchase form; no currency conversion or default is
+inferred. Financial data and receipts require athlete/editing guardian authority,
+including historical owner authority following transfers. Shared recipients cannot
+read maintenance, purchase records or receipts. Removed images become immediately
+inaccessible. Operators must periodically reconcile blob keys to EquipmentPhoto:
+retain active keys, remove inactive keys only after the agreed retention interval,
+and remove unreferenced keys older than 24 hours (never delete fresh uploads).
+Failed metadata writes attempt immediate blob cleanup. Do not publicly serve the
+local private directory. Test storage uses temporary directories only.

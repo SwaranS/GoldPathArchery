@@ -3,3 +3,5 @@ psycopg[binary]>=3.2,<4
 gunicorn>=26.2,<27
 whitenoise>=6.12,<7
 django-allauth[socialaccount]>=65.0,<66
+Pillow>=11.0,<13
+azure-storage-blob>=12.24,<13

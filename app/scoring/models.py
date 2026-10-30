@@ -455,3 +455,60 @@ class EquipmentTransfer(models.Model):
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=["component"], condition=models.Q(status="pending"), name="component_one_pending_transfer")]
+
+
+class EquipmentPhoto(models.Model):
+    component = models.ForeignKey(EquipmentComponent, null=True, blank=True, on_delete=models.PROTECT, related_name="photos")
+    configuration = models.ForeignKey(BowConfiguration, null=True, blank=True, on_delete=models.PROTECT, related_name="photos")
+    owner = models.ForeignKey("accounts.AthleteProfile", on_delete=models.PROTECT)
+    blob_key = models.CharField(max_length=200, unique=True)
+    primary = models.BooleanField(default=False)
+    active = models.BooleanField(default=True)
+    receipt = models.BooleanField(default=False)
+    uploader = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
+    at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.CheckConstraint(condition=(models.Q(component__isnull=False, configuration__isnull=True) | models.Q(component__isnull=True, configuration__isnull=False)), name="photo_exactly_one_target"),
+            models.UniqueConstraint(fields=["component"], condition=models.Q(primary=True, active=True), name="component_primary_photo"),
+            models.UniqueConstraint(fields=["configuration"], condition=models.Q(primary=True, active=True), name="configuration_primary_photo")]
+
+
+class EquipmentMaintenanceEntry(models.Model):
+    component = models.ForeignKey(EquipmentComponent, on_delete=models.PROTECT, related_name="maintenance")
+    owner = models.ForeignKey("accounts.AthleteProfile", on_delete=models.PROTECT)
+    kind = models.CharField(max_length=12, choices=[(v, v.title()) for v in ("inspection", "service", "repair", "replacement")])
+    event_date = models.DateField()
+    notes = models.TextField(max_length=2000, blank=True)
+    condition = models.CharField(max_length=100, blank=True)
+    replacement = models.ForeignKey(EquipmentComponent, null=True, blank=True, on_delete=models.PROTECT, related_name="replaces")
+    correction_of = models.ForeignKey("self", null=True, blank=True, on_delete=models.PROTECT)
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
+    at = models.DateTimeField(auto_now_add=True)
+    photos = models.ManyToManyField(EquipmentPhoto, blank=True)
+
+    def save(self, *args, **kwargs):
+        if not self._state.adding:
+            raise ValidationError("Append a correction to maintenance history.")
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+
+class EquipmentPurchaseRecord(models.Model):
+    component = models.ForeignKey(EquipmentComponent, on_delete=models.PROTECT, related_name="purchases")
+    owner = models.ForeignKey("accounts.AthleteProfile", on_delete=models.PROTECT)
+    purchase_date = models.DateField(null=True, blank=True)
+    retailer = models.CharField(max_length=150, blank=True)
+    amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    currency = models.CharField(max_length=3, blank=True)
+    warranty_expiry = models.DateField(null=True, blank=True)
+    receipt = models.ForeignKey(EquipmentPhoto, null=True, blank=True, on_delete=models.PROTECT)
+    correction_of = models.ForeignKey("self", null=True, blank=True, on_delete=models.PROTECT)
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
+    at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self._state.adding:
+            raise ValidationError("Append a correction to purchase history.")
+        self.full_clean()
+        return super().save(*args, **kwargs)

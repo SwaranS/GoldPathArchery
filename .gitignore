@@ -12,3 +12,5 @@ __pycache__/
 .pytest_cache/
 # Local configuration
 /.env
+
+app/private-equipment/

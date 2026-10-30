@@ -178,3 +178,51 @@ class SharingTests(ComponentTests):
         transfer = a.invite_component(self.owner, self.athlete.pk, component.pk, recipient.pk, transfer=True)
         a.decide_invitation(self.owner, self.athlete.pk, transfer.pk, "cancelled", transfer=True)
         component.refresh_from_db(); self.assertEqual(component.owner_id, self.athlete.pk)
+
+
+import io
+import os
+import tempfile
+from unittest.mock import patch
+from django.core.files.uploadedfile import SimpleUploadedFile
+from PIL import Image
+
+class MediaMaintenanceTests(ComponentTests):
+    def image(self):
+        output = io.BytesIO(); Image.new("RGB", (30, 30), "red").save(output, "PNG")
+        return SimpleUploadedFile("unsafe-name.png", output.getvalue(), content_type="image/png")
+
+    def test_media_validation_private_access_and_primary(self):
+        component = a.save_component(self.owner, self.athlete.pk, "riser", dict(name="Riser"))
+        with tempfile.TemporaryDirectory() as directory, patch.dict(os.environ, {"EQUIPMENT_MEDIA_BACKEND": "local", "EQUIPMENT_MEDIA_ROOT": directory}):
+            first = a.upload_photo(self.owner, self.athlete.pk, self.image(), component_id=component.pk, primary=True)
+            second = a.upload_photo(self.owner, self.athlete.pk, self.image(), component_id=component.pk, primary=True)
+            first.refresh_from_db(); self.assertFalse(first.primary)
+            self.assertTrue(a.photo_bytes(self.owner, first.pk).startswith(b"\xff\xd8"))
+            with self.assertRaises(PermissionDenied): a.photo_bytes(self.other, first.pk)
+            self.client.force_login(self.owner)
+            response = self.client.get(reverse("equipment-media", args=[first.pk]))
+            self.assertEqual(response.status_code, 200); self.assertIn("no-store", response["Cache-Control"])
+            for mime in ("text/html", "image/png", "image/svg+xml"):
+                with self.assertRaises(ValidationError):
+                    a.upload_photo(self.owner, self.athlete.pk, SimpleUploadedFile("bad", b"<script>bad</script>", content_type=mime), component_id=component.pk)
+            a.remove_photo(self.owner, self.athlete.pk, first.pk)
+            from django.core.exceptions import ObjectDoesNotExist
+            with self.assertRaises(ObjectDoesNotExist): a.photo_bytes(self.owner, first.pk)
+            receipt = a.upload_photo(self.owner, self.athlete.pk, self.image(), component_id=component.pk, receipt=True)
+            CoachRelationship.objects.create(athlete=self.athlete, coach=self.other)
+            with self.assertRaises(PermissionDenied): a.photo_bytes(self.other, receipt.pk)
+            purchase = a.add_purchase(self.owner, self.athlete.pk, component.pk, dict(amount="10.50", currency="EUR", receipt_id=receipt.pk))
+            self.assertEqual(str(purchase.amount), "10.50")
+            with self.assertRaises(PermissionDenied): a.add_purchase(self.other, self.athlete.pk, component.pk, {})
+            with self.assertRaises(ValidationError): a.add_purchase(self.owner, self.athlete.pk, component.pk, dict(amount="-1", currency="EUR"))
+
+    def test_append_only_maintenance_and_purchase_corrections(self):
+        component = a.save_component(self.owner, self.athlete.pk, "string", dict(name="String"))
+        original = a.add_maintenance(self.owner, self.athlete.pk, component.pk, dict(kind="inspection", event_date=date(2026, 10, 1), notes="Original"))
+        correction = a.add_maintenance(self.owner, self.athlete.pk, component.pk, dict(kind="inspection", event_date=date(2026, 10, 2), correction_of_id=original.pk))
+        original.refresh_from_db(); self.assertEqual(original.notes, "Original")
+        self.assertEqual(correction.correction_of_id, original.pk)
+        with self.assertRaises(ValidationError): original.save()
+        purchase = a.add_purchase(self.owner, self.athlete.pk, component.pk, dict(retailer="Private shop"))
+        with self.assertRaises(ValidationError): purchase.save()

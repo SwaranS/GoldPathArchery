@@ -226,5 +226,59 @@ def equipment(request, athlete_id):
     context.update(shared_components=advanced_equipment.shared_components(request.user, athlete),
         shares=EquipmentShare.objects.filter(Q(owner=athlete) | Q(recipient=athlete)).order_by("-pk"),
         transfers=EquipmentTransfer.objects.filter(Q(sender=athlete) | Q(recipient=athlete)).order_by("-pk"))
+    from .forms import MaintenanceForm, PurchaseForm
+    from .models import EquipmentPhoto, EquipmentMaintenanceEntry, EquipmentPurchaseRecord
+    maintenance_form = MaintenanceForm(request.POST if action == "maintenance" else None, athlete=athlete)
+    purchase_form = PurchaseForm(request.POST if action == "purchase" else None, athlete=athlete)
+    if request.method == "POST" and action in ("maintenance", "purchase", "photo", "photo_remove"):
+        context.pop("action_error", None)
+        try:
+            if action in ("maintenance", "purchase"):
+                active_form = maintenance_form if action == "maintenance" else purchase_form
+                if active_form.is_valid():
+                    d = active_form.cleaned_data.copy(); component_id = d.pop("component").pk
+                    for key in ("replacement", "receipt", "correction_of"):
+                        if key in d:
+                            value = d.pop(key)
+                            if value:
+                                d[key + "_id"] = value.pk if hasattr(value, "pk") else value
+                    fn = advanced_equipment.add_maintenance if action == "maintenance" else advanced_equipment.add_purchase
+                    fn(request.user, athlete_id, component_id, d)
+                    return redirect("athlete-equipment", athlete_id=athlete_id)
+            elif action == "photo":
+                if not request.FILES.get("image"):
+                    raise ValidationError("Choose an image to upload.")
+                advanced_equipment.upload_photo(request.user, athlete_id, request.FILES["image"],
+                    component_id=request.POST.get("component_id") or None, configuration_id=request.POST.get("configuration_id") or None,
+                    primary=request.POST.get("primary") == "on", receipt=request.POST.get("receipt") == "on")
+                return redirect("athlete-equipment", athlete_id=athlete_id)
+            else:
+                advanced_equipment.remove_photo(request.user, athlete_id, request.POST["photo_id"])
+                return redirect("athlete-equipment", athlete_id=athlete_id)
+        except ValidationError as error:
+            context["action_error"] = "; ".join(error.messages)
+    private_access = False
+    try:
+        advanced_equipment.private_authorize(request.user, athlete); private_access = True
+    except PermissionDenied:
+        pass
+    context.update(maintenance_form=maintenance_form, purchase_form=purchase_form, private_purchase_access=private_access,
+        maintenance_entries=EquipmentMaintenanceEntry.objects.filter(owner=athlete).select_related("component").order_by("-event_date", "-pk")[:100],
+        purchase_entries=EquipmentPurchaseRecord.objects.filter(owner=athlete).order_by("-pk")[:100] if private_access else [],
+        photos=EquipmentPhoto.objects.filter(Q(component__owner=athlete) | Q(configuration__owner=athlete), active=True, receipt=False),
+        receipts=EquipmentPhoto.objects.filter(owner=athlete, active=True, receipt=True) if private_access else [])
     context.update(form=form, arrow_form=arrow_form, mark_form=mark_form, editing=editing)
     return render(request, "scoring/equipment.html", context)
+
+
+@login_required
+@require_GET
+@errors
+def equipment_media(request, photo_id):
+    from django.http import HttpResponse
+    content = advanced_equipment.photo_bytes(request.user, photo_id, request.GET.get("athlete"))
+    response = HttpResponse(content, content_type="image/jpeg")
+    response["Content-Disposition"] = 'inline; filename="equipment.jpg"'
+    response["X-Content-Type-Options"] = "nosniff"
+    response["Cache-Control"] = "private, no-store"
+    return response
