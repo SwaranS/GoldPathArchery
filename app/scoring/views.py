@@ -2,20 +2,20 @@ import json
 from datetime import date
 from functools import wraps
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
-from django.db import IntegrityError, transaction
+from django.db import IntegrityError
 from django.db.models import Q
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
 
-from accounts.models import AthleteProfile
 from accounts.permissions import accessible_athletes, can
-from . import services
-from .forms import ArrowForm, EquipmentForm, StartForm
-from .models import Equipment, PhysicalArrow, ScoringSession
+from . import services, equipment_services
+from .forms import ArrowForm, EquipmentForm, SightMarkForm, StartForm
+from .models import PhysicalArrow, ScoringSession
 
 
 def errors(view):
@@ -79,7 +79,7 @@ def session(request, session_id):
     obj = get_object_or_404(ScoringSession.objects.select_related("athlete"), pk=session_id)
     services.authorize(request.user, obj.athlete)
     stats = services.statistics(obj)
-    arrows = PhysicalArrow.objects.filter(arrow_set_id=obj.equipment.get("arrow_set", {}).get("id"),
+    arrows = PhysicalArrow.objects.select_related("arrow_set").filter(arrow_set_id=obj.equipment.get("arrow_set", {}).get("id"),
         arrow_set__athlete=obj.athlete).filter(
             Q(arrow_set__active=True, active=True) | Q(pk__in=obj.shots.values("arrow_id")))
     shot_data = [{**services.shot_state(s), "arrow": s.arrow_id} for s in obj.shots.all()]
@@ -103,26 +103,51 @@ def save(request, session_id):
 @login_required
 @require_http_methods(["GET", "POST"])
 @errors
-@transaction.atomic
 def equipment(request, athlete_id):
-    athlete = AthleteProfile.objects.select_for_update().get(pk=athlete_id)
-    services.authorize(request.user, athlete, True)
-    form = EquipmentForm(request.POST if request.POST.get("action") == "equipment" else None)
-    arrow_form = ArrowForm(request.POST if request.POST.get("action") == "arrow" else None, athlete=athlete)
+    context = equipment_services.workspace(request.user, athlete_id, bow=request.GET.get("bow"))
+    if request.method == "POST" and not context["writable"]:
+        raise PermissionDenied
+    edit_id = request.POST.get("item") if request.POST.get("action") == "revise" else request.GET.get("edit")
+    editing = next((item for item in context["items"] if str(item.pk) == str(edit_id)), None)
+    if (edit_id and editing is None) or (request.POST.get("action") == "revise" and not edit_id):
+        raise Http404("Unavailable.")
+    initial = {}
+    if editing:
+        initial = {field: getattr(editing.current, field) for field in equipment_services.SPEC_FIELDS} if editing.current else dict(
+            name=editing.name, division=editing.division, details=editing.details)
+        initial.update(kind=editing.kind, expected_revision=editing.current.pk if editing.current else None)
+    action = request.POST.get("action")
+    form = EquipmentForm(request.POST if action in ("equipment", "revise") else None, initial=initial)
+    arrow_form = ArrowForm(request.POST if action == "arrow" else None, athlete=athlete_id)
+    mark_form = SightMarkForm(request.POST if action == "mark" else None, athlete=athlete_id)
     if request.method == "POST":
-        action = request.POST.get("action")
-        if action == "equipment" and form.is_valid():
-            item = form.save(commit=False)
-            item.athlete = athlete
-            item.save()
-            return redirect("scoring-equipment", athlete_id=athlete.pk)
-        if action == "arrow" and arrow_form.is_valid():
-            arrow_form.save()
-            return redirect("scoring-equipment", athlete_id=athlete.pk)
-        if action in ("archive", "restore"):
-            item = get_object_or_404(Equipment, pk=request.POST["item"], athlete=athlete)
-            item.active = action == "restore"
-            item.save(update_fields=["active"])
-            return redirect("scoring-equipment", athlete_id=athlete.pk)
-    return render(request, "scoring/equipment.html", dict(athlete=athlete, form=form, arrow_form=arrow_form,
-        items=Equipment.objects.filter(athlete=athlete).prefetch_related("arrows")))
+        active_form = {"equipment": form, "revise": form, "arrow": arrow_form, "mark": mark_form}.get(action)
+        try:
+            if active_form and active_form.is_valid():
+                if action in ("equipment", "revise"):
+                    equipment_services.save_equipment(request.user, athlete_id, form.service_data(),
+                        item_id=editing.pk if editing else None,
+                        expected_revision=form.cleaned_data.get("expected_revision"))
+                elif action == "arrow":
+                    equipment_services.save_arrow(request.user, athlete_id, dict(
+                        arrow_set=arrow_form.cleaned_data["arrow_set"].pk,
+                        identifier=arrow_form.cleaned_data["identifier"], notes=arrow_form.cleaned_data["notes"]))
+                else:
+                    equipment_services.save_mark(request.user, athlete_id, {
+                        key: value.pk if hasattr(value, "pk") else value for key, value in mark_form.cleaned_data.items()})
+                messages.success(request, "Equipment record saved.")
+                return redirect("scoring-equipment", athlete_id=athlete_id)
+            if action in ("archive", "restore"):
+                equipment_services.set_active(request.user, athlete_id, request.POST.get("entity", "equipment"),
+                    request.POST["item"], action == "restore")
+                messages.success(request, "Record archived." if action == "archive" else "Record restored.")
+                return redirect("scoring-equipment", athlete_id=athlete_id)
+            if active_form is None:
+                raise ValidationError("Unknown equipment action.")
+        except ValidationError as error:
+            if active_form:
+                active_form.add_error(None, "; ".join(error.messages))
+            else:
+                context["action_error"] = "; ".join(error.messages)
+    context.update(form=form, arrow_form=arrow_form, mark_form=mark_form, editing=editing)
+    return render(request, "scoring/equipment.html", context)
