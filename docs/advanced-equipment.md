@@ -139,3 +139,29 @@ for the dedicated local test instance, never deployment configuration.
 - Receipts currently accept images only; ISO currencies are the supported form subset.
 - No public galleries, manufacturer fit certification, import/export, equipment segments or automatic tuning advice.
 - No live Azure storage or browser/screen-reader visual QA has been claimed.
+
+## Recorded verification (30 October 2026)
+Main baseline: 102 tests, 3 skipped. Reused prerequisites: 116 tests, 3 skipped.
+Final full suite: 161 tests passed on PostgreSQL 17 (no skips); SQLite: 161 tests
+passed with 4 PostgreSQL-only concurrency tests skipped. Django check: no issues.
+makemigrations --check --dry-run: no changes. git diff --check: clean.
+The PostgreSQL-only nullable join lock failure found during development was corrected
+by locking the photo row explicitly; the full PostgreSQL suite was rerun successfully.
+Migration generation succeeded; the optional formatter subprocess emitted Windows
+WinError 623, so generated migrations were inspected without claiming formatter success.
+No Azure round-trip, deployment, production/shared migration or browser accessibility
+certification was performed. Manual release checks above remain required.
+
+## PR-ready summary
+Advanced equipment extends the existing Django scoring system with stable, versioned
+components, named frozen configurations/defaults, first-arrow equipment locks,
+version-specific sight marks, explicitly approved sharing/accepted transfers, private
+media, maintenance/purchase histories, and permission-filtered timelines/comparisons.
+The branch includes two prerequisite commits absent from remote main: existing equipment
+revisions/sight marks and their athlete-discipline migration dependency. Review those
+separately from Phase 2. Existing basic equipment and both URLs remain supported.
+
+Review migrations and private storage configuration before applying anything. This is
+an implementation for review, not a production release approval. Remaining external
+verification is private Azure integration, browser/mobile/screen-reader QA and migration
+performance/restore testing with a sanitized deployment-size copy.

@@ -446,7 +446,9 @@ def performance_comparisons(actor, athlete, *, start_date=None, end_date=None):
         rows.append(dict(kind=kind, identity=identity, revision=revision, name=entries[0][3], context=context,
             conditions=conditions, sessions=len(entries), arrows=count, start=min(e[2] for e in entries), end=max(e[2] for e in entries),
             average=round(sum(e[1]["total"] for e in entries) / count, 2) if count else None,
-            sufficient=len(entries) >= 2))
+            sufficient=len(entries) >= 2,
+            condition_labels=[f"{stage['distance_m']} m / {stage['diameter_cm']} cm {stage['layout']} / {stage['rules_name']} / {stage['ends']} ends x {stage['arrows_per_end']} arrows" for stage in entries[0][0].snapshot["stages"]],
+            division=entries[0][0].snapshot["division"], category=entries[0][0].snapshot.get("category", "")))
     return sorted(rows, key=lambda r: (r["kind"], r["identity"], r["revision"] or 0, r["context"], r["conditions"]))
 
 

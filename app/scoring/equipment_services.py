@@ -1,5 +1,5 @@
 """Equipment boundary: stable identities, append-only specifications and live grants."""
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
@@ -134,7 +134,7 @@ def set_active(actor, athlete_id, entity, item_id, active):
     return obj
 
 
-def workspace(actor, athlete_id, *, bow=None):
+def workspace(actor, athlete_id, *, bow=None, configuration_revision=None, arrow_revision=None, distance=None, distance_unit=None):
     athlete = AthleteProfile.objects.get(pk=athlete_id)
     authorize(actor, athlete)
     items = list(Equipment.objects.filter(athlete=athlete).prefetch_related("revisions", "arrows").order_by("kind", "name", "pk"))
@@ -153,6 +153,18 @@ def workspace(actor, athlete_id, *, bow=None):
         # A foreign/invalid filter cannot disclose another athlete's setup.
         selected = Equipment.objects.get(pk=bow, athlete=athlete, kind="bow")
         marks = marks.filter(bow_revision__equipment=selected)
+    if configuration_revision:
+        marks = marks.filter(configuration_revision_id=configuration_revision)
+    if arrow_revision:
+        marks = marks.filter(arrow_revision_id=arrow_revision)
+    if distance:
+        try:
+            value = Decimal(distance)
+            if distance_unit not in ("m", "yd") or not value.is_finite() or not 0 < value < Decimal("100000"):
+                raise InvalidOperation
+        except InvalidOperation:
+            raise ValidationError("Filter distance needs a positive value below 100000 and metres or yards.") from None
+        marks = marks.filter(distance=distance, distance_unit=distance_unit)
     rows = list(marks.filter(configuration_revision__isnull=True))
     for mark in rows:
         mark.current_setup = (mark.bow_revision.equipment.active and

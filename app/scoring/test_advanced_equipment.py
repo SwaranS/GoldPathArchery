@@ -136,6 +136,10 @@ class ConfigurationScoringTests(equipment_test_helpers.EquipmentTests):
         with self.assertRaises(ValidationError):
             legacy.save_mark(self.owner, self.athlete.pk, dict(configuration_revision=revision.pk, distance=18, distance_unit="m", mark="Stale"))
         mark.refresh_from_db(); self.assertEqual(mark.configuration_revision_id, revision.pk)
+        filtered = legacy.workspace(self.owner, self.athlete.pk, configuration_revision=revision.pk, distance="18", distance_unit="m")
+        self.assertEqual([m.pk for m in filtered["advanced_marks"]], [mark.pk])
+        self.assertEqual(legacy.workspace(self.owner, self.athlete.pk, distance="20", distance_unit="m")["advanced_marks"], [])
+        with self.assertRaises(ValidationError): legacy.workspace(self.owner, self.athlete.pk, distance="invalid", distance_unit="m")
 
 
 from accounts.models import GuardianLink

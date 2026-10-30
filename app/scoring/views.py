@@ -120,7 +120,9 @@ def save(request, session_id):
 @require_http_methods(["GET", "POST"])
 @errors
 def equipment(request, athlete_id):
-    context = equipment_services.workspace(request.user, athlete_id, bow=request.GET.get("bow"))
+    context = equipment_services.workspace(request.user, athlete_id, bow=request.GET.get("bow"),
+        configuration_revision=request.GET.get("mark_configuration"), arrow_revision=request.GET.get("mark_arrows"),
+        distance=request.GET.get("mark_distance"), distance_unit=request.GET.get("mark_unit"))
     if request.method == "POST" and not context["writable"]:
         raise PermissionDenied
     edit_id = request.POST.get("item") if request.POST.get("action") == "revise" else request.GET.get("edit")
@@ -225,6 +227,9 @@ def equipment(request, athlete_id):
     for c in configs:
         c.current = c.revisions.first()
         c.available = advanced_equipment.configuration_available(c.current, athlete)
+    from .models import ConfigurationRevision, EquipmentRevision
+    context.update(mark_configuration_choices=ConfigurationRevision.objects.filter(configuration__owner=athlete).order_by("configuration_id", "-number"),
+        mark_arrow_choices=EquipmentRevision.objects.filter(equipment__athlete=athlete, equipment__kind="arrow_set").order_by("equipment_id", "-number"))
     context.update(configurations=configs, configuration_form=configuration_form, configuration_edit=config_edit,
         equipment_default=AthleteEquipmentDefaults.objects.filter(athlete=athlete).first())
     from .models import EquipmentShare, EquipmentTransfer
@@ -293,6 +298,10 @@ def equipment(request, athlete_id):
     context.update(activity_page=advanced_equipment.timeline(request.user, athlete, page=request.GET.get("page", 1), component_id=request.GET.get("history_component")),
         equipment_comparisons=advanced_equipment.performance_comparisons(request.user, athlete, start_date=comparison_from, end_date=comparison_to),
         component_count=len(components), configuration_count=len(configs), unavailable_count=sum(not c.available for c in configs))
+    comparison_kind = request.GET.get("comparison_kind", "")
+    comparison_name = request.GET.get("comparison_name", "").strip().casefold()
+    context["equipment_comparisons"] = [row for row in context["equipment_comparisons"] if
+        (not comparison_kind or row["kind"] == comparison_kind) and (not comparison_name or comparison_name in row["name"].casefold())]
     search = request.GET.get("search", "").strip().casefold()
     category = request.GET.get("category", "")
     context["components"] = [c for c in components if (not category or c.category == category) and (not search or search in str(c).casefold())]
