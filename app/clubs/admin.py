@@ -10,7 +10,8 @@ from .security import has_recent_mfa
 
 class ReviewerAdmin(admin.ModelAdmin):
     def has_module_permission(self, request):
-        return getattr(settings, "CLUBS_ENABLED", False) and has_recent_mfa(request)
+        return (getattr(settings, "CLUBS_ENABLED", False)
+                and services.is_reviewer(request.user) and has_recent_mfa(request))
 
     def has_view_permission(self, request, obj=None):
         return self.has_module_permission(request)

@@ -15,3 +15,7 @@ __pycache__/
 
 app/private-equipment/
 local_files
+
+# Local browser validation tools/artifacts (never application assets).
+tests/clubs_validation/node_modules/
+tests/clubs_validation/artifacts/

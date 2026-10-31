@@ -9,7 +9,7 @@ from django.views.decorators.http import require_GET, require_http_methods
 from . import services
 from .forms import ClaimForm, DecisionForm, EvidenceForm, InformationResponseForm
 from .storage import PrivateEvidenceStore
-from .security import review_session_redirect
+from .security import admin_session_redirect, review_session_redirect
 
 
 @never_cache
@@ -154,4 +154,8 @@ def evidence_download(request, evidence_id):
 @login_required
 @require_GET
 def manage(request, club_id):
-    return render(request, "clubs/manage.html", {"club": services.managed_club(request.user, club_id)})
+    club = services.managed_club(request.user, club_id)
+    challenge = admin_session_redirect(request)
+    if challenge is not None:
+        return challenge
+    return render(request, "clubs/manage.html", {"club": club})

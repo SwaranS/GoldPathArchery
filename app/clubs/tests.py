@@ -20,16 +20,20 @@ from .models import Club, ClubClaim, KnownClubListing, ClubMembership, ClubRoleA
 from .storage import PrivateEvidenceStore, normalize_upload
 
 
+def login_with_mfa(client, user):
+    client.force_login(user)
+    auth, _ = Authenticator.objects.get_or_create(user=user, type="totp", defaults={"data": {}})
+    request = RequestFactory().get("/clubs/verification/")
+    request.session = client.session
+    request.user = user
+    record_authentication(request, user, method="mfa", id=auth.pk, type="totp")
+    request.session.save()
+
+
 @override_settings(CLUBS_ENABLED=True)
 class FoundationTests(TestCase):
     def login_reviewer(self, client):
-        client.force_login(self.reviewer)
-        auth, _ = Authenticator.objects.get_or_create(user=self.reviewer, type="totp", defaults={"data": {}})
-        request = RequestFactory().get("/clubs/verification/")
-        request.session = client.session
-        request.user = self.reviewer
-        record_authentication(request, self.reviewer, method="mfa", id=auth.pk, type="totp")
-        request.session.save()
+        login_with_mfa(client, self.reviewer)
 
     def setUp(self):
         User = get_user_model()
@@ -127,7 +131,7 @@ class FoundationTests(TestCase):
         self.assertNotIn(club, services.public_clubs())
         self.client.force_login(self.other)
         self.assertEqual(self.client.get(reverse("clubs:manage", args=[club.pk])).status_code, 404)
-        self.client.force_login(self.applicant)
+        login_with_mfa(self.client, self.applicant)
         self.assertEqual(self.client.get(reverse("clubs:manage", args=[club.pk])).status_code, 200)
         club.status = "suspended"
         club.save()

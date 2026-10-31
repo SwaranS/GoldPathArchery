@@ -62,9 +62,43 @@ jobs:
         if: always()
         run: docker compose down --volumes --remove-orphans
 
+  clubs-validation:
+    name: Club local release validation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Install isolated browser validation dependencies
+        working-directory: tests/clubs_validation
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          node node_modules/playwright/cli.js install --with-deps chromium
+
+      - name: Rehearse local migrations, browser workflow, backup and restore
+        run: |
+          python3 -m venv /tmp/clubs-validation-venv
+          /tmp/clubs-validation-venv/bin/pip install -r requirements.txt
+          docker run --detach --name goldpath-clubs-test-db \
+            --publish 127.0.0.1:55440:5432 \
+            --env POSTGRES_DB=clubs_test --env POSTGRES_USER=clubs_test \
+            --env POSTGRES_PASSWORD=clubs_test_local_only postgres:17
+          for attempt in $(seq 1 30); do
+            if docker exec goldpath-clubs-test-db pg_isready -U clubs_test -d clubs_test; then break; fi
+            sleep 1
+          done
+          /tmp/clubs-validation-venv/bin/python tests/clubs_validation/validate_local.py --run
+
+      - name: Clean up disposable validation container
+        if: always()
+        run: docker rm --force --volumes goldpath-clubs-test-db || true
+
   deploy:
     name: Deploy development app
-    needs: checks
+    needs: [checks, clubs-validation]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     timeout-minutes: 20

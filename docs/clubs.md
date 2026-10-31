@@ -37,7 +37,8 @@ Only M1 is implemented; M2–M9 are excluded. The feature is disabled by default
   disputes/recovery remain platform case-management work in M8.
 - `/clubs/<uuid>/manage/`: approved first-admin dashboard only. Suspended/archived
   clubs, inactive memberships, revoked roles, inactive accounts and closed athlete
-  accounts are denied. This role grants no private-athlete access.
+  accounts are denied. Fresh account-bound MFA is required after the club role is
+  authorized. This role grants no private-athlete access or platform reviewer rights.
 - Known listings are curated with source/review date in Django admin. Club,
   submitted-claim, audit and security screens are read-only. Every club admin
   screen requires fresh MFA. Evidence has no generic admin/media URL.
@@ -190,7 +191,7 @@ competing approvals, self-approval, account age/closure, CSRF, valid/invalid TOT
 HTTP reauthentication, stale/deleted MFA, encrypted key rotation, read-only admin
 permissions, bounded security logs, upload recovery/cleanup, mocked Azure privacy,
 and migration forward/reversal without deleting legacy identities. Legacy account
-and scoring regression tests run in the same full suite. Six PostgreSQL-only tests
+and scoring regression tests run in the same full suite. Seven PostgreSQL-only tests
 are skipped on SQLite and executed on PostgreSQL.
 
 Production `check` and `collectstatic` also run using synthetic configuration and
@@ -198,10 +199,12 @@ a temporary static output directory; no live database connection or deployment.
 Django's optional migration formatter could not launch (Windows WinError 623);
 actual migration generation, consistency checks and tests succeed.
 
-Eight template previews were rendered from synthetic data. Visual/accessibility
-browser review remains pending: the in-app browser could not reach the local
-preview; native browser control stopped because URL-policy enforcement is
-unsupported. HTTP flow tests pass; this is not a claim of a visual/staging sign-off.
+The reproducible headless Chromium rehearsal now exercises real local HTTP forms,
+desktop/mobile rendering, axe scans, keyboard focus, platform/club administrator
+MFA and private evidence. It replaces the earlier static-preview limitation without
+controlling the user's native browser. See the [validation/release record](clubs-release-validation.md)
+for machine evidence, screenshots, restore checks and the remaining human/staging
+gates. This is not a real staging sign-off or complete manual accessibility certification.
 
 ## Migration / release controls
 
@@ -220,10 +223,14 @@ verify preservation after synthetic walkthroughs. Application rollback/feature-o
 should retain additive tables. Reversing clubs to zero after use deletes claims
 and audit history and must not be treated as a safe production rollback.
 
-Draft-PR release gates still open:
+Local browser/accessibility, cross-process DatabaseCache MFA, synthetic verification,
+legacy-data preservation, isolated backup/restore, feature-off rollback and repeated
+cleanup rehearsals are complete. CI runs the local rehearsal as an additional gate.
+
+Draft-PR release gates still open in the actual environment:
 
 - Human code/security/privacy review; no merge authorized.
-- Browser/accessibility walkthrough on supported tooling.
+- Human assistive-technology/device review (local automated browser checks passed).
 - Independent verification process exercised end-to-end in synthetic staging.
 - Live Azure private/encrypted access and cross-worker MFA/cache checks.
 - Approved retention/erasure policy and demonstrated daily cleanup scheduling.

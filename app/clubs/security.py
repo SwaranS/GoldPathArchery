@@ -1,4 +1,4 @@
-"""HTTP reviewer gate. Social-provider login alone is never treated as MFA."""
+"""Fresh MFA for administrators. Role authorization remains a separate prerequisite."""
 import math
 import time
 from urllib.parse import urlencode
@@ -10,10 +10,11 @@ from django.shortcuts import redirect
 from django.urls import reverse
 
 from . import services
+from accounts.permissions import eligible_actor
 
 
 def has_recent_mfa(request):
-    if not services.is_reviewer(request.user):
+    if not eligible_actor(request.user, write=True):
         return False
     now = time.time()
     for record in reversed(get_authentication_records(request, user=request.user)):
@@ -26,13 +27,18 @@ def has_recent_mfa(request):
     return False
 
 
-def review_session_redirect(request):
-    services.require_reviewer(request.user)
+def admin_session_redirect(request, *, event="admin.mfa_required"):
+    """Call only after the specific platform/club role has been authorized."""
     if has_recent_mfa(request):
         return None
     from .middleware import security_event
-    security_event(request, "review.mfa_required")
+    security_event(request, event)
     enrolled = Authenticator.objects.filter(user=request.user, type="totp").exists()
     url = reverse("mfa_reauthenticate" if enrolled else "mfa_index")
     # Do not stash private evidence uploads or automatically replay decisions.
     return redirect(url + "?" + urlencode({"next": request.get_full_path()}))
+
+
+def review_session_redirect(request):
+    services.require_reviewer(request.user)
+    return admin_session_redirect(request, event="review.mfa_required")
