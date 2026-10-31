@@ -230,7 +230,7 @@ class EquipmentTests(TestCase):
         link = GuardianLink.objects.create(athlete=self.athlete, parent=self.parent, access="edit", adult_grant=True)
         coach_link = CoachRelationship.objects.create(athlete=self.athlete, coach=self.coach, plan_edit=True)
         self.client.force_login(self.parent)
-        self.assertContains(self.client.get(self.url), "Save equipment")
+        self.assertContains(self.client.get(reverse("athlete-equipment-section", args=[self.athlete.pk, "configurations"])), "Save equipment")
         e.save_arrow(self.parent, self.athlete.pk, dict(arrow_set=self.arrows.pk, identifier="Parent7"))
         link.access = "view"
         link.save()
@@ -282,7 +282,7 @@ class EquipmentTests(TestCase):
             page = self.client.get(url)
             self.assertContains(page, "SELECTED ATHLETE")
             self.assertContains(page, "Selected archer")
-            self.assertContains(page, "Sight marks by bow and distance")
+            self.assertContains(page, "My Equipment")
             self.assertNotContains(page, "Coming soon")
         invalid = self.client.post(alias, dict(action="equipment", kind="bow", name="Keep my input"))
         self.assertContains(invalid, "Keep my input")
@@ -304,7 +304,7 @@ class EquipmentTests(TestCase):
         mark = self.client.post(alias, dict(action="mark", bow_revision=e.current_revision(self.bow).pk,
             distance="18", distance_unit="m", mark="5.3"))
         self.assertRedirects(mark, self.url)
-        self.assertContains(self.client.get(alias), "5.3")
+        self.assertContains(self.client.get(reverse("athlete-equipment-section", args=[self.athlete.pk, "sight-marks"])), "5.3")
         csrf = Client(enforce_csrf_checks=True)
         csrf.force_login(self.owner)
         self.assertEqual(csrf.post(alias, dict(action="archive", item=item.pk)).status_code, 403)

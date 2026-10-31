@@ -63,3 +63,18 @@ class EquipmentPageTests(TestCase):
                 self.assertEqual(self.client.post(self.url(section, route), {"action": "component"}).status_code, 404)
         self.client.logout()
         self.assertEqual(self.client.get(self.url("components")).status_code, 302)
+
+    def test_url_callbacks_accept_captured_parameters(self):
+        import inspect
+        from django.urls import URLPattern, get_resolver
+
+        def audit(patterns, inherited=None):
+            for pattern in patterns:
+                kwargs = {**(inherited or {}), **{key: object() for key in pattern.pattern.converters}}
+                if isinstance(pattern, URLPattern):
+                    if pattern.callback.__module__ == "scoring.views":
+                        inspect.signature(pattern.callback).bind(object(), **kwargs, **pattern.default_args)
+                else:
+                    audit(pattern.url_patterns, kwargs)
+
+        audit(get_resolver().url_patterns)
