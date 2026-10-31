@@ -1,0 +1,12 @@
+{% extends 'clubs/base.html' %}
+{% block title %}{{ claim.name }} application · GoldPathArchery{% endblock %}
+{% block club_content %}
+<h1>{{ claim.name }} application</h1>
+<p>Status: {{ claim.get_state_display }}</p><p>{{ claim.decision_reason }}</p>
+{% if claim.state == 'draft' %}<p>This draft is private to you and has not been submitted for review.</p><p><a href="{% url 'clubs:draft' claim.pk %}">Continue editing draft</a></p>{% endif %}
+{% if claim.state == 'approved' %}<p><a href="{% url 'clubs:manage' claim.club_id %}">Club dashboard</a></p>{% endif %}
+<p><a href="{% url 'clubs:apply' %}">Your applications</a></p>
+<p><a href="{{ request.path }}">Reload current application</a></p>
+<h2>Application history</h2><ul>{% for item in claim.decisions.all %}<li>{{ item.created_at }} · {{ item.state }} · {{ item.reason }}</li>{% empty %}<li>No review decisions yet.</li>{% endfor %}</ul>
+{% if claim.state == 'information_requested' and claim.applicant_id == request.user.pk %}<h2>Provide requested information</h2><form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Send response</button></form>{% endif %}
+{% endblock %}

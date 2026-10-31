@@ -1,0 +1,69 @@
+{
+  "synthetic_only": true,
+  "generated_at_utc": "2026-10-31T15:40:52.390683+00:00",
+  "source_revision": "96c1106-dirty",
+  "source_database": "clubs_validation_a28e1ecd5102",
+  "restore_database": "clubs_validation_a28e1ecd5102_restore",
+  "disposable_databases_removed": true,
+  "passed": true,
+  "checks": {
+    "legacy_records_preserved_after_migration": true,
+    "browser_and_accessibility": true,
+    "legacy_records_preserved_after_browser_workflow": true,
+    "club_admin_has_no_private_athlete_access": true,
+    "guardian_managed_junior_stays_without_login": true,
+    "private_profile_exact_url_is_hidden": true,
+    "feature_off_rollback": true,
+    "legacy_records_preserved_before_backup": true,
+    "backup_restore_preserves_legacy_data": true,
+    "backup_restore_preserves_club_audit_relations": true,
+    "restore_mfa_key_recovery": true,
+    "cleanup_after_restore_is_idempotent": true,
+    "restore_cleanup_does_not_touch_source_blobs": true
+  },
+  "errors": [],
+  "legacy_baseline": {
+    "sha256": "2bcfc9007cc623531dd6e7ec2084ca0ac829b235f5e8c36661b7e99151bbe41c",
+    "counts": {
+      "accounts.User": 1,
+      "accounts.AthleteProfile": 2,
+      "accounts.GuardianLink": 1,
+      "scoring.Equipment": 1,
+      "scoring.EquipmentRevision": 1,
+      "scoring.ScoringSession": 1,
+      "scoring.ArrowShot": 3,
+      "scoring.ScoreChangeAudit": 6,
+      "training.GeneratedPlan": 1
+    }
+  },
+  "club_state_baseline": {
+    "sha256": "970e40802fd37bea67529ef8ab4103a24a35830819f9cbc28413638e56845c76",
+    "counts": {
+      "clubs.Club": 2,
+      "clubs.ClubClaim": 2,
+      "clubs.ClubAuditEvent": 12,
+      "clubs.ClubVerificationEvidence": 2,
+      "clubs.ClubMembership": 2,
+      "clubs.ClubRoleAssignment": 2,
+      "clubs.ClubClaimDecision": 2,
+      "clubs.KnownClubListing": 1,
+      "clubs.ClubSecurityEvent": 5,
+      "clubs.EvidenceUpload": 0,
+      "mfa.Authenticator": 2
+    }
+  },
+  "backup_bytes": 254220,
+  "club_record_counts": {
+    "clubs.Club": 2,
+    "clubs.ClubClaim": 2,
+    "clubs.ClubAuditEvent": 12,
+    "clubs.ClubVerificationEvidence": 2,
+    "clubs.ClubMembership": 2,
+    "clubs.ClubRoleAssignment": 2,
+    "clubs.ClubClaimDecision": 2,
+    "clubs.KnownClubListing": 1,
+    "clubs.ClubSecurityEvent": 5,
+    "clubs.EvidenceUpload": 0,
+    "mfa.Authenticator": 2
+  }
+}

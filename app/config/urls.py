@@ -16,6 +16,7 @@ def disabled_password_signup(request):
 
 
 urlpatterns = [
+    path("clubs/", include("clubs.urls")),
     path("", home, name="home"),
     path("admin/", admin.site.urls),
     path("accounts/signup/", disabled_password_signup),

@@ -1,0 +1,2 @@
+{% extends 'clubs/base.html' %}{% block title %}{{ club.name }} · GoldPathArchery{% endblock %}
+{% block club_content %}<h1>{{ club.name }}</h1><p>Verified club</p><p>{{ club.town }} {{ club.region }} {{ club.country }}</p><p>{{ club.description|linebreaksbr }}</p>{% if club.website %}<p><a href="{{ club.website }}" rel="noopener noreferrer">Club website</a></p>{% endif %}<a href="{% url 'clubs:directory' %}">All clubs</a>{% endblock %}

@@ -3,6 +3,7 @@ import os
 from .settings import *
 
 DEBUG = False
+CLUBS_PRODUCTION = True
 
 ALLOWED_HOSTS = [
     host.strip()

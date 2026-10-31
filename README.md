@@ -2,6 +2,12 @@
 
 Archery training, scoring and coaching service for recurve, compound and barebow.
 
+## Clubs foundation
+
+The optional clubs verification foundation is disabled by default. See
+[clubs setup, tests and release gates](docs/clubs.md) before enabling it or
+deploying its additive migrations.
+
 ## Scoring implementation
 
 See [scoring setup and behavior](docs/scoring.md) for migrations, practice seed data, administration, score entry, session history, equipment and personal bests.

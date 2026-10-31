@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}{% block head_title %}Account security{% endblock %} · GoldPathArchery{% endblock %}
+{% block page_class %}workspace-page{% endblock %}
+{% block content_wrapper %}
+<section class="workspace-card">
+  <nav aria-label="Account security">
+    {% if request.user.is_authenticated %}
+      <a href="{% url 'mfa_index' %}">Two-factor authentication</a> ·
+      <a href="{% url 'account_email' %}">Email settings</a> ·
+      <a href="{% url 'socialaccount_connections' %}">Sign-in connections</a> ·
+      <a href="{% url 'account_logout' %}">Sign out</a>
+    {% endif %}
+  </nav>
+  {% block content %}{% block body %}{% endblock %}{% endblock %}
+</section>
+{% endblock %}

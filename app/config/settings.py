@@ -19,9 +19,11 @@ INSTALLED_APPS = [
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
+    "allauth.mfa",
     "accounts.apps.AccountsConfig",
     "scoring",
     "training",
+    "clubs",
 ]
 SITE_ID = 1
 
@@ -31,6 +33,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "clubs.middleware.ClubRequestContextMiddleware",
     "allauth.account.middleware.AccountMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -49,6 +52,7 @@ TEMPLATES = [{
             "django.contrib.auth.context_processors.auth",
             "django.contrib.messages.context_processors.messages",
             "accounts.navigation.navigation",
+            "clubs.context_processors.clubs_navigation",
         ],
     },
 }]
@@ -110,6 +114,23 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+# Opt in only after the clubs verification/storage release checklist is reviewed.
+CLUBS_ENABLED = os.environ.get("CLUBS_ENABLED", "0") == "1"
+CLUB_EVIDENCE_BACKEND = os.environ.get("CLUB_EVIDENCE_BACKEND", "disabled")
+CLUB_EVIDENCE_ROOT = os.environ.get("CLUB_EVIDENCE_ROOT", "")
+CLUB_EVIDENCE_AZURE_CONNECTION_STRING = os.environ.get("CLUB_EVIDENCE_AZURE_CONNECTION_STRING", "")
+CLUB_EVIDENCE_AZURE_CONTAINER = os.environ.get("CLUB_EVIDENCE_AZURE_CONTAINER", "")
+CLUB_REVIEW_MFA_MAX_AGE = 300
+CLUB_EVIDENCE_MAX_RETENTION_DAYS = 90
+CLUB_SECURITY_RETENTION_DAYS = 30
+# DatabaseCache can use the existing PostgreSQL; create its table explicitly at rollout.
+if os.environ.get("DJANGO_CACHE_TABLE"):
+    CACHES = {"default": {"BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": os.environ["DJANGO_CACHE_TABLE"]}}
+MFA_ADAPTER = "clubs.mfa.EncryptedMFAAdapter"
+MFA_SUPPORTED_TYPES = ["totp", "recovery_codes"]
+MFA_ENCRYPTION_KEYS = [key.strip() for key in os.environ.get("MFA_ENCRYPTION_KEYS", "").split(",") if key.strip()]
 
 # Keep Firefox form origins while withholding referrers from external sites.
 SECURE_REFERRER_POLICY = "same-origin"
