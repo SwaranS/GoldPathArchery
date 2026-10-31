@@ -69,3 +69,11 @@ can be dropped. If the Python process is forcibly killed, inspect the exact gene
 names in that run's report before manually removing any leftover test database.
 Never substitute a deployed container/database or run restore cleanup against the
 original storage namespace.
+
+## Milestone 2 coverage
+
+The rehearsal now enables the separate membership flag only inside its disposable
+server. It exercises public join approval, private recipient-bound invitation
+acceptance, explicit home-club changes and additional administrator acceptance
+with real TOTP. Action, role and home-club tables participate in restore checks.
+No running application database or local user accounts are changed.

@@ -1,0 +1,30 @@
+{% extends 'clubs/base.html' %}
+{% block title %}Memberships · {{ club.name }}{% endblock %}
+{% block club_content %}
+<h1>{{ club.name }} memberships</h1>
+<p>Only membership identity and club roles are shown. Private athlete information is not shared through club membership.</p>
+{{ form.non_field_errors }}{% if form.errors %}<p role="alert">The action was not saved. Check the error above or reload the current page.</p>{% endif %}
+<p><a href="{% url 'clubs:invite' club.pk %}">Invite a member</a> · <a href="{% url 'clubs:memberships' %}">Switch club</a></p>
+{% if is_club_admin %}
+<h2>Join requests</h2>
+<form method="post">{% csrf_token %}<input type="hidden" name="action" value="settings"><input type="hidden" name="version" value="{{ club.version }}">
+<label><input type="checkbox" name="accepts_requests" {% if club.accepts_requests %}checked{% endif %}>Accept requests to join this public club</label><button type="submit">Save request settings</button></form>
+{% endif %}
+<h2>Pending requests</h2>
+<ul>{% for item in pending %}<li>{% if item.athlete %}{{ item.athlete.display_name }}{% else %}{{ item.target_user.username }}{% endif %}
+<form method="post">{% csrf_token %}<input type="hidden" name="target" value="{{ item.pk }}"><input type="hidden" name="version" value="{{ item.version }}"><button name="action" value="approve">Approve membership</button><button name="action" value="reject">Reject membership</button></form>
+</li>{% empty %}<li>No pending join requests.</li>{% endfor %}</ul>
+<h2>Active members</h2>
+<ul>{% for member in members %}<li>
+<h3>{% if member.athlete %}{{ member.athlete.display_name }}{% else %}{{ member.user.username }}{% endif %}</h3>
+<ul>{% for role in member.roles.all %}{% if not role.revoked_at %}<li>{{ role.get_role_display }}{% if is_club_admin and role.can_revoke %}<form method="post">{% csrf_token %}<input type="hidden" name="target" value="{{ role.pk }}"><input type="hidden" name="version" value="{{ member.version }}"><button name="action" value="revoke_role">Revoke {{ role.get_role_display }}</button></form>{% endif %}</li>{% endif %}{% endfor %}</ul>
+{% if is_club_admin %}
+{% if member.can_offer %}<form method="post">{% csrf_token %}<input type="hidden" name="target" value="{{ member.pk }}"><input type="hidden" name="version" value="{{ member.version }}">
+<label for="role-{{ member.pk }}">Offer a club role</label><select name="role" id="role-{{ member.pk }}"><option value="coach">Coach</option><option value="membership_manager">Membership manager</option><option value="admin">Admin</option></select><button name="action" value="offer_role">Offer role for acceptance</button></form>{% endif %}
+<form method="post">{% csrf_token %}<input type="hidden" name="target" value="{{ member.pk }}"><input type="hidden" name="version" value="{{ member.version }}">{% if member.can_end %}<button name="action" value="suspend">Suspend member</button><button name="action" value="remove">Remove member</button>{% else %}<p>Last active administrator: an accepted successor is required before leaving or removal.</p>{% endif %}</form>
+{% endif %}
+</li>{% empty %}<li>No active memberships.</li>{% endfor %}</ul>
+<h2>Pending invitations and appointments</h2>
+<ul>{% for item in invitations %}<li>{{ item.get_kind_display }}{% if item.kind == 'invite' %} · {{ item.recipient_email }}{% else %} · {{ item.role }}{% endif %} · expires {{ item.expires_at }}
+{% if item.kind == 'invite' or is_club_admin %}<form method="post">{% csrf_token %}<input type="hidden" name="target" value="{{ item.pk }}"><input type="hidden" name="version" value="{{ item.version }}"><button name="action" value="revoke_invitation">Revoke offer</button></form>{% endif %}</li>{% empty %}<li>No pending offers.</li>{% endfor %}</ul>
+{% endblock %}
