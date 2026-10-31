@@ -94,6 +94,14 @@ class CompletionTests(TestCase):
         Authenticator.objects.filter(user=self.reviewer).delete()
         self.assertIn(reverse("mfa_index"), self.client.get(reverse("clubs:queue")).url)
 
+    def test_unbound_legacy_mfa_records_cannot_authorize_review(self):
+        self.login_reviewer(self.client)
+        session = self.client.session
+        # Retain a recent valid authenticator record but remove its account binding.
+        session.pop("account_authentication_methods_user")
+        session.save()
+        self.assertIn(reverse("mfa_reauthenticate"), self.client.get(reverse("clubs:queue")).url)
+
     @override_settings(MFA_ENCRYPTION_KEYS=[Fernet.generate_key().decode("ascii")])
     def test_real_totp_reauthentication_unlocks_review(self):
         cache.clear()

@@ -69,6 +69,11 @@ users without enrolled MFA keep their original login flow. Reviewers enroll at
 screens. Stale POSTs redirect without storing uploaded files or automatically
 replaying decisions; return to the form and submit again after MFA.
 
+The allauth minimum is 65.21.1: the reviewer gate explicitly passes the current
+user to its account-bound authentication-record API. Unbound legacy records do
+not authorize review. Both the real TOTP challenge and this negative case are
+tested against the same version installed by clean CI builds.
+
 Set `MFA_ENCRYPTION_KEYS` to a comma-separated Fernet key ring from secure secret
 configuration, newest key first. Keep it distinct from `DJANGO_SECRET_KEY` and
 back it up separately. Secrets are encrypted at rest; old keys allow rotation.

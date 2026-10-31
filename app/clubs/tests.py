@@ -2,14 +2,14 @@ from datetime import date, timedelta
 from io import BytesIO
 from tempfile import TemporaryDirectory
 from unittest import mock
-import time
 from allauth.mfa.models import Authenticator
+from allauth.account.internal.flows.login import record_authentication
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.core.exceptions import PermissionDenied, ValidationError, ImproperlyConfigured
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import Client, TestCase, override_settings
+from django.test import Client, RequestFactory, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 from PIL import Image
@@ -25,9 +25,11 @@ class FoundationTests(TestCase):
     def login_reviewer(self, client):
         client.force_login(self.reviewer)
         auth, _ = Authenticator.objects.get_or_create(user=self.reviewer, type="totp", defaults={"data": {}})
-        session = client.session
-        session["account_authentication_methods"] = [{"method": "mfa", "at": time.time(), "id": auth.pk, "type": "totp"}]
-        session.save()
+        request = RequestFactory().get("/clubs/verification/")
+        request.session = client.session
+        request.user = self.reviewer
+        record_authentication(request, self.reviewer, method="mfa", id=auth.pk, type="totp")
+        request.session.save()
 
     def setUp(self):
         User = get_user_model()

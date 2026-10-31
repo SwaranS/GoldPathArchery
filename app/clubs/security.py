@@ -16,7 +16,7 @@ def has_recent_mfa(request):
     if not services.is_reviewer(request.user):
         return False
     now = time.time()
-    for record in reversed(get_authentication_records(request)):
+    for record in reversed(get_authentication_records(request, user=request.user)):
         at = record.get("at")
         if (record.get("method") == "mfa" and isinstance(at, (int, float)) and math.isfinite(at)
                 and 0 <= now - at < settings.CLUB_REVIEW_MFA_MAX_AGE
