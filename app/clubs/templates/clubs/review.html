@@ -1,4 +1,18 @@
 {% extends 'clubs/base.html' %}{% block title %}Review club claim · GoldPathArchery{% endblock %}{% block club_content %}<h1>Review {{ claim.name }}</h1><p>Status: {{ claim.get_state_display }}</p><p>Applicant authority: {{ claim.role_assertion }}</p><p>{{ claim.country }} {{ claim.region }} {{ claim.town }}</p><p>Proposed website: {{ claim.website }}</p><p>Proposed visibility: {{ claim.get_visibility_display }}</p><p>Proposed public description: {{ claim.description }}</p><p>{{ claim.decision_reason }}</p>
+<p><a href="{{ request.path }}">Reload current application</a></p>
+<section aria-label="Claim target">
+<h2>Selected known club</h2>
+{% if claim.listing_id %}
+<dl><dt>Directory identity</dt><dd>{{ claim.listing.name }}</dd>
+<dt>Location</dt><dd>{{ claim.listing.region }} {{ claim.listing.country }}</dd>
+<dt>Directory website</dt><dd>{{ claim.listing.website|default:'Not recorded' }}</dd>
+<dt>Federation number</dt><dd>{{ claim.listing.federation_number|default:'Not recorded' }}</dd>
+<dt>Independent directory source</dt><dd>{{ claim.listing.source_url }}</dd>
+<dt>Directory reviewed on</dt><dd>{{ claim.listing.reviewed_on }}</dd></dl>
+<p>Approval links this directory identity to the new club. Verify that the proposed profile and independent contact evidence refer to this exact club, including any name or location differences.</p>
+{% if claim.listing.club_id %}<p>This listing already has a club identity. Control changes require platform recovery review.</p>{% endif %}
+{% else %}<p>New club application. No existing known-club listing was selected.</p>{% endif %}
+</section>
 <h2>Application history</h2><ul>{% for item in claim.decisions.all %}<li>{{ item.created_at }} · {{ item.state }} · {{ item.reason }}</li>{% endfor %}</ul><h2>Duplicate candidates</h2><p>Similarity is a review aid. An existing club requires a separate recovery review.</p><ul>{% for candidate in candidates %}<li>{{ candidate.name }} · {{ candidate.country }} · {{ candidate.website }}</li>{% empty %}<li>No likely duplicates found.</li>{% endfor %}</ul>
 <h2>Independent verification records</h2><ul>{% for item in evidence %}<li>{{ item.checked_at }} · {{ item.source_url }} · {{ item.contact_reference }} · {{ item.outcome }} · Confirmed: {{ item.confirmed|yesno }} · Expires {{ item.expires_at }}{% if item.storage_key %} · <a href="{% url 'clubs:evidence' item.pk %}">Download private evidence</a>{% endif %}</li>{% empty %}<li>No accessible records.</li>{% endfor %}</ul>
 {% if claim.state != 'approved' and claim.state != 'rejected' %}<h2>Record independent contact</h2><form method="post" enctype="multipart/form-data">{% csrf_token %}<input type="hidden" name="action" value="evidence">{{ evidence_form.as_p }}<button type="submit">Record verification evidence</button></form><h2>Decision</h2><p>Approval accepts the proposed club profile above for publication if public.</p><form method="post">{% csrf_token %}<input type="hidden" name="action" value="decision">{{ decision_form.as_p }}<button type="submit">Record decision</button></form>{% endif %}<p><a href="{% url 'clubs:queue' %}">Verification queue</a></p>{% endblock %}

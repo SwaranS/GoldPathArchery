@@ -32,7 +32,8 @@ class ApprovalConcurrencyTests(TransactionTestCase):
             role_assertion="Secretary", listing=self.listing))
         services.record_evidence(self.reviewer, claim.pk, dict(source_url="https://official.example.test",
             contact_reference="Independent official contact", outcome="Confirmed", confirmed=True,
-            checked_at=timezone.now() - timedelta(hours=1), expires_at=timezone.now() + timedelta(days=1)))
+            checked_at=timezone.now() - timedelta(hours=1), expires_at=timezone.now() + timedelta(days=1)), expected_version=claim.version)
+        claim.refresh_from_db()
         return claim
 
     def race(self, claim_ids):
@@ -41,8 +42,11 @@ class ApprovalConcurrencyTests(TransactionTestCase):
             close_old_connections()
             try:
                 actor = get_user_model().objects.get(pk=self.reviewer.pk)
+                claim = ClubClaim.objects.get(pk=claim_id)
+                snapshot = services.listing_snapshot(claim)
                 barrier.wait(timeout=10)
-                services.decide_claim(actor, claim_id, decision="approved", reason="Independently confirmed")
+                services.decide_claim(actor, claim_id, decision="approved", reason="Independently confirmed",
+                    expected_version=claim.version, target_confirmed=True, target_snapshot=snapshot)
                 return "approved"
             except ValidationError:
                 return "denied"

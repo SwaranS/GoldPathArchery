@@ -22,16 +22,16 @@ from . import services
 from .mfa import EncryptedMFAAdapter
 from .models import ClubClaim, ClubAuditEvent, ClubSecurityEvent, EvidenceUpload, KnownClubListing
 from .storage import PrivateEvidenceStore
-from .tests import FoundationTests
+from . import tests as foundation
 
 
 @override_settings(CLUBS_ENABLED=True)
 class CompletionTests(TestCase):
-    setUp = FoundationTests.setUp
-    claim = FoundationTests.claim
-    evidence = FoundationTests.evidence
-    approve = FoundationTests.approve
-    login_reviewer = FoundationTests.login_reviewer
+    setUp = foundation.FoundationTests.setUp
+    claim = foundation.FoundationTests.claim
+    evidence = foundation.FoundationTests.evidence
+    approve = foundation.FoundationTests.approve
+    login_reviewer = foundation.FoundationTests.login_reviewer
 
     def upload(self):
         output = BytesIO()
@@ -49,7 +49,7 @@ class CompletionTests(TestCase):
         self.client.force_login(self.applicant)
         url = reverse("clubs:draft", args=[draft.pk])
         self.assertContains(self.client.get(url), "Save draft")
-        response = self.client.post(url, {**self.data, "listing": "", "action": "submit"})
+        response = self.client.post(url, {**self.data, "listing": "", "action": "submit", "version": draft.version})
         self.assertEqual(response.status_code, 302)
         draft.refresh_from_db()
         self.assertEqual(draft.state, "submitted")
@@ -63,7 +63,7 @@ class CompletionTests(TestCase):
         self.assertEqual(response.status_code, 302)
         draft = ClubClaim.objects.get()
         self.assertEqual(draft.state, "draft")
-        response = self.client.post(reverse("clubs:draft", args=[draft.pk]), {**data, "action": "submit"})
+        response = self.client.post(reverse("clubs:draft", args=[draft.pk]), {**data, "action": "submit", "version": draft.version})
         self.assertEqual(response.status_code, 200)
         draft.refresh_from_db()
         self.assertEqual(draft.state, "draft")
@@ -175,14 +175,14 @@ class CompletionTests(TestCase):
         with mock.patch("clubs.storage.PrivateEvidenceStore") as Store, mock.patch("clubs.services.record_evidence", side_effect=RuntimeError):
             Store.return_value.delete.side_effect = OSError
             with self.assertRaises(RuntimeError):
-                services.upload_evidence(self.reviewer, claim.pk, data)
+                services.upload_evidence(self.reviewer, claim.pk, data, expected_version=claim.version)
         self.assertEqual(EvidenceUpload.objects.count(), 1)
 
     def test_http_upload_is_private_and_storage_failure_is_recoverable(self):
         claim = self.claim()
         self.login_reviewer(self.client)
         url = reverse("clubs:review", args=[claim.pk])
-        data = dict(action="evidence", source_url="https://official.example.test", contact_reference="Independent official",
+        data = dict(action="evidence", version=claim.version, source_url="https://official.example.test", contact_reference="Independent official",
             outcome="Synthetic confirmation", confirmed=True, checked_at=(timezone.now()-timedelta(hours=1)).isoformat(),
             expires_at=(timezone.now()+timedelta(days=1)).isoformat())
         response = self.client.post(url, {**data, "upload": self.upload()})

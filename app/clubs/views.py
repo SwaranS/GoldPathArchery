@@ -32,13 +32,18 @@ def apply(request, claim_id=None):
     existing = services.draft_for(request.user, claim_id) if claim_id else None
     draft = request.POST.get("action") == "draft"
     form = ClaimForm(request.POST if request.method == "POST" else None, instance=existing, partial=draft)
+    status = 200
     if request.method == "POST" and form.is_valid():
         try:
-            claim = services.submit_claim(request.user, form.cleaned_data, claim_id=claim_id, draft=draft)
+            claim = services.submit_claim(request.user, form.cleaned_data, claim_id=claim_id, draft=draft,
+                expected_version=form.cleaned_data.get("version"))
             return redirect("clubs:claim", claim_id=claim.pk)
+        except services.ClaimConflict as exc:
+            form.add_error(None, exc)
+            status = 409
         except ValidationError as exc:
             form.add_error(None, exc)
-    return render(request, "clubs/apply.html", {"form": form, "claims": services.claims_for(request.user)})
+    return render(request, "clubs/apply.html", {"form": form, "claims": services.claims_for(request.user)}, status=status)
 
 
 @never_cache
@@ -50,14 +55,19 @@ def claim(request, claim_id):
         challenge = review_session_redirect(request)
         if challenge is not None:
             return challenge
-    form = InformationResponseForm(request.POST or None)
+    form = InformationResponseForm(request.POST or None, claim=claim)
+    status = 200
     if request.method == "POST" and form.is_valid():
         try:
-            services.respond_to_information_request(request.user, claim_id, form.cleaned_data["response"])
+            services.respond_to_information_request(request.user, claim_id, form.cleaned_data["response"],
+                expected_version=form.cleaned_data["version"])
             return redirect("clubs:claim", claim_id=claim_id)
+        except services.ClaimConflict as exc:
+            form.add_error(None, exc)
+            status = 409
         except ValidationError as exc:
             form.add_error(None, exc)
-    return render(request, "clubs/claim.html", {"claim": claim, "form": form})
+    return render(request, "clubs/claim.html", {"claim": claim, "form": form}, status=status)
 
 
 @never_cache
@@ -78,24 +88,34 @@ def review(request, claim_id):
     if challenge is not None:
         return challenge
     claim = services.claim_for(request.user, claim_id)
-    decision_form, evidence_form = DecisionForm(), EvidenceForm()
+    decision_form, evidence_form = DecisionForm(claim=claim), EvidenceForm(claim=claim)
+    status = 200
     if request.method == "POST":
         if request.POST.get("action") == "evidence":
-            evidence_form = EvidenceForm(request.POST, request.FILES)
+            evidence_form = EvidenceForm(request.POST, request.FILES, claim=claim)
             if evidence_form.is_valid():
                 try:
-                    services.upload_evidence(request.user, claim_id, evidence_form.cleaned_data)
+                    services.upload_evidence(request.user, claim_id, evidence_form.cleaned_data,
+                        expected_version=evidence_form.cleaned_data["version"])
                     return redirect("clubs:review", claim_id=claim_id)
+                except services.ClaimConflict as exc:
+                    evidence_form.add_error(None, exc)
+                    status = 409
                 except ValidationError as exc:
                     evidence_form.add_error(None, exc)
                 except (ImproperlyConfigured, OSError, AzureError):
                     evidence_form.add_error(None, "Private evidence storage is unavailable. No evidence was recorded; try again later.")
         else:
-            decision_form = DecisionForm(request.POST)
+            decision_form = DecisionForm(request.POST, claim=claim)
             if decision_form.is_valid():
                 try:
-                    services.decide_claim(request.user, claim_id, **decision_form.cleaned_data)
+                    data = dict(decision_form.cleaned_data)
+                    data["expected_version"] = data.pop("version")
+                    services.decide_claim(request.user, claim_id, **data)
                     return redirect("clubs:review", claim_id=claim_id)
+                except services.ClaimConflict as exc:
+                    decision_form.add_error(None, exc)
+                    status = 409
                 except ValidationError as exc:
                     decision_form.add_error(None, exc)
     # Applicant-reviewers cannot see evidence/contact details for their own claims.
@@ -103,7 +123,7 @@ def review(request, claim_id):
         "claim": claim, "decision_form": decision_form, "evidence_form": evidence_form,
         "candidates": services.duplicate_candidates(request.user, claim),
         "evidence": services.evidence_list(request.user, claim),
-    })
+    }, status=status)
 
 
 @never_cache

@@ -21,6 +21,15 @@ Only M1 is implemented; M2–M9 are excluded. The feature is disabled by default
   candidates use Unicode-normalized names, location/country, website domains and
   federation numbers. Similarity assists human review; it never proves ownership.
   Reviewers must explicitly resolve candidate warnings before separate creation.
+  The most recent contact check must confirm authority; a later negative, expired
+  or purged check cannot fall back to an older positive result. Selected known-club
+  identity, provenance and location are shown separately from duplicate hints and
+  require explicit confirmation. A signed target snapshot rejects approval if the
+  directory identity changes after review or the token belongs to another claim.
+- Draft saves, evidence registration, review decisions and information responses
+  require the current claim version, checked under the claim lock. Every mutation
+  advances it. Stale HTTP forms return 409 without side effects; reload using the
+  page link before resubmitting. Missing versions cannot bypass the service guard.
 - Approval locks the claim, a stable permission row and relevant known listing,
   then creates the club, initial membership, accepted administrator role and audit
   records in one transaction. Repeated/concurrent approvals cannot duplicate the
@@ -94,6 +103,7 @@ Production uses `CLUB_EVIDENCE_BACKEND=azure`,
 The adapter rejects public containers and non-HTTPS endpoints. Verify Azure
 region, encryption at rest, network controls, credentials and permissions in the
 actual deployment. Unit tests mock Azure; no live Azure outcome is claimed.
+HTTPS validation occurs before even the authenticated container-properties request.
 
 Production settings with clubs enabled fail system checks unless the MFA key
 ring, Azure settings and shared-cache backend are configured. This does not
@@ -114,6 +124,8 @@ Storage outages produce recoverable errors without exposing provider details.
 
 Evidence expiry is mandatory and capped at 90 days from the contact check.
 Expiry immediately denies use/download; it is also the payload-retention deadline.
+Expired contact/source/outcome payloads are hidden from review pages immediately,
+even if the daily deletion job has not yet run.
 Before production, have the operator/privacy reviewer approve or shorten this
 engineering default and define how claims/decisions/audit references are handled
 by the wider erasure inventory. Do not promise indefinite retention.
@@ -144,6 +156,16 @@ are rate-limited to one per actor/action/minute and contain no URLs, query strin
 addresses, tokens or private payloads. Admin interfaces cannot edit/delete logs.
 
 ## Validation
+
+### PR #26 code-review fixes
+
+Regression tests cover six findings: the selected directory target was not visible
+outside duplicate hints; forms could overwrite or approve stale application state;
+older positive evidence could override a newer negative check; expired private
+contact details remained rendered until purge; Azure HTTPS validation happened
+after the first authenticated network request; and listing-curation audits missed
+the web request correlation. These are fixed on the PR branch; staging/visual and
+environmental release gates below remain open.
 
 Run from `app/` with the workspace virtual environment and set `PYTHONPATH` to the
 repository root (required by the existing training imports). In PowerShell use
@@ -183,7 +205,8 @@ unsupported. HTTP flow tests pass; this is not a claim of a visual/staging sign-
 
 ## Migration / release controls
 
-One new `clubs/0001_initial.py` adds only club-domain tables/constraints/indexes;
+`clubs/0001_initial.py` adds only club-domain tables/constraints/indexes and
+`clubs/0002_clubclaim_version.py` adds the claim's concurrency version;
 allauth adds its existing MFA tables. No personal data backfill or automatic
 home-club choice occurs. The test runner applies migrations only to disposable
 SQLite/PostgreSQL databases, then destroys those test databases. The dedicated

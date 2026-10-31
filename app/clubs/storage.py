@@ -54,10 +54,10 @@ class PrivateEvidenceStore:
             self.container = BlobServiceClient.from_connection_string(
                 settings.CLUB_EVIDENCE_AZURE_CONNECTION_STRING
             ).get_container_client(settings.CLUB_EVIDENCE_AZURE_CONTAINER)
-            if self.container.get_container_properties().public_access:
-                raise ImproperlyConfigured("Evidence container must be private.")
             if not self.container.url.startswith("https://"):
                 raise ImproperlyConfigured("Private evidence requires Azure HTTPS transport.")
+            if self.container.get_container_properties().public_access:
+                raise ImproperlyConfigured("Evidence container must be private.")
         else:
             raise ImproperlyConfigured("Private club evidence storage is disabled.")
 

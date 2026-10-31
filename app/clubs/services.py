@@ -4,8 +4,11 @@ from urllib.parse import urlsplit
 import re
 import unicodedata
 import uuid
+import hashlib
+import json
 
 from django.conf import settings
+from django.core import signing
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.db.models import Q
@@ -18,6 +21,39 @@ from .models import (
     Club, ClubClaim, KnownClubListing, ClubVerificationEvidence,
     ClubMembership, ClubRoleAssignment, ClubAuditEvent, ClubClaimDecision, EvidenceUpload,
 )
+
+
+class ClaimConflict(ValidationError):
+    """The submitted form no longer describes the locked application/target."""
+
+
+def check_version(claim, expected_version):
+    if not isinstance(expected_version, int) or isinstance(expected_version, bool) or claim.version != expected_version:
+        raise ClaimConflict("This application changed. Reload the current application before submitting again.")
+
+
+def listing_fingerprint(listing):
+    values = [str(getattr(listing, field)) for field in (
+        "id", "name", "country", "region", "website", "federation_number", "source_url", "reviewed_on", "club_id")]
+    return hashlib.sha256(json.dumps(values, ensure_ascii=False).encode("utf-8")).hexdigest()
+
+
+def listing_snapshot(claim):
+    if not claim.listing_id:
+        return ""
+    return signing.dumps({"claim": str(claim.pk), "listing": str(claim.listing_id),
+                          "fingerprint": listing_fingerprint(claim.listing)}, salt="clubs.review-target")
+
+
+def require_target_confirmation(claim, listing, confirmed, snapshot):
+    if not confirmed:
+        raise ValidationError("Confirm that the independent verification covers the selected known club.")
+    try:
+        data = signing.loads(snapshot or "", salt="clubs.review-target", max_age=1800)
+    except signing.BadSignature:
+        raise ClaimConflict("The selected club confirmation is invalid or expired. Reload before approving.") from None
+    if data != {"claim": str(claim.pk), "listing": str(listing.pk), "fingerprint": listing_fingerprint(listing)}:
+        raise ClaimConflict("The selected known club changed. Reload and verify the current target before approving.")
 
 
 def enabled():
@@ -109,16 +145,16 @@ def duplicate_candidates(actor, claim):
     return results
 
 
-def audit(actor, claim, action, target_id=None):
+def audit(actor, claim, action, target_id=None, *, club=None):
     from .middleware import request_correlation
     correlation_id = request_correlation.get()
-    ClubAuditEvent.objects.create(actor=actor, claim=claim, club=claim.club,
+    ClubAuditEvent.objects.create(actor=actor, claim=claim, club=claim.club if claim else club,
         action=action, target_id=target_id, correlation_id=correlation_id or uuid.uuid4(),
         source="web" if correlation_id else "service")
 
 
 @transaction.atomic
-def submit_claim(actor, data, *, claim_id=None, draft=False):
+def submit_claim(actor, data, *, claim_id=None, draft=False, expected_version=None):
     require_applicant(actor)
     fields = {key: data[key] for key in (
         "name", "country", "region", "town", "website", "description",
@@ -128,10 +164,12 @@ def submit_claim(actor, data, *, claim_id=None, draft=False):
         listing = get_object_or_404(available_listings(), pk=listing.pk)
     if claim_id:
         claim = get_object_or_404(ClubClaim.objects.select_for_update(), pk=claim_id, applicant=actor, state="draft")
+        check_version(claim, expected_version)
         for key, value in fields.items():
             setattr(claim, key, value)
         claim.listing = listing
         claim.club = listing.club if listing else None
+        claim.version += 1
     else:
         claim = ClubClaim(applicant=actor, listing=listing, club=listing.club if listing else None, **fields)
     claim.federation_number = data.get("federation_number", "")
@@ -143,13 +181,14 @@ def submit_claim(actor, data, *, claim_id=None, draft=False):
 
 
 @transaction.atomic
-def record_evidence(actor, claim_id, data, storage_key=""):
+def record_evidence(actor, claim_id, data, storage_key="", *, expected_version=None):
     require_reviewer(actor)
     claim = get_object_or_404(ClubClaim.objects.select_for_update(), pk=claim_id)
     if claim.applicant_id == actor.pk:
         raise PermissionDenied("An independent reviewer must record verification.")
     if claim.state in ("draft", "approved", "rejected"):
         raise ValidationError("Only submitted claims can be reviewed.")
+    check_version(claim, expected_version)
     evidence = ClubVerificationEvidence(claim=claim, recorded_by=actor, storage_key=storage_key,
         **{key: data[key] for key in ("source_url", "contact_reference", "outcome", "confirmed", "checked_at", "expires_at")})
     evidence.full_clean()
@@ -160,22 +199,25 @@ def record_evidence(actor, claim_id, data, storage_key=""):
     if evidence.expires_at > evidence.checked_at + timedelta(days=settings.CLUB_EVIDENCE_MAX_RETENTION_DAYS):
         raise ValidationError("Evidence expiry exceeds the configured retention limit.")
     evidence.save()
+    claim.version += 1
+    claim.save(update_fields=["version"])
     if storage_key:
         EvidenceUpload.objects.filter(storage_key=storage_key).delete()
     audit(actor, claim, "evidence.recorded", evidence.pk)
     return evidence
 
 
-def upload_evidence(actor, claim_id, data):
+def upload_evidence(actor, claim_id, data, *, expected_version=None):
     """Persist intent before external I/O so crashes and deletion failures can be retried."""
     require_reviewer(actor)
     claim = claim_for(actor, claim_id)
     if claim.applicant_id == actor.pk:
         raise PermissionDenied
+    check_version(claim, expected_version)
     from .storage import PrivateEvidenceStore, normalize_upload
     upload = data.get("upload")
     if not upload:
-        return record_evidence(actor, claim_id, data)
+        return record_evidence(actor, claim_id, data, expected_version=expected_version)
     content = normalize_upload(upload)
     store = PrivateEvidenceStore()
     key = uuid.uuid4().hex + ".jpg"
@@ -185,7 +227,7 @@ def upload_evidence(actor, claim_id, data):
         intent = EvidenceUpload.objects.create(storage_key=key)
     try:
         store.put(content, key)
-        return record_evidence(actor, claim_id, data, key)
+        return record_evidence(actor, claim_id, data, key, expected_version=expected_version)
     except Exception:
         try:
             store.delete(key)
@@ -247,13 +289,15 @@ def cleanup_security_events(*, dry_run=True):
 
 
 @transaction.atomic
-def decide_claim(actor, claim_id, *, decision, reason, duplicates_reviewed=False):
+def decide_claim(actor, claim_id, *, decision, reason, duplicates_reviewed=False,
+                 expected_version=None, target_confirmed=False, target_snapshot=""):
     require_reviewer(actor)
     claim = get_object_or_404(ClubClaim.objects.select_for_update(), pk=claim_id)
     if claim.applicant_id == actor.pk:
         raise PermissionDenied("You cannot decide your own claim.")
     if claim.state in ("draft", "approved", "rejected"):
         raise ValidationError("Only submitted claims can be reviewed.")
+    check_version(claim, expected_version)
     if decision not in ("approved", "rejected", "under_review", "information_requested") or not reason.strip():
         raise ValidationError("Choose a valid decision and record a reason.")
     if len(reason) > 1000:
@@ -265,15 +309,20 @@ def decide_claim(actor, claim_id, *, decision, reason, duplicates_reviewed=False
         # Existing permission row is stable and is never created by an applicant.
         from django.contrib.auth.models import Permission
         Permission.objects.select_for_update().get(content_type__app_label="clubs", codename="review_club_claim")
-        if not claim.evidence.filter(confirmed=True, purged_at__isnull=True, expires_at__gt=timezone.now(), checked_at__lte=timezone.now(),
-                                     recorded_by__isnull=False).exclude(recorded_by_id=claim.applicant_id).exists():
-            raise ValidationError("Current independent confirmation is required.")
+        # A later negative or expired outcome cannot fall back to an older positive.
+        latest = claim.evidence.order_by("-checked_at", "-created_at", "-id").first()
+        now = timezone.now()
+        if (not latest or not latest.confirmed or latest.purged_at or latest.expires_at <= now
+                or latest.checked_at > now or not latest.recorded_by_id or latest.recorded_by_id == claim.applicant_id):
+            raise ValidationError("The latest independent contact check must be current and confirm authority.")
         listing = None
         if claim.listing_id:
             listing = KnownClubListing.objects.select_for_update().get(pk=claim.listing_id)
         if claim.club_id or (listing and listing.club_id):
             # Replacement/succession must use a future platform dispute/recovery case.
             raise ValidationError("An existing club requires platform recovery review; no control transfer here.")
+        if listing:
+            require_target_confirmation(claim, listing, target_confirmed, target_snapshot)
         candidates = duplicate_candidates(actor, claim)
         others = [obj for obj in candidates if not (isinstance(obj, KnownClubListing) and obj.pk == claim.listing_id)]
         if others and not duplicates_reviewed:
@@ -298,6 +347,7 @@ def decide_claim(actor, claim_id, *, decision, reason, duplicates_reviewed=False
     claim.reviewer = actor
     claim.decision_reason = reason.strip()
     claim.decided_at = timezone.now() if decision in ("approved", "rejected") else None
+    claim.version += 1
     claim.save()
     ClubClaimDecision.objects.create(claim=claim, actor=actor, state=decision, reason=reason.strip())
     audit(actor, claim, "claim." + decision)
@@ -305,13 +355,15 @@ def decide_claim(actor, claim_id, *, decision, reason, duplicates_reviewed=False
 
 
 @transaction.atomic
-def respond_to_information_request(actor, claim_id, response):
+def respond_to_information_request(actor, claim_id, response, *, expected_version=None):
     require_applicant(actor)
     claim = get_object_or_404(ClubClaim.objects.select_for_update(), pk=claim_id, applicant=actor)
     if claim.state != "information_requested" or not response.strip() or len(response) > 1000:
         raise ValidationError("Respond to an open information request using at most 1000 characters.")
+    check_version(claim, expected_version)
     claim.state = "submitted"
-    claim.save(update_fields=["state"])
+    claim.version += 1
+    claim.save(update_fields=["state", "version"])
     ClubClaimDecision.objects.create(claim=claim, actor=actor, state="submitted", reason=response.strip())
     audit(actor, claim, "claim.resubmitted")
     return claim
@@ -345,4 +397,4 @@ def evidence_list(actor, claim):
     require_reviewer(actor)
     if claim.applicant_id == actor.pk:
         return ClubVerificationEvidence.objects.none()
-    return claim.evidence.filter(purged_at__isnull=True).order_by("created_at")
+    return claim.evidence.filter(purged_at__isnull=True, expires_at__gt=timezone.now()).order_by("created_at")

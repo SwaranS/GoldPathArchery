@@ -91,6 +91,7 @@ class ClubClaim(Identity):
     reviewer = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="reviewed_club_claims")
     decision_reason = models.CharField(max_length=1000, blank=True)
     decided_at = models.DateTimeField(null=True, blank=True)
+    version = models.PositiveIntegerField(default=1)
 
     class Meta:
         permissions = [("review_club_claim", "Independently verify and decide club claims")]

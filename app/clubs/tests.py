@@ -45,12 +45,18 @@ class FoundationTests(TestCase):
         return services.submit_claim(self.applicant, {**self.data, **changes})
 
     def evidence(self, claim, **changes):
+        claim.refresh_from_db()
         return services.record_evidence(self.reviewer, claim.pk, dict(
             source_url="https://federation.example.test/clubs", contact_reference="Official secretary contacted",
             outcome="Authority confirmed", confirmed=True, checked_at=timezone.now() - timedelta(hours=1),
-            expires_at=timezone.now() + timedelta(days=30), **changes))
+            expires_at=timezone.now() + timedelta(days=30), **changes), expected_version=claim.version)
 
     def approve(self, claim, **kwargs):
+        claim.refresh_from_db()
+        kwargs.setdefault("expected_version", claim.version)
+        if claim.listing_id:
+            kwargs.setdefault("target_confirmed", True)
+            kwargs.setdefault("target_snapshot", services.listing_snapshot(claim))
         return services.decide_claim(self.reviewer, claim.pk, decision="approved", reason="Independent check completed", **kwargs)
 
     def test_submission_has_no_privileges(self):
@@ -174,15 +180,17 @@ class FoundationTests(TestCase):
     def test_information_request_and_rejection_require_reasons(self):
         claim = self.claim()
         for decision in ["information_requested", "under_review", "rejected"]:
-            services.decide_claim(self.reviewer, claim.pk, decision=decision, reason="More information needed")
+            claim.refresh_from_db()
+            services.decide_claim(self.reviewer, claim.pk, decision=decision, reason="More information needed", expected_version=claim.version)
         with self.assertRaises(ValidationError):
             services.decide_claim(self.reviewer, claim.pk, decision="approved", reason="test")
         self.assertFalse(Club.objects.exists())
 
     def test_applicant_response_retains_review_history(self):
         claim = self.claim()
-        services.decide_claim(self.reviewer, claim.pk, decision="information_requested", reason="Provide your position")
-        services.respond_to_information_request(self.applicant, claim.pk, "I am the elected secretary")
+        services.decide_claim(self.reviewer, claim.pk, decision="information_requested", reason="Provide your position", expected_version=claim.version)
+        claim.refresh_from_db()
+        services.respond_to_information_request(self.applicant, claim.pk, "I am the elected secretary", expected_version=claim.version)
         claim.refresh_from_db()
         self.assertEqual(claim.state, "submitted")
         self.assertEqual(claim.decisions.count(), 2)
@@ -247,7 +255,8 @@ class FoundationTests(TestCase):
         self.login_reviewer(client)
         url = reverse("clubs:review", args=[claim.pk])
         client.get(url)
-        response = client.post(url, {"decision": "approved", "reason": "Verified through independent contact",
+        claim.refresh_from_db()
+        response = client.post(url, {"decision": "approved", "reason": "Verified through independent contact", "version": claim.version,
             "csrfmiddlewaretoken": client.cookies["csrftoken"].value})
         self.assertEqual(response.status_code, 302)
         claim.refresh_from_db()

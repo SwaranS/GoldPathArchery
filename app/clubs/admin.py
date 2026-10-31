@@ -38,8 +38,7 @@ class ListingAdmin(ReviewerAdmin):
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
-        ClubAuditEvent.objects.create(actor=request.user, club=obj.club,
-            action="listing.updated" if change else "listing.created", target_id=obj.pk)
+        services.audit(request.user, None, "listing.updated" if change else "listing.created", obj.pk, club=obj.club)
 
 
 @admin.register(Club)
