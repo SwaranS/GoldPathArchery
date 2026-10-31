@@ -1,6 +1,13 @@
 name: GoldPathArchery CI and deployment
 
 on:
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: Explicitly deploy the validated main revision to the development Azure app
+        required: true
+        default: false
+        type: boolean
   pull_request:
     branches: [main]
   push:
@@ -99,7 +106,7 @@ jobs:
   deploy:
     name: Deploy development app
     needs: [checks, clubs-validation]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.deploy
     runs-on: ubuntu-24.04
     timeout-minutes: 20
 

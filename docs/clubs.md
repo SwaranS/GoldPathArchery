@@ -238,3 +238,11 @@ Draft-PR release gates still open in the actual environment:
 
 No production/staging deployment or merge is part of this work. M2 begins only
 from a reviewed/merged M1 base; disputes, recovery and complete lifecycle remain M8.
+
+## Manual deployment gate
+
+Pushes and pull requests run CI without deploying. To deploy the development app,
+an authorized operator must manually run the GoldPathArchery CI and deployment
+workflow on main and explicitly select the deploy input. Both validation jobs
+must pass before deployment. Other branches cannot deploy through this workflow.
+Startup still applies database migrations during an authorized deployment.
