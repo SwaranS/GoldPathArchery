@@ -67,13 +67,8 @@ def start(actor, athlete, data):
                   ScoringRuleSet.objects.get(pk=data["rules"]), float(data["distance_m"]),
                   int(data["ends"]), int(data["arrows_per_end"]))]
         name, category, verification_required = "Custom training", data.get("category", ""), False
-    equipment = {}
-    for field, kind in (("bow", "bow"), ("arrow_set", "arrow_set")):
-        if data.get(field):
-            item = Equipment.objects.get(pk=data[field], athlete=athlete, kind=kind, active=True)
-            if kind == "bow" and item.division != division:
-                raise ValidationError("Bow division must match the session.")
-            equipment[field] = revision_snapshot(item)
+    from .advanced_equipment import scoring_equipment
+    equipment = scoring_equipment(athlete, data, division)
     snapshot = dict(evaluator=1, name=name, division=division, category=category,
                     verification_required=verification_required, stages=stages)
     session = ScoringSession.objects.create(athlete=athlete, mode=mode, context=context,
@@ -136,9 +131,32 @@ def mutate(actor, session_id, data):
     if session.deleted_at and action != "restore":
         raise ValidationError("Restore this session first.")
     reason = str(data.get("reason", ""))[:500]
-    if action == "shot":
+    if action != "equipment" and any(k in data for k in ("equipment", "configuration", "bow", "arrow_set")):
+        raise ValidationError("Use the equipment action before the first arrow.")
+    if action == "equipment":
+        if session.shots.exists() or session.audit.filter(operation="shot").exists():
+            raise ValidationError("Equipment is locked after the first arrow; start a new session.")
+        if session.status not in ("draft", "paused"):
+            raise ValidationError("Equipment can only be selected before shooting.")
+        from .advanced_equipment import scoring_equipment
+        before = deepcopy(session.equipment)
+        session.equipment = scoring_equipment(athlete, data, session.snapshot["division"])
+        session.save(update_fields=["equipment"])
+        after = deepcopy(session.equipment)
+    elif action == "shot":
         if session.status not in ("draft",):
             raise ValidationError("Resume or reopen the session before scoring.")
+        if not session.shots.exists():
+            from .advanced_equipment import configuration_snapshot
+            from .models import ConfigurationRevision
+            config_snapshot = session.equipment.get("configuration")
+            if config_snapshot:
+                frozen = ConfigurationRevision.objects.get(pk=config_snapshot["revision_id"], configuration__owner=athlete)
+                configuration_snapshot(frozen, athlete)
+            for field, kind in (("bow", "bow"), ("arrow_set", "arrow_set")):
+                selection = session.equipment.get(field)
+                if selection and not Equipment.objects.filter(pk=selection["id"], athlete=athlete, kind=kind, active=True).exists():
+                    raise ValidationError("Selected equipment is unavailable; update it before the first arrow.")
         position = int(data["position"])
         slot = next((s for s in slots(session) if s[0] == position), None)
         if slot is None:

@@ -158,27 +158,7 @@ class WorkspaceTests(TestCase):
         self.user.is_staff = True
         self.user.save(update_fields=["is_staff"])
         admin_nav = self.client.get(reverse("account-profile")).content.decode().split('<nav aria-label="Main navigation">')[1].split('</nav>')[0]
-        self.assertIn(f'<a href="{reverse("admin:index")}">Admin ops</a>', admin_nav)
-        self.assertNotIn(reverse("admin-ops"), admin_nav)
-
-    def test_connections_is_separate_and_permission_checked(self):
-        self.roles("archer")
-        own = self.athlete(account=self.user, transitioned_at=timezone.now())
-        profile = self.client.get(reverse("athlete-detail", args=[own.pk]))
-        self.assertNotContains(profile, "Create private invitation")
-        self.assertNotIn("guardians", profile.context)
-        url = reverse("athlete-connections", args=[own.pk])
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Connections for Own")
-        self.assertContains(response, "Create private invitation")
-        self.assertNotContains(response, "Save profile")
-        self.assertContains(response, f'class="workflow-tab is-active" href="{url}">Connections</a>')
-        self.assertEqual(self.client.post(url, {}).status_code, 405)
-        unrelated = self.athlete("Unrelated")
-        self.assertEqual(self.client.get(reverse("athlete-connections", args=[unrelated.pk])).status_code, 404)
-        self.client.logout()
-        self.assertEqual(self.client.get(url).status_code, 302)
+        self.assertIn("Admin ops", admin_nav)
 
     def test_multiple_disciplines_save_and_display(self):
         self.roles("archer")

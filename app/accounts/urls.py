@@ -7,6 +7,7 @@ from .views import profile
 from . import workspace_views, plan_views
 
 urlpatterns = [
+    path("athletes/<uuid:athlete_id>/equipment/<slug:section>/", equipment, name="athlete-equipment-section"),
     path("plans/", plan_views.my_plans, name="my-plans"),
     path("start/", workspace_views.landing, name="workspace-home"),
     path("workspace/<str:workspace>/", workspace_views.workspace, name="workspace"),

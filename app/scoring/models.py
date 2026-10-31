@@ -118,7 +118,7 @@ class RoundStage(models.Model):
         if ((self.distance_m is not None and (not math.isfinite(self.distance_m) or self.distance_m <= 0))
             or (self.ends is not None and not 1 <= self.ends <= 100)
             or (self.arrows_per_end is not None and not 1 <= self.arrows_per_end <= 36)):
-            raise ValidationError("Use positive distance, 1–100 ends and 1–36 arrows per end.")
+            raise ValidationError("Use positive distance, 1Ã¢â‚¬â€œ100 ends and 1Ã¢â‚¬â€œ36 arrows per end.")
 
 
 class Equipment(models.Model):
@@ -215,7 +215,8 @@ class PhysicalArrow(models.Model):
 
 class SightMark(models.Model):
     athlete = models.ForeignKey("accounts.AthleteProfile", on_delete=models.CASCADE)
-    bow_revision = models.ForeignKey(EquipmentRevision, on_delete=models.PROTECT, related_name="bow_marks")
+    bow_revision = models.ForeignKey(EquipmentRevision, on_delete=models.PROTECT, related_name="bow_marks", null=True, blank=True)
+    configuration_revision = models.ForeignKey("ConfigurationRevision", on_delete=models.PROTECT, null=True, blank=True, related_name="sight_marks")
     arrow_revision = models.ForeignKey(EquipmentRevision, on_delete=models.PROTECT, related_name="arrow_marks", null=True, blank=True)
     distance = models.DecimalField(max_digits=8, decimal_places=3)
     distance_unit = models.CharField(max_length=2, choices=[("m", "m"), ("yd", "yards")])
@@ -232,6 +233,10 @@ class SightMark(models.Model):
             errors["distance"] = "Use a positive finite distance."
         if not isinstance(self.mark, str) or not self.mark.strip():
             errors["mark"] = "Enter a sight mark."
+        if bool(self.bow_revision_id) == bool(self.configuration_revision_id):
+            errors["bow_revision"] = "Choose either a legacy bow or exact configuration revision."
+        if self.configuration_revision_id and self.configuration_revision.configuration.owner_id != self.athlete_id:
+            errors["configuration_revision"] = "Choose this athlete's configuration."
         for field, kind in (("bow_revision", "bow"), ("arrow_revision", "arrow_set")):
             if getattr(self, field + "_id"):
                 item = getattr(self, field).equipment
@@ -295,3 +300,237 @@ class MutationReceipt(models.Model):
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=["session", "key"], name="scoring_retry_key")]
+
+
+# Advanced equipment extends the legacy identities; it never rewrites score snapshots.
+from .component_specs import CATEGORIES, STATUSES, validate_specs
+
+
+class EquipmentComponent(models.Model):
+    owner = models.ForeignKey("accounts.AthleteProfile", on_delete=models.PROTECT, related_name="components")
+    category = models.CharField(max_length=20, choices=[(v, v.replace("_", " ").title()) for v in CATEGORIES])
+    status = models.CharField(max_length=12, default="active", choices=[(v, v.replace("_", " ").title()) for v in STATUSES])
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [models.CheckConstraint(condition=models.Q(status__in=STATUSES), name="component_valid_status"),
+                       models.CheckConstraint(condition=models.Q(category__in=CATEGORIES), name="component_valid_category")]
+
+    def __str__(self):
+        revision = self.revisions.first()
+        return revision.name if revision else f"Component {self.pk}"
+
+
+class ComponentRevision(models.Model):
+    component = models.ForeignKey(EquipmentComponent, on_delete=models.PROTECT, related_name="revisions")
+    number = models.PositiveIntegerField()
+    owner_at_revision = models.ForeignKey("accounts.AthleteProfile", on_delete=models.PROTECT)
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
+    created_at = models.DateTimeField(auto_now_add=True)
+    name = models.CharField(max_length=100)
+    manufacturer = models.CharField(max_length=100, blank=True)
+    model = models.CharField(max_length=100, blank=True)
+    serial_reference = models.CharField(max_length=100, blank=True)
+    notes = models.TextField(max_length=2000, blank=True)
+    specs = models.JSONField(default=dict, blank=True)
+    schema_version = models.PositiveSmallIntegerField(default=1)
+
+    class Meta:
+        ordering = ["-number"]
+        constraints = [models.UniqueConstraint(fields=["component", "number"], name="component_revision_number")]
+
+    def clean(self):
+        if not self.name.strip():
+            raise ValidationError("Enter a component name.")
+        validate_specs(self.component.category, self.specs)
+
+    def save(self, *args, **kwargs):
+        if not self._state.adding:
+            raise ValidationError("Component revisions are immutable.")
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise ValidationError("Component revisions are immutable.")
+
+    def __str__(self):
+        return f"{self.name} / revision {self.number}"
+
+
+class EquipmentActivity(models.Model):
+    owner = models.ForeignKey("accounts.AthleteProfile", on_delete=models.PROTECT)
+    component = models.ForeignKey(EquipmentComponent, null=True, on_delete=models.PROTECT)
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
+    event = models.CharField(max_length=50)
+    at = models.DateTimeField(auto_now_add=True)
+    detail = models.JSONField(default=dict)
+
+    class Meta:
+        ordering = ["-at", "-pk"]
+
+    def save(self, *args, **kwargs):
+        if not self._state.adding:
+            raise ValidationError("Equipment activity is append-only.")
+        return super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise ValidationError("Equipment activity is append-only.")
+
+
+
+class BowConfiguration(models.Model):
+    owner = models.ForeignKey("accounts.AthleteProfile", on_delete=models.PROTECT, related_name="bow_configurations")
+    active = models.BooleanField(default=True)
+
+    def __str__(self):
+        revision = self.revisions.first()
+        return revision.name if revision else f"Configuration {self.pk}"
+
+
+class ConfigurationRevision(models.Model):
+    configuration = models.ForeignKey(BowConfiguration, on_delete=models.PROTECT, related_name="revisions")
+    number = models.PositiveIntegerField()
+    name = models.CharField(max_length=100)
+    division = models.CharField(max_length=20, choices=DIVISIONS)
+    preferred_arrows = models.ForeignKey(Equipment, null=True, blank=True, on_delete=models.PROTECT)
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
+    at = models.DateTimeField(auto_now_add=True)
+    reason = models.CharField(max_length=500, blank=True)
+    warnings = models.JSONField(default=list, blank=True)
+    rule_version = models.PositiveSmallIntegerField(default=1)
+    acknowledged = models.BooleanField(default=False)
+    components = models.ManyToManyField(ComponentRevision, through="ConfigurationMember")
+
+    class Meta:
+        ordering = ["-number"]
+        constraints = [models.UniqueConstraint(fields=["configuration", "number"], name="configuration_revision_number")]
+
+    def save(self, *args, **kwargs):
+        if not self._state.adding:
+            raise ValidationError("Configuration revisions are immutable.")
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+    def clean(self):
+        if not isinstance(self.name, str) or not self.name.strip():
+            raise ValidationError("Enter a configuration name.")
+        if self.preferred_arrows_id and (self.preferred_arrows.kind != "arrow_set" or self.preferred_arrows.athlete_id != self.configuration.owner_id):
+            raise ValidationError("Choose this athlete's arrow set.")
+
+    def __str__(self):
+        return f"{self.name} / version {self.number}"
+
+
+class ConfigurationMember(models.Model):
+    revision = models.ForeignKey(ConfigurationRevision, on_delete=models.PROTECT, related_name="members")
+    component = models.ForeignKey(EquipmentComponent, on_delete=models.PROTECT)
+    component_revision = models.ForeignKey(ComponentRevision, on_delete=models.PROTECT)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["revision", "component"], name="configuration_unique_component")]
+
+    def clean(self):
+        if self.component_revision.component_id != self.component_id:
+            raise ValidationError("Component revision identity mismatch.")
+
+    def save(self, *args, **kwargs):
+        if not self._state.adding:
+            raise ValidationError("Configuration membership is immutable.")
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+
+class AthleteEquipmentDefaults(models.Model):
+    athlete = models.OneToOneField("accounts.AthleteProfile", on_delete=models.PROTECT)
+    configuration = models.ForeignKey(BowConfiguration, null=True, blank=True, on_delete=models.PROTECT)
+
+
+class EquipmentShare(models.Model):
+    component = models.ForeignKey(EquipmentComponent, on_delete=models.PROTECT, related_name="shares")
+    owner = models.ForeignKey("accounts.AthleteProfile", on_delete=models.PROTECT, related_name="equipment_shares_sent")
+    recipient = models.ForeignKey("accounts.AthleteProfile", on_delete=models.PROTECT, related_name="equipment_shares_received")
+    status = models.CharField(max_length=10, default="pending", choices=[(s, s.title()) for s in ("pending", "approved", "revoked", "rejected")])
+    initiated_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="equipment_shares_initiated")
+    decided_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="equipment_shares_decided")
+    at = models.DateTimeField(auto_now_add=True)
+    decided_at = models.DateTimeField(null=True)
+    permit_photos = models.BooleanField(default=False)
+    permitted_photos = models.ManyToManyField("EquipmentPhoto", blank=True)
+
+    class Meta:
+        constraints = [models.CheckConstraint(condition=~models.Q(owner=models.F("recipient")), name="share_distinct_athletes"),
+            models.CheckConstraint(condition=models.Q(status__in=["pending", "approved", "revoked", "rejected"]), name="share_valid_status")]
+
+
+class EquipmentTransfer(models.Model):
+    component = models.ForeignKey(EquipmentComponent, on_delete=models.PROTECT, related_name="transfers")
+    sender = models.ForeignKey("accounts.AthleteProfile", on_delete=models.PROTECT, related_name="equipment_transfers_sent")
+    recipient = models.ForeignKey("accounts.AthleteProfile", on_delete=models.PROTECT, related_name="equipment_transfers_received")
+    status = models.CharField(max_length=10, default="pending", choices=[(s, s.title()) for s in ("pending", "accepted", "cancelled", "rejected")])
+    initiated_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="equipment_transfers_initiated")
+    decided_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="equipment_transfers_decided")
+    at = models.DateTimeField(auto_now_add=True)
+    decided_at = models.DateTimeField(null=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["component"], condition=models.Q(status="pending"), name="component_one_pending_transfer"),
+            models.CheckConstraint(condition=~models.Q(sender=models.F("recipient")), name="transfer_distinct_athletes"),
+            models.CheckConstraint(condition=models.Q(status__in=["pending", "accepted", "cancelled", "rejected"]), name="transfer_valid_status")]
+
+
+class EquipmentPhoto(models.Model):
+    component = models.ForeignKey(EquipmentComponent, null=True, blank=True, on_delete=models.PROTECT, related_name="photos")
+    configuration = models.ForeignKey(BowConfiguration, null=True, blank=True, on_delete=models.PROTECT, related_name="photos")
+    owner = models.ForeignKey("accounts.AthleteProfile", on_delete=models.PROTECT)
+    blob_key = models.CharField(max_length=200, unique=True)
+    primary = models.BooleanField(default=False)
+    active = models.BooleanField(default=True)
+    receipt = models.BooleanField(default=False)
+    uploader = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
+    at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.CheckConstraint(condition=(models.Q(component__isnull=False, configuration__isnull=True) | models.Q(component__isnull=True, configuration__isnull=False)), name="photo_exactly_one_target"),
+            models.UniqueConstraint(fields=["component"], condition=models.Q(primary=True, active=True), name="component_primary_photo"),
+            models.UniqueConstraint(fields=["configuration"], condition=models.Q(primary=True, active=True), name="configuration_primary_photo")]
+
+
+class EquipmentMaintenanceEntry(models.Model):
+    component = models.ForeignKey(EquipmentComponent, on_delete=models.PROTECT, related_name="maintenance")
+    owner = models.ForeignKey("accounts.AthleteProfile", on_delete=models.PROTECT)
+    kind = models.CharField(max_length=12, choices=[(v, v.title()) for v in ("inspection", "service", "repair", "replacement")])
+    event_date = models.DateField()
+    notes = models.TextField(max_length=2000, blank=True)
+    condition = models.CharField(max_length=100, blank=True)
+    replacement = models.ForeignKey(EquipmentComponent, null=True, blank=True, on_delete=models.PROTECT, related_name="replaces")
+    correction_of = models.ForeignKey("self", null=True, blank=True, on_delete=models.PROTECT)
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
+    at = models.DateTimeField(auto_now_add=True)
+    photos = models.ManyToManyField(EquipmentPhoto, blank=True)
+
+    def save(self, *args, **kwargs):
+        if not self._state.adding:
+            raise ValidationError("Append a correction to maintenance history.")
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+
+class EquipmentPurchaseRecord(models.Model):
+    component = models.ForeignKey(EquipmentComponent, on_delete=models.PROTECT, related_name="purchases")
+    owner = models.ForeignKey("accounts.AthleteProfile", on_delete=models.PROTECT)
+    purchase_date = models.DateField(null=True, blank=True)
+    retailer = models.CharField(max_length=150, blank=True)
+    amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    currency = models.CharField(max_length=3, blank=True)
+    warranty_expiry = models.DateField(null=True, blank=True)
+    receipt = models.ForeignKey(EquipmentPhoto, null=True, blank=True, on_delete=models.PROTECT)
+    correction_of = models.ForeignKey("self", null=True, blank=True, on_delete=models.PROTECT)
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
+    at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self._state.adding:
+            raise ValidationError("Append a correction to purchase history.")
+        self.full_clean()
+        return super().save(*args, **kwargs)

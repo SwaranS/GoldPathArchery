@@ -1,0 +1,11 @@
+.equipment-section-nav { display:flex; flex-wrap:wrap; gap:.6rem 1rem; margin:1rem 0; }
+.equipment-section-nav a { padding:.35rem .2rem; }
+.workspace-card form input:not([type=checkbox]):not([type=hidden]), .workspace-card form select, .workspace-card form textarea { max-width:100%; box-sizing:border-box; }
+.workspace-card form label { display:block; margin-top:.6rem; }
+.workspace-card article { margin-block:1rem; padding-block:.5rem; border-bottom:1px solid #ccd6d9; }
+.workspace-card [hidden] { display:none; }
+.workspace-card :focus-visible { outline:3px solid #356da2; outline-offset:3px; }
+.workspace-card table { border-collapse:collapse; }
+.workspace-card th, .workspace-card td { padding:.5rem; text-align:left; }
+
+.equipment-section-nav a[aria-current="page"] { font-weight:700; border-bottom:3px solid currentColor; }

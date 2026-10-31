@@ -13,4 +13,5 @@ __pycache__/
 # Local configuration
 /.env
 
+app/private-equipment/
 local_files

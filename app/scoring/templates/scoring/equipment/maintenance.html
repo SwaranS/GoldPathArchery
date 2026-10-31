@@ -1,0 +1,3 @@
+<h2 id="maintenance">Maintenance</h2>
+{% if writable %}<details {% if maintenance_form.is_bound %}open{% endif %}><summary>Log maintenance or append correction</summary><form method="post">{% csrf_token %}<input type="hidden" name="action" value="maintenance">{{ maintenance_form.as_p }}<button>Record maintenance</button></form></details>{% endif %}
+{% for entry in maintenance_entries %}<article id="maintenance-{{ entry.pk }}"><h3>{{ entry.get_kind_display }} / {{ entry.event_date }} / Component #{{ entry.component_id }}</h3><p>Record #{{ entry.pk }}{% if entry.correction_of_id %} corrects #{{ entry.correction_of_id }}{% endif %}. {{ entry.condition }}</p><p>{{ entry.notes|linebreaksbr }}</p></article>{% empty %}<p>No maintenance recorded.</p>{% endfor %}

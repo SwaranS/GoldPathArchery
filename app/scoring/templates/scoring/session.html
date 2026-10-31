@@ -3,6 +3,9 @@
 {% block content %}<link rel="stylesheet" href="{% static 'scoring/scoring.css' %}"><section class="workspace-card" id="scorer" data-save-url="{% url 'scoring-save' session.id %}">
 <a href="{% url 'scoring-history' session.athlete.id %}">Scoring history</a><h1>{{ session.snapshot.name }}</h1>
 <p>{{ session.athlete.display_name }} · {{ session.context }} · {{ session.snapshot.division }} · {{ session.status }}{% if session.verified_at %} · Verified and locked{% endif %}{% if session.deleted_at %} · Deleted{% endif %}{% if session.invalidated %} · Invalidated{% endif %}</p>
+<p>Recorded equipment: {% if session.equipment.configuration %}{{ session.equipment.configuration.name }}{% elif session.equipment.bow %}{{ session.equipment.bow.name }}{% else %}Unspecified bow{% endif %}{% if session.equipment.configuration %} / configuration version {{ session.equipment.configuration.revision }}{% endif %} / {{ session.equipment.arrow_set.name|default:"Unspecified arrows" }}</p>
+{% if writable and equipment_unlocked %}<details id="equipment-selection"><summary>Change equipment before first arrow</summary><form method="post">{% csrf_token %}{{ equipment_form.as_p }}<button>Save equipment selection</button></form></details>{% endif %}
+<p id="equipment-lock">{% if not equipment_unlocked %}Equipment locked. A different setup requires a new scoring session.{% endif %}</p>
 <p id="live" aria-live="polite">{{ stats.total }}/{{ stats.maximum }} · {{ stats.count }}/{{ stats.expected }} arrows · Average {{ stats.average|default_if_none:'—' }} · 10: {{ stats.tens }} · X: {{ stats.xs }} · 9: {{ stats.nines }}</p>
 {% csrf_token %}<p id="save-state" role="status">Saved to server</p><button id="retry" type="button" hidden>Retry unsaved change</button>
 {% if writable %}

@@ -34,3 +34,7 @@ Start implementation with T01–T03 in 06, then build the assigned-manager → p
 Human Plan Managers review initial plans and weekly AI recommendations; eligible users accept weekly changes. Default duration is 12 weeks, configurable up to one year. Scoring supports individual arrows, optional saved physical-arrow IDs, keypad and plotting.
 
 Pilot: four weeks, 5–10 athletes, at least two coaches and one parent-managed junior; feedback-focused, no formal success targets. Testing budget: EUR 45/month across all Azure/AI/email/storage costs. Provider/SKU prices, domain, operator, named participants and dates require execution-time evidence.
+
+## Advanced equipment
+
+See [advanced equipment](docs/advanced-equipment.md) for schema, permissions, private Azure/local media configuration, migration review, isolated test commands and rollout/rollback constraints. Both athlete equipment routes remain supported. Do not deploy to preview: startup may apply migrations automatically.

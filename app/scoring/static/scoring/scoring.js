@@ -54,6 +54,10 @@
     }
   }
   function render() {
+    if (shots.size) {
+      if ($('equipment-selection')) $('equipment-selection').hidden = true;
+      if ($('equipment-lock')) $('equipment-lock').textContent = 'Equipment locked. A different setup requires a new scoring session.';
+    }
     const values = [...shots.values()], total = values.reduce((a, s) => a + s.points, 0);
     const max = data.slots.reduce((a, slot) => a + Math.max(...data.stages[slot.stage].rules.zones.map(z => z.points)), 0);
     $('live').textContent = `${total}/${max} · ${values.length}/${data.slots.length} arrows · Average ${values.length ? (total/values.length).toFixed(2) : '—'} · 10: ${values.filter(s=>s.points===10).length} · X: ${values.filter(s=>s.is_x).length} · 9: ${values.filter(s=>s.points===9).length}`;
