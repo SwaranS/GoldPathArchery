@@ -82,7 +82,9 @@ class CompletionTests(TestCase):
         claim.refresh_from_db()
         self.assertEqual(claim.state, "submitted")
         admin_url = reverse("admin:clubs_knownclublisting_add")
-        self.assertEqual(self.client.get(admin_url).status_code, 403)
+        response = self.client.get(admin_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse("mfa_index"), response.url)
 
     def test_stale_mfa_and_deleted_authenticator_immediately_deny(self):
         self.login_reviewer(self.client)

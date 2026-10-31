@@ -39,6 +39,26 @@ class ClubAdminMFAValidationTests(TestCase):
         self.client.force_login(self.other)
         self.assertEqual(self.client.get(url).status_code, 404)
 
+    def test_admin_navigation_stays_visible_and_direct_pages_require_mfa(self):
+        self.client.force_login(self.reviewer)
+        index = self.client.get(reverse("admin:index"))
+        self.assertContains(index, reverse("admin:clubs_clubclaim_changelist"))
+        listing = reverse("admin:clubs_knownclublisting_add")
+        for url in (reverse("admin:clubs_clubclaim_changelist"), listing):
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, 302)
+            self.assertIn(reverse("mfa_index"), response.url)
+        response = self.client.post(listing, {"name": "Must not be saved"})
+        self.assertEqual(response.status_code, 302)
+        from .models import KnownClubListing
+        self.assertFalse(KnownClubListing.objects.filter(name="Must not be saved").exists())
+        foundation.login_with_mfa(self.client, self.reviewer)
+        self.assertEqual(self.client.get(reverse("admin:clubs_clubclaim_changelist")).status_code, 200)
+        self.assertEqual(self.client.get(listing).status_code, 200)
+        Authenticator.objects.filter(user=self.reviewer).delete()
+        self.assertContains(self.client.get(reverse("admin:index")), reverse("admin:clubs_clubclaim_changelist"))
+        self.assertEqual(self.client.get(listing).status_code, 302)
+
     def test_mfa_does_not_replace_platform_reviewer_permission(self):
         self.other.is_staff = True
         self.other.save()
