@@ -140,7 +140,9 @@ addresses, tokens or private payloads. Admin interfaces cannot edit/delete logs.
 
 ## Validation
 
-Run from `app/` with the workspace virtual environment. Exact final outputs are
+Run from `app/` with the workspace virtual environment and set `PYTHONPATH` to the
+repository root (required by the existing training imports). In PowerShell use
+`$env:PYTHONPATH = (Resolve-Path ..).Path`. Exact final outputs are
 recorded in the draft PR. The local PostgreSQL settings use only disposable
 `127.0.0.1:55440` credentials, never deployment credentials.
 
@@ -151,13 +153,17 @@ python manage.py test --settings=config.clubs_test_settings --noinput
 python manage.py test --settings=config.test_settings --noinput
 ```
 
+The current-main regression baseline also runs the merged equipment/training
+modules. From the repository root, `python -m pytest -q tests/training_plans`
+passes all 33 original generator/API tests.
+
 The suite covers private/public visibility and selectors, claimant isolation,
 private draft save/edit/submit, missing/expired independent evidence, replay and
 competing approvals, self-approval, account age/closure, CSRF, valid/invalid TOTP
 HTTP reauthentication, stale/deleted MFA, encrypted key rotation, read-only admin
 permissions, bounded security logs, upload recovery/cleanup, mocked Azure privacy,
 and migration forward/reversal without deleting legacy identities. Legacy account
-and scoring regression tests run in the same full suite. PostgreSQL-only tests
+and scoring regression tests run in the same full suite. Six PostgreSQL-only tests
 are skipped on SQLite and executed on PostgreSQL.
 
 Production `check` and `collectstatic` also run using synthetic configuration and
