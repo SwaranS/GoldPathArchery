@@ -373,7 +373,7 @@ def can_manage(actor, club):
     return bool(eligible_actor(actor, write=True) and club.status == "active" and club.verified_at
         and ClubRoleAssignment.objects.filter(membership__club=club, membership__user=actor,
             membership__active=True, role="admin", revoked_at__isnull=True,
-            accepted_at__lte=timezone.now(), verified_claim__state="approved").exists())
+            accepted_at__lte=timezone.now()).exists())
 
 
 def managed_club(actor, club_id):

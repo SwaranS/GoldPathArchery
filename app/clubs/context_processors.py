@@ -4,4 +4,5 @@ from .services import is_reviewer
 
 def clubs_navigation(request):
     enabled = getattr(settings, "CLUBS_ENABLED", False)
-    return {"clubs_enabled": enabled, "clubs_reviewer": enabled and is_reviewer(request.user)}
+    return {"clubs_enabled": enabled, "clubs_reviewer": enabled and is_reviewer(request.user),
+            "club_memberships_enabled": enabled and getattr(settings, "CLUB_MEMBERSHIPS_ENABLED", False)}

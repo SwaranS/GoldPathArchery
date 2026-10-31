@@ -44,3 +44,9 @@ Pilot: four weeks, 5–10 athletes, at least two coaches and one parent-managed 
 ## Advanced equipment
 
 See [advanced equipment](docs/advanced-equipment.md) for schema, permissions, private Azure/local media configuration, migration review, isolated test commands and rollout/rollback constraints. Both athlete equipment routes remain supported. Do not deploy to preview: startup may apply migrations automatically.
+
+## Club memberships
+
+See [Milestone 2 memberships](docs/clubs-memberships.md) for join requests, private
+invitations, role acceptance, guardian rules, home-club history and the separate
+feature flag. This increment requires migration review before local enablement.

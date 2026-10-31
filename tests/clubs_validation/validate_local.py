@@ -113,6 +113,9 @@ def browser_fixture(output, athlete):
     secret = "JBSWY3DPEHPK3PXP"  # Synthetic local fixture, never a real user's secret.
     TOTP.activate(reviewer, secret)
     TOTP.activate(actors["applicant"], secret)
+    TOTP.activate(actors["outsider"], secret)
+    from accounts.models import AthleteProfile
+    member_athlete = AthleteProfile.objects.create(account=actors["outsider"], display_name="Synthetic new member", birth_date=date(1990, 1, 1), discipline="recurve")
     listing = KnownClubListing.objects.create(name="Synthetic known validation club", country="Ireland",
         source_url="https://official.example.test/synthetic-directory", reviewed_on=timezone.now().date())
     claim = services.submit_claim(actors["applicant"], dict(name="Synthetic public validation club", country="Ireland",
@@ -128,7 +131,7 @@ def browser_fixture(output, athlete):
     image = output / "synthetic-evidence.png"
     Image.new("RGB", (64, 48), color="#17343b").save(image)
     return dict(sessions=sessions, cookieName=settings.SESSION_COOKIE_NAME, listing=str(listing.pk),
-        publicSlug=club.slug, totpSecret=secret, evidenceImage=str(image), output=str(output),
+        publicSlug=club.slug, publicClub=str(club.pk), memberAthlete=str(member_athlete.pk), totpSecret=secret, evidenceImage=str(image), output=str(output),
         checkedAt=timezone.localtime(timezone.now()-timedelta(hours=1)).replace(tzinfo=None).isoformat(timespec="minutes"),
         expiresAt=timezone.localtime(timezone.now()+timedelta(days=1)).replace(tzinfo=None).isoformat(timespec="minutes")), actors
 
@@ -187,6 +190,7 @@ def main():
         report["checks"]["legacy_records_preserved_after_migration"] = fingerprint(scopes) == baseline
         report["legacy_baseline"] = baseline
         settings.CLUBS_ENABLED = True
+        settings.CLUB_MEMBERSHIPS_ENABLED = True
         fixture, actors = browser_fixture(output, athlete)
         from django.contrib.staticfiles.handlers import StaticFilesHandler
         from django.core.wsgi import get_wsgi_application
@@ -217,10 +221,12 @@ def main():
         server = None
         report["checks"]["legacy_records_preserved_before_backup"] = fingerprint(scopes) == baseline
         from clubs.models import (Club, ClubClaim, ClubAuditEvent, ClubVerificationEvidence,
-            ClubMembership, ClubRoleAssignment, ClubClaimDecision, KnownClubListing, ClubSecurityEvent, EvidenceUpload)
+            ClubMembership, ClubRoleAssignment, ClubClaimDecision, KnownClubListing, ClubSecurityEvent, EvidenceUpload,
+            ClubMembershipAction, AthleteHomeClub, AthleteHomeClubHistory)
         from allauth.mfa.models import Authenticator
         club_models = (Club, ClubClaim, ClubAuditEvent, ClubVerificationEvidence, ClubMembership,
-            ClubRoleAssignment, ClubClaimDecision, KnownClubListing, ClubSecurityEvent, EvidenceUpload, Authenticator)
+            ClubRoleAssignment, ClubClaimDecision, KnownClubListing, ClubSecurityEvent, EvidenceUpload, Authenticator,
+            ClubMembershipAction, AthleteHomeClub, AthleteHomeClubHistory)
         club_scopes = [(model._meta.label, list(model.objects.values_list("pk", flat=True))) for model in club_models]
         club_baseline = fingerprint(club_scopes)
         report["club_state_baseline"] = club_baseline

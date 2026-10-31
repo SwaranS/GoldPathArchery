@@ -38,6 +38,7 @@ class Club(Identity):
     status = models.CharField(max_length=12, choices=Status.choices, default=Status.PENDING)
     verified_at = models.DateTimeField(null=True, blank=True)
     version = models.PositiveIntegerField(default=1)
+    accepts_requests = models.BooleanField(default=True)
 
     class Meta:
         constraints = [
@@ -113,11 +114,15 @@ class ClubVerificationEvidence(Identity):
 
 
 class ClubMembership(Identity):
-    """M1 bootstrap only; membership workflows and additional roles follow in M2."""
+    """Durable affiliation; requests and invitations have their own lifecycle."""
     club = models.ForeignKey(Club, on_delete=models.PROTECT)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
     athlete = models.ForeignKey("accounts.AthleteProfile", null=True, blank=True, on_delete=models.SET_NULL)
     active = models.BooleanField(default=True)
+    ended_at = models.DateTimeField(null=True, blank=True)
+    ended_reason = models.CharField(max_length=12, blank=True, choices=[
+        ("left", "Left"), ("removed", "Removed"), ("suspended", "Suspended")])
+    version = models.PositiveIntegerField(default=1)
 
     class Meta:
         constraints = [
@@ -128,13 +133,58 @@ class ClubMembership(Identity):
 
 class ClubRoleAssignment(Identity):
     membership = models.ForeignKey(ClubMembership, on_delete=models.PROTECT, related_name="roles")
-    role = models.CharField(max_length=20, default="admin", choices=[("admin", "Admin")])
+    role = models.CharField(max_length=20, default="admin", choices=[
+        ("admin", "Admin"), ("membership_manager", "Membership manager"), ("coach", "Coach")])
     accepted_at = models.DateTimeField()
     revoked_at = models.DateTimeField(null=True, blank=True)
-    verified_claim = models.OneToOneField(ClubClaim, on_delete=models.PROTECT)
+    verified_claim = models.OneToOneField(ClubClaim, null=True, blank=True, on_delete=models.PROTECT)
+    appointed_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
+                                    on_delete=models.SET_NULL, related_name="club_appointments")
 
     class Meta:
-        constraints = [models.UniqueConstraint(fields=["membership", "role"], condition=Q(revoked_at__isnull=True), name="club_unique_active_role")]
+        constraints = [models.UniqueConstraint(fields=["membership", "role"], condition=Q(revoked_at__isnull=True), name="club_unique_active_role"),
+            models.CheckConstraint(condition=Q(role__in=["admin", "membership_manager", "coach"]), name="club_role_valid")]
+
+
+class ClubMembershipAction(Identity):
+    club = models.ForeignKey(Club, on_delete=models.PROTECT)
+    membership = models.ForeignKey(ClubMembership, null=True, blank=True, on_delete=models.PROTECT)
+    kind = models.CharField(max_length=12, choices=[("join", "Join request"), ("invite", "Invitation"), ("role", "Role appointment")])
+    state = models.CharField(max_length=12, default="pending", choices=[
+        ("pending", "Pending"), ("accepted", "Accepted"), ("rejected", "Rejected"),
+        ("declined", "Declined"), ("revoked", "Revoked")])
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="club_actions")
+    target_user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="club_requests")
+    athlete = models.ForeignKey("accounts.AthleteProfile", null=True, blank=True, on_delete=models.SET_NULL)
+    recipient_email = models.EmailField(blank=True)
+    token_digest = models.CharField(max_length=64, null=True, blank=True, unique=True)
+    role = models.CharField(max_length=20, blank=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    decided_at = models.DateTimeField(null=True, blank=True)
+    decided_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="club_action_decisions")
+    version = models.PositiveIntegerField(default=1)
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(condition=Q(kind__in=["join", "invite", "role"]), name="club_action_kind_valid"),
+            models.CheckConstraint(condition=Q(state__in=["pending", "accepted", "rejected", "declined", "revoked"]), name="club_action_state_valid"),
+            models.CheckConstraint(condition=Q(role__in=["", "admin", "membership_manager", "coach"]), name="club_action_role_valid"),
+        ]
+        indexes = [models.Index(fields=["club", "kind", "state"])]
+
+
+class AthleteHomeClub(Identity):
+    athlete = models.OneToOneField("accounts.AthleteProfile", on_delete=models.CASCADE)
+    club = models.ForeignKey(Club, null=True, blank=True, on_delete=models.PROTECT)
+    version = models.PositiveIntegerField(default=1)
+
+
+class AthleteHomeClubHistory(Identity):
+    athlete = models.ForeignKey("accounts.AthleteProfile", on_delete=models.CASCADE)
+    old_club = models.ForeignKey(Club, null=True, on_delete=models.PROTECT, related_name="home_departures")
+    new_club = models.ForeignKey(Club, null=True, on_delete=models.PROTECT, related_name="home_arrivals")
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
+    reason = models.CharField(max_length=20, default="selected")
 
 
 class ClubAuditEvent(Identity):

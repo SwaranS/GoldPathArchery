@@ -1,0 +1,10 @@
+{% extends 'clubs/base.html' %}
+{% block title %}Invitation created · GoldPathArchery{% endblock %}
+{% block club_content %}
+<h1>Invitation to {{ club.name }}</h1>
+<p>No email has been sent. Share this link and the separate invitation code privately with the intended recipient. The code is shown only now and expires {{ expires }}.</p>
+<p>Acceptance page: <a href="{{ invitation_url }}">{{ invitation_url }}</a></p>
+<p>Invitation code: <code>{{ token }}</code></p>
+<p>The recipient must sign in with the verified email you invited. A guardian can select an eligible child profile without joining personally.</p>
+<p><a href="{% url 'clubs:membership-manage' club.pk %}">Back to membership management</a></p>
+{% endblock %}

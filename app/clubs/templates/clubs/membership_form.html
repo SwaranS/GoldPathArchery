@@ -1,0 +1,8 @@
+{% extends 'clubs/base.html' %}
+{% block title %}{{ title }} · GoldPathArchery{% endblock %}
+{% block club_content %}
+<h1>{{ title }}</h1>
+{% if description %}<p>{{ description }}</p>{% endif %}
+<form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">{{ button }}</button></form>
+<p><a href="{% url 'clubs:memberships' %}">My clubs</a></p>
+{% endblock %}
