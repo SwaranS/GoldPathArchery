@@ -230,5 +230,3 @@ class GrantTests(Fixtures, TestCase):
         job.refresh_from_db()
         self.assertEqual(job.status, "failed")
         self.assertEqual(job.roadmap, {})
-
-
