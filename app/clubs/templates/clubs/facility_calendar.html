@@ -1,0 +1,9 @@
+{% extends 'clubs/base.html' %}
+{% block title %}Availability · {{ area_name }}{% endblock %}
+{% block club_content %}<h1>{{ area_name }} availability</h1>
+<p>Published shooting opportunities, subject to club access rules. A listed time does not reserve a lane or guarantee capacity.</p>
+<form method="get">{{ form.as_p }}<button type="submit">Show availability</button></form>
+{% if calendar %}<p>All hours are local to {{ calendar.timezone }}. UTC offsets are shown to distinguish clock changes.</p>
+{% if not calendar.event_checks_connected %}<p>Event conflict checks are not connected yet. Confirm special events with the club.</p>{% endif %}
+{% for day in calendar.days %}<section><h2>{{ day.date|date:'l j F Y' }}</h2>{% if day.notice %}<p>{{ day.notice }}</p>{% endif %}<ul>{% for slot in day.slots %}<li>{{ slot.start_label }} to {{ slot.end_label }}{% if slot.conflicts %}<p>Event overlap: {% for conflict in slot.conflicts %}{{ conflict }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>{% endif %}</li>{% empty %}<li>No published availability.</li>{% endfor %}</ul></section>{% endfor %}{% endif %}
+{% endblock %}

@@ -55,3 +55,9 @@ feature flag. This increment requires migration review before local enablement.
 
 See [club data permissions](docs/clubs-permissions.md) for scoped consent, revocation,
 recipient views, worker rechecks and current category limits.
+
+## Club facilities
+
+See [facilities and availability](docs/clubs-facilities.md) for venue management,
+private location controls, photos, access groups, seasonal hours and exceptions.
+The M4 feature flag defaults off and its migration needs review before enablement.

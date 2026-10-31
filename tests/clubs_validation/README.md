@@ -77,3 +77,11 @@ server. It exercises public join approval, private recipient-bound invitation
 acceptance, explicit home-club changes and additional administrator acceptance
 with real TOTP. Action, role and home-club tables participate in restore checks.
 No running application database or local user accounts are changed.
+
+## Milestone 4 coverage
+
+The isolated server enables facilities and configures a separate temporary photo
+root. The browser creates a venue, access group, area, daily/seasonal hours, private
+closure and controlled photo. It checks exact-location redaction in HTML/JSON and
+photo URL revocation. Restore fingerprints include group membership links and
+private facility photo blobs, separately from verification evidence.

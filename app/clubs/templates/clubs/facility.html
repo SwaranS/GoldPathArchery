@@ -1,0 +1,9 @@
+{% extends 'clubs/base.html' %}
+{% block title %}{{ facility.name }} · Facilities{% endblock %}
+{% block club_content %}<h1>{{ facility.name }}</h1>
+<p>{{ facility.description|linebreaksbr }}</p><p>Local timezone: {{ facility.timezone }}</p>
+{% if facility.address %}<p>{{ facility.address|linebreaksbr }}</p>{% endif %}
+{% if facility.latitude != None %}<p>Coordinates: {{ facility.latitude }}, {{ facility.longitude }}</p>{% endif %}
+{% for photo in facility.photos %}<figure><img src="{% url 'clubs:facility-photo' photo.id %}" alt="{{ photo.caption }}" style="max-width:100%;height:auto"><figcaption>{{ photo.caption }}{% if photo.primary %} · Primary photo{% endif %}</figcaption></figure>{% endfor %}
+<h2>Shooting areas</h2><ul>{% for area in facility.areas %}<li><h3>{{ area.name }}</h3><p>{{ area.kind|title }} · {{ area.disciplines|join:', ' }}</p><p>Distances: {{ area.distances_m|join:', ' }} metres</p><p>{{ area.lane_capacity }} lanes · {{ area.target_capacity }} targets</p><a href="{% url 'clubs:facility-calendar' area.id %}">View availability for {{ area.name }}</a></li>{% empty %}<li>No shooting areas are available to view.</li>{% endfor %}</ul>
+{% endblock %}

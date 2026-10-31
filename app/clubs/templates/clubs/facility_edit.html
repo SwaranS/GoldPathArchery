@@ -1,0 +1,7 @@
+{% extends 'clubs/base.html' %}
+{% block title %}Edit {{ kind }} · {{ club.name }}{% endblock %}
+{% block club_content %}<h1>{{ club.name }} · {{ kind|title }}</h1>
+<p>Audience controls apply within this club. Private clubs remain hidden from non-members even when a facility is marked public.</p>
+<p>Uncheck Active to archive a record without deleting its history. Do not put private addresses or coordinates in descriptions intended for a wider audience.</p>
+<form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Save {{ kind }}</button></form>
+<p><a href="{% url 'clubs:facility-manage' club.pk %}">Back to facilities administration</a></p>{% endblock %}

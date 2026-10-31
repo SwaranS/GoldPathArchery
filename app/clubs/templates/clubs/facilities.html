@@ -1,0 +1,7 @@
+{% extends 'clubs/base.html' %}
+{% block title %}Facilities · {{ club.name }}{% endblock %}
+{% block club_content %}<h1>{{ club.name }} facilities</h1>
+<p>Explore shooting areas and published availability. Opening hours are shooting opportunities; they do not reserve a lane or target.</p>
+<ul>{% for facility in facilities %}<li><a href="{% url 'clubs:facility' facility.id %}">{{ facility.name }}</a><p>{{ facility.description|linebreaksbr }}</p>{% if facility.address %}<p>{{ facility.address|linebreaksbr }}</p>{% endif %}</li>{% empty %}<li>No facilities are available to view.</li>{% endfor %}</ul>
+{% if request.user.is_authenticated %}<p><a href="{% url 'clubs:memberships' %}">My clubs</a></p>{% endif %}
+{% endblock %}

@@ -1,9 +1,20 @@
 from django.urls import path
-from . import views, membership_views, grant_views
+from . import views, membership_views, grant_views, facility_views
 
 app_name = "clubs"
 urlpatterns = [
     path("", views.directory, name="directory"),
+    path("facilities/<uuid:facility_id>/", facility_views.detail, name="facility"),
+    path("areas/<uuid:area_id>/availability/", facility_views.calendar, name="facility-calendar"),
+    path("facility-photos/<uuid:photo_id>/", facility_views.photo, name="facility-photo"),
+    path("<uuid:club_id>/facilities/", facility_views.listing, name="facilities"),
+    path("<uuid:club_id>/facilities/manage/", facility_views.manage, name="facility-manage"),
+    path("<uuid:club_id>/facilities/groups/new/", facility_views.group, name="facility-group-new"),
+    path("<uuid:club_id>/facilities/groups/<uuid:group_id>/", facility_views.group, name="facility-group-edit"),
+    path("<uuid:club_id>/facilities/new/", facility_views.edit, name="facility-new"),
+    path("<uuid:club_id>/facilities/edit/<slug:kind>/<uuid:object_id>/", facility_views.edit, name="facility-edit"),
+    path("<uuid:club_id>/facilities/add/<slug:kind>/<uuid:parent_id>/", facility_views.edit, name="facility-add"),
+    path("<uuid:club_id>/facilities/<uuid:facility_id>/photos/", facility_views.photos, name="facility-photos"),
     path("shared/", grant_views.shared, name="shared"),
     path("athletes/<uuid:athlete_id>/sharing/", grant_views.manage, name="grants"),
     path("athletes/<uuid:athlete_id>/shared/<slug:scope>/", grant_views.data, name="shared-data"),
