@@ -22,3 +22,17 @@ def production_readiness(app_configs, **kwargs):
     if backend not in ("django.core.cache.backends.db.DatabaseCache", "django.core.cache.backends.redis.RedisCache"):
         errors.append(Error("Configure a shared cache for MFA replay/rate limiting before enabling production clubs.", id="clubs.E003"))
     return errors
+
+
+@register()
+def facility_photo_readiness(app_configs, **kwargs):
+    if not (settings.CLUBS_ENABLED and getattr(settings, "CLUB_FACILITIES_ENABLED", False)
+            and getattr(settings, "CLUBS_PRODUCTION", False)):
+        return []
+    backend = getattr(settings, "CLUB_FACILITY_PHOTO_BACKEND", "disabled")
+    if backend == "disabled":
+        return []  # Venues and calendars can operate without photo uploads.
+    if (backend != "azure" or not getattr(settings, "CLUB_FACILITY_PHOTO_AZURE_CONNECTION_STRING", "")
+            or not getattr(settings, "CLUB_FACILITY_PHOTO_AZURE_CONTAINER", "")):
+        return [Error("Configure private Azure facility photo storage or disable facility photo uploads in production.", id="clubs.E004")]
+    return []

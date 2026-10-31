@@ -35,10 +35,10 @@ def normalize_upload(upload):
 
 
 class PrivateEvidenceStore:
-    def __init__(self):
-        self.backend = getattr(settings, "CLUB_EVIDENCE_BACKEND", "disabled")
+    def __init__(self, *, prefix="CLUB_EVIDENCE"):
+        self.backend = getattr(settings, prefix + "_BACKEND", "disabled")
         if self.backend == "local":
-            root = getattr(settings, "CLUB_EVIDENCE_ROOT", "")
+            root = getattr(settings, prefix + "_ROOT", "")
             if not root or not Path(root).is_absolute():
                 raise ImproperlyConfigured("An absolute private evidence root is required.")
             self.root = Path(root)
@@ -52,8 +52,8 @@ class PrivateEvidenceStore:
         elif self.backend == "azure":
             from azure.storage.blob import BlobServiceClient
             self.container = BlobServiceClient.from_connection_string(
-                settings.CLUB_EVIDENCE_AZURE_CONNECTION_STRING
-            ).get_container_client(settings.CLUB_EVIDENCE_AZURE_CONTAINER)
+                getattr(settings, prefix + "_AZURE_CONNECTION_STRING", "")
+            ).get_container_client(getattr(settings, prefix + "_AZURE_CONTAINER", ""))
             if not self.container.url.startswith("https://"):
                 raise ImproperlyConfigured("Private evidence requires Azure HTTPS transport.")
             if self.container.get_container_properties().public_access:

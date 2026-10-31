@@ -241,3 +241,126 @@ class ClubDataGrant(Identity):
             models.CheckConstraint(condition=Q(expires_at__gt=models.F("starts_at")), name="club_grant_valid_window"),
         ]
         indexes = [models.Index(fields=["athlete", "club", "revoked_at"])]
+
+
+FACILITY_AUDIENCES = [("public", "Public"), ("members", "Club members"), ("coaches", "Club coaches"), ("admins", "Club administrators"), ("group", "Named facility access group")]
+
+
+class FacilityAccessGroup(Identity):
+    club = models.ForeignKey(Club, on_delete=models.PROTECT, related_name="facility_access_groups")
+    name = models.CharField(max_length=100)
+    members = models.ManyToManyField(ClubMembership, blank=True)
+    active = models.BooleanField(default=True)
+    version = models.PositiveIntegerField(default=1)
+
+    def __str__(self):
+        return self.name
+
+
+class ClubFacility(Identity):
+    club = models.ForeignKey(Club, on_delete=models.PROTECT, related_name="facilities")
+    name = models.CharField(max_length=160)
+    description = models.TextField(blank=True, max_length=4000)
+    address = models.TextField(blank=True, max_length=1000)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    timezone = models.CharField(max_length=64, default="Europe/Dublin", validators=[validate_timezone])
+    audience = models.CharField(max_length=10, choices=FACILITY_AUDIENCES, default="members")
+    location_audience = models.CharField(max_length=10, choices=FACILITY_AUDIENCES, default="admins")
+    access_group = models.ForeignKey(FacilityAccessGroup, null=True, blank=True, on_delete=models.PROTECT, related_name="facilities")
+    location_group = models.ForeignKey(FacilityAccessGroup, null=True, blank=True, on_delete=models.PROTECT, related_name="locations")
+    active = models.BooleanField(default=True)
+    version = models.PositiveIntegerField(default=1)
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(condition=Q(audience__in=[a[0] for a in FACILITY_AUDIENCES]), name="facility_audience_valid"),
+            models.CheckConstraint(condition=Q(location_audience__in=[a[0] for a in FACILITY_AUDIENCES]), name="facility_location_audience_valid"),
+            models.CheckConstraint(condition=Q(latitude__isnull=True, longitude__isnull=True) | Q(latitude__isnull=False, longitude__isnull=False, latitude__gte=-90, latitude__lte=90, longitude__gte=-180, longitude__lte=180), name="facility_coordinates_valid"),
+        ]
+
+    def __str__(self):
+        return self.name
+
+
+class ShootingArea(Identity):
+    facility = models.ForeignKey(ClubFacility, on_delete=models.PROTECT, related_name="areas")
+    name = models.CharField(max_length=160)
+    kind = models.CharField(max_length=10, choices=[("indoor", "Indoor"), ("outdoor", "Outdoor"), ("mixed", "Mixed")])
+    disciplines = models.JSONField(default=list)
+    distances_m = models.JSONField(default=list)
+    lane_capacity = models.PositiveSmallIntegerField()
+    target_capacity = models.PositiveSmallIntegerField()
+    audience = models.CharField(max_length=10, choices=FACILITY_AUDIENCES, default="members")
+    access_group = models.ForeignKey(FacilityAccessGroup, null=True, blank=True, on_delete=models.PROTECT, related_name="areas")
+    active = models.BooleanField(default=True)
+    version = models.PositiveIntegerField(default=1)
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(condition=Q(kind__in=["indoor", "outdoor", "mixed"]), name="shooting_area_kind_valid"),
+            models.CheckConstraint(condition=Q(audience__in=[a[0] for a in FACILITY_AUDIENCES]), name="shooting_area_audience_valid"),
+            models.CheckConstraint(condition=Q(lane_capacity__gt=0, target_capacity__gt=0), name="shooting_area_capacity_positive"),
+        ]
+
+
+class FacilityAvailabilityRule(Identity):
+    area = models.ForeignKey(ShootingArea, on_delete=models.PROTECT, related_name="rules")
+    weekday = models.PositiveSmallIntegerField(choices=list(enumerate(["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])))
+    starts_on = models.DateField()
+    ends_on = models.DateField(null=True, blank=True)
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+    priority = models.PositiveSmallIntegerField(default=0)
+    audience = models.CharField(max_length=10, choices=FACILITY_AUDIENCES, default="members")
+    access_group = models.ForeignKey(FacilityAccessGroup, null=True, blank=True, on_delete=models.PROTECT, related_name="rules")
+    active = models.BooleanField(default=True)
+    version = models.PositiveIntegerField(default=1)
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(condition=Q(weekday__lte=6), name="facility_weekday_valid"),
+            models.CheckConstraint(condition=Q(ends_on__isnull=True) | Q(ends_on__gte=models.F("starts_on")), name="facility_rule_dates_valid"),
+            models.CheckConstraint(condition=Q(end_time__gt=models.F("start_time")), name="facility_rule_times_valid"),
+            models.CheckConstraint(condition=Q(audience__in=[a[0] for a in FACILITY_AUDIENCES]), name="facility_rule_audience_valid"),
+        ]
+
+
+class FacilityAvailabilityException(Identity):
+    area = models.ForeignKey(ShootingArea, on_delete=models.PROTECT, related_name="exceptions")
+    starts_on = models.DateField()
+    ends_on = models.DateField()
+    kind = models.CharField(max_length=10, choices=[("closed", "Closed"), ("replace", "Replacement hours")])
+    replacement_slots = models.JSONField(default=list, blank=True)
+    reason = models.CharField(max_length=300)
+    priority = models.PositiveSmallIntegerField(default=0)
+    audience = models.CharField(max_length=10, choices=FACILITY_AUDIENCES, default="members")
+    access_group = models.ForeignKey(FacilityAccessGroup, null=True, blank=True, on_delete=models.PROTECT, related_name="exceptions")
+    active = models.BooleanField(default=True)
+    version = models.PositiveIntegerField(default=1)
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(condition=Q(ends_on__gte=models.F("starts_on")), name="facility_exception_dates_valid"),
+            models.CheckConstraint(condition=Q(kind__in=["closed", "replace"]), name="facility_exception_kind_valid"),
+            models.CheckConstraint(condition=Q(audience__in=[a[0] for a in FACILITY_AUDIENCES]), name="facility_exception_audience_valid"),
+        ]
+
+
+class FacilityPhoto(Identity):
+    facility = models.ForeignKey(ClubFacility, on_delete=models.PROTECT, related_name="photos")
+    caption = models.CharField(max_length=200)
+    storage_key = models.CharField(max_length=100, unique=True, editable=False)
+    audience = models.CharField(max_length=10, choices=FACILITY_AUDIENCES, default="admins")
+    access_group = models.ForeignKey(FacilityAccessGroup, null=True, blank=True, on_delete=models.PROTECT, related_name="photos")
+    primary = models.BooleanField(default=False)
+    active = models.BooleanField(default=True)
+    version = models.PositiveIntegerField(default=1)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["facility"], condition=Q(primary=True, active=True), name="facility_one_primary_photo"),
+            models.CheckConstraint(condition=Q(audience__in=[a[0] for a in FACILITY_AUDIENCES]), name="facility_photo_audience_valid")]
+
+
+class FacilityPhotoUpload(Identity):
+    storage_key = models.CharField(max_length=100, unique=True)

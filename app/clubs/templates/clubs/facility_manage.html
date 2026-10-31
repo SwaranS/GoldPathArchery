@@ -1,0 +1,15 @@
+{% extends 'clubs/base.html' %}
+{% block title %}Facilities administration · {{ club.name }}{% endblock %}
+{% block club_content %}<h1>{{ club.name }} facilities administration</h1>
+<p><a href="{% url 'clubs:facility-new' club.pk %}">Add a facility</a> · <a href="{% url 'clubs:facilities' club.pk %}">View published facilities</a></p>
+<h2>Facility access groups</h2><p>Access groups control venue visibility and hours only. They do not grant athlete-data access or create training programmes.</p>
+<p><a href="{% url 'clubs:facility-group-new' club.pk %}">Add a facility access group</a></p>
+<ul>{% for group in club.facility_access_groups.all %}<li><a href="{% url 'clubs:facility-group-edit' club.pk group.pk %}">{{ group.name }}</a>{% if not group.active %} · Archived{% endif %}</li>{% empty %}<li>No access groups.</li>{% endfor %}</ul>
+{% for facility in facilities %}<section><h2>{{ facility.name }}{% if not facility.active %} · Archived{% endif %}</h2>
+<p><a href="{% url 'clubs:facility-edit' club.pk 'facility' facility.pk %}">Edit {{ facility.name }}</a>{% if facility.active %} · <a href="{% url 'clubs:facility-add' club.pk 'area' facility.pk %}">Add shooting area</a> · <a href="{% url 'clubs:facility-photos' club.pk facility.pk %}">Manage photos</a>{% endif %}</p>
+{% for area in facility.areas.all %}<h3>{{ area.name }}{% if not area.active %} · Archived{% endif %}</h3>
+<p><a href="{% url 'clubs:facility-edit' club.pk 'area' area.pk %}">Edit {{ area.name }}</a>{% if area.active and facility.active %} · <a href="{% url 'clubs:facility-add' club.pk 'rule' area.pk %}">Add weekly hours</a> · <a href="{% url 'clubs:facility-add' club.pk 'exception' area.pk %}">Add closure or replacement hours</a> · <a href="{% url 'clubs:facility-calendar' area.pk %}">Preview availability</a>{% endif %}</p>
+<h4>Weekly and seasonal hours</h4><ul>{% for rule in area.rules.all %}<li>{{ rule.get_weekday_display }} {{ rule.start_time }}–{{ rule.end_time }} · {{ rule.starts_on }} to {{ rule.ends_on|default:'ongoing' }} · priority {{ rule.priority }} · {{ rule.get_audience_display }}{% if not rule.active %} · Archived{% endif %} · <a href="{% url 'clubs:facility-edit' club.pk 'rule' rule.pk %}">Edit weekly hours</a></li>{% empty %}<li>No weekly hours.</li>{% endfor %}</ul>
+<h4>Exceptions</h4><ul>{% for exception in area.exceptions.all %}<li>{{ exception.starts_on }} to {{ exception.ends_on }} · {{ exception.get_kind_display }} · {{ exception.reason }}{% if not exception.active %} · Archived{% endif %} · <a href="{% url 'clubs:facility-edit' club.pk 'exception' exception.pk %}">Edit exception</a></li>{% empty %}<li>No exceptions.</li>{% endfor %}</ul>
+{% empty %}<p>No shooting areas.</p>{% endfor %}</section>{% empty %}<p>No facilities yet.</p>{% endfor %}
+<p><a href="{% url 'clubs:memberships' %}">My clubs</a></p>{% endblock %}

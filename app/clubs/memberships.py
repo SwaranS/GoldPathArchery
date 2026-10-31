@@ -310,6 +310,10 @@ def end_membership(actor, club_id, member_id, reason, version):
     member.version += 1
     member.save()
     member.roles.filter(revoked_at__isnull=True).update(revoked_at=timezone.now())
+    # A later rejoin must not silently restore restricted facility audiences.
+    for group in member.facilityaccessgroup_set.all():
+        services.audit(actor, None, "facility.group.membership_ended", group.pk, club=club)
+    member.facilityaccessgroup_set.clear()
     ClubMembershipAction.objects.filter(membership=member, kind="role", state="pending").update(state="revoked", decided_at=timezone.now(), decided_by=actor)
     clear_home(actor, member)
     from .models import ClubDataGrant

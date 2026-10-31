@@ -192,6 +192,9 @@ def main():
         settings.CLUBS_ENABLED = True
         settings.CLUB_MEMBERSHIPS_ENABLED = True
         settings.CLUB_DATA_SHARING_ENABLED = True
+        settings.CLUB_FACILITIES_ENABLED = True
+        settings.CLUB_FACILITY_PHOTO_BACKEND = "local"
+        settings.CLUB_FACILITY_PHOTO_ROOT = str(output / "private-facility-photos")
         fixture, actors = browser_fixture(output, athlete)
         from django.contrib.staticfiles.handlers import StaticFilesHandler
         from django.core.wsgi import get_wsgi_application
@@ -202,7 +205,7 @@ def main():
         if args.browser_cache:
             env["PLAYWRIGHT_BROWSERS_PATH"] = str(Path(args.browser_cache).resolve())
         browser = subprocess.run(["node", str(Path(__file__).with_name("browser.mjs"))], input=json.dumps(fixture),
-            text=True, capture_output=True, timeout=180, env=env)
+            text=True, capture_output=True, timeout=300, env=env)
         (output / "browser-command.log").write_text(browser.stdout + browser.stderr, encoding="utf-8")
         report["checks"]["browser_and_accessibility"] = browser.returncode == 0
         report["checks"]["legacy_records_preserved_after_browser_workflow"] = fingerprint(scopes) == baseline
@@ -223,11 +226,13 @@ def main():
         report["checks"]["legacy_records_preserved_before_backup"] = fingerprint(scopes) == baseline
         from clubs.models import (Club, ClubClaim, ClubAuditEvent, ClubVerificationEvidence,
             ClubMembership, ClubRoleAssignment, ClubClaimDecision, KnownClubListing, ClubSecurityEvent, EvidenceUpload,
-            ClubMembershipAction, AthleteHomeClub, AthleteHomeClubHistory, ClubDataGrant)
+            ClubMembershipAction, AthleteHomeClub, AthleteHomeClubHistory, ClubDataGrant,
+            ClubFacility, ShootingArea, FacilityAvailabilityRule, FacilityAvailabilityException, FacilityPhoto, FacilityPhotoUpload, FacilityAccessGroup)
         from allauth.mfa.models import Authenticator
         club_models = (Club, ClubClaim, ClubAuditEvent, ClubVerificationEvidence, ClubMembership,
             ClubRoleAssignment, ClubClaimDecision, KnownClubListing, ClubSecurityEvent, EvidenceUpload, Authenticator,
-            ClubMembershipAction, AthleteHomeClub, AthleteHomeClubHistory, ClubDataGrant)
+            ClubMembershipAction, AthleteHomeClub, AthleteHomeClubHistory, ClubDataGrant,
+            ClubFacility, ShootingArea, FacilityAvailabilityRule, FacilityAvailabilityException, FacilityPhoto, FacilityPhotoUpload, FacilityAccessGroup, FacilityAccessGroup.members.through)
         club_scopes = [(model._meta.label, list(model.objects.values_list("pk", flat=True))) for model in club_models]
         club_baseline = fingerprint(club_scopes)
         report["club_state_baseline"] = club_baseline
@@ -253,6 +258,18 @@ def main():
             get_adapter().decrypt(auth.data["secret"]) == fixture["totpSecret"] for auth in restored_factors)
         report["backup_bytes"] = dump.stat().st_size
         report["club_record_counts"] = restored_counts
+        from clubs.facilities import FacilityPhotoStore
+        photos = list(FacilityPhoto.objects.all())
+        if photos:
+            original_photos = Path(settings.CLUB_FACILITY_PHOTO_ROOT)
+            restored_photos = output / "restored-facility-photos"
+            shutil.copytree(original_photos, restored_photos)
+            settings.CLUB_FACILITY_PHOTO_ROOT = str(restored_photos)
+            report["checks"]["restore_facility_photo_blobs"] = all(
+                hashlib.sha256(FacilityPhotoStore().get(photo.storage_key)).digest() ==
+                hashlib.sha256((original_photos / photo.storage_key).read_bytes()).digest() for photo in photos)
+        else:
+            report["checks"]["restore_facility_photo_blobs"] = False
         from django.utils import timezone
         evidence = ClubVerificationEvidence.objects.filter(storage_key__gt="").first()
         if evidence:

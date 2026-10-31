@@ -1,0 +1,9 @@
+{% extends 'clubs/base.html' %}
+{% block title %}Photos · {{ facility.name }}{% endblock %}
+{% block club_content %}<h1>{{ facility.name }} photos</h1>
+<p>Each photo has its own audience within the facility audience. Choose the intended audience carefully: image content may reveal a location even after metadata is removed.</p>
+<form method="post" enctype="multipart/form-data">{% csrf_token %}<input type="hidden" name="action" value="upload">{{ form.as_p }}<button type="submit">Upload facility photo</button></form>
+{{ action_form.errors }}
+<ul>{% for photo in photos %}<li>{{ photo.caption }} · {{ photo.get_audience_display }}{% if photo.primary %} · Primary{% endif %}
+<form method="post">{% csrf_token %}<input type="hidden" name="photo" value="{{ photo.pk }}"><input type="hidden" name="version" value="{{ photo.version }}">{% if not photo.primary %}<button name="action" value="primary">Set primary photo</button>{% endif %}<button name="action" value="archive">Archive photo</button></form></li>{% empty %}<li>No active photos.</li>{% endfor %}</ul>
+<p><a href="{% url 'clubs:facility-manage' club.pk %}">Back to facilities administration</a></p>{% endblock %}

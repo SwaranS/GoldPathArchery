@@ -11,7 +11,7 @@
 <ul>{% for member in memberships %}
 <li><strong>{{ member.club.name }}</strong> — {% if member.athlete %}{{ member.athlete.display_name }}{% else %}My account{% endif %} · {% if member.active %}Active{% else %}{{ member.get_ended_reason_display|default:'Inactive' }}{% endif %}
 {% if member.can_manage %}<a href="{% url 'clubs:membership-manage' member.club_id %}">Manage memberships</a>{% endif %}
-{% if member.can_leave %}<a href="{% url 'clubs:leave' member.pk %}">Leave club</a>{% endif %}
+{% if club_facilities_enabled and member.active %}<a href="{% url 'clubs:facilities' member.club_id %}">Facilities</a>{% endif %}{% if member.can_leave %}<a href="{% url 'clubs:leave' member.pk %}">Leave club</a>{% endif %}
 </li>{% empty %}<li>No club memberships yet.</li>{% endfor %}</ul>
 {% if club_data_sharing_enabled %}<p><a href="{% url 'clubs:shared' %}">Shared athlete data</a></p>{% endif %}<h2>Home club</h2>
 <p>No club is automatically selected. Choose independently for each athlete you are authorized to represent.</p>
