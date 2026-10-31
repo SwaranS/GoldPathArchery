@@ -28,6 +28,8 @@ def process_next():
                 relationships.require(job.requested_by, athlete, "edit_plan")
                 engine = PeriodizationEngineService()
                 plan = engine.generate_plan(GeneratePlanRequest.model_validate(job.inputs), plan_id=job.pk)
+                # A club role/grant can change while a provider is generating.
+                relationships.require(job.requested_by, athlete, "edit_plan")
                 job.roadmap = engine.to_roadmap_response(plan).model_dump(mode="json")
                 # A generated suggestion is a draft until human review/activation exists.
                 job.roadmap["status"] = "draft"

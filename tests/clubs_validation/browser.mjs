@@ -230,6 +230,26 @@ try {
   await outsider.page.goto(`${fixture.origin}/clubs/${privateClub}/members/`);
   assert.match(await outsider.page.locator('main').innerText(), /Invite a member/);
   report.checks.push('Additional club admin accepts appointment after real MFA');
+  report.stage = 'M3 scoped sharing';
+  await outsider.page.goto(`${fixture.origin}/clubs/athletes/${fixture.memberAthlete}/sharing/`);
+  await audit(outsider.page, 'sharing-owner-mobile');
+  await outsider.page.locator('[name="club"]').selectOption(privateClub);
+  await outsider.page.locator('[name="role"]').selectOption('admin');
+  await outsider.page.locator('input[name="scopes"][value="scoring"]').check();
+  await outsider.page.locator('[name="purpose"]').fill('Synthetic score review only');
+  await outsider.page.locator('[name="starts_at"]').fill(fixture.checkedAt);
+  await outsider.page.locator('[name="expires_at"]').fill(fixture.expiresAt);
+  await outsider.page.getByRole('button', { name: 'Grant access', exact: true }).click();
+  await outsider.page.getByRole('button', { name: 'Revoke access', exact: true }).waitFor();
+  const scoringUrl = `${fixture.origin}/clubs/athletes/${fixture.memberAthlete}/shared/scoring/`;
+  await applicant.page.goto(scoringUrl);
+  await audit(applicant.page, 'shared-scoring-mobile');
+  assert.equal((await applicant.context.request.get(scoringUrl + '?format=json')).status(), 200);
+  assert.equal((await applicant.context.request.get(`${fixture.origin}/clubs/athletes/${fixture.memberAthlete}/shared/equipment/`)).status(), 404);
+  assert.equal((await applicant.context.request.get(`${fixture.origin}/account/athletes/${fixture.memberAthlete}/`)).status(), 404);
+  await outsider.page.getByRole('button', { name: 'Revoke access', exact: true }).click();
+  assert.equal((await applicant.context.request.get(scoringUrl)).status(), 404);
+  report.checks.push('Explicit scoring consent excludes equipment and legacy profile; revocation denies saved links');
 } catch (error) {
   report.errors.push(`${report.stage || 'M1'} ${error.name}: ${error.message.split('\n')[0]}`);
 } finally {

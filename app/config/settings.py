@@ -118,6 +118,7 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 # Opt in only after the clubs verification/storage release checklist is reviewed.
 CLUBS_ENABLED = os.environ.get("CLUBS_ENABLED", "0") == "1"
 CLUB_MEMBERSHIPS_ENABLED = os.environ.get("CLUB_MEMBERSHIPS_ENABLED", "0") == "1"
+CLUB_DATA_SHARING_ENABLED = os.environ.get("CLUB_DATA_SHARING_ENABLED", "0") == "1"
 CLUB_EVIDENCE_BACKEND = os.environ.get("CLUB_EVIDENCE_BACKEND", "disabled")
 CLUB_EVIDENCE_ROOT = os.environ.get("CLUB_EVIDENCE_ROOT", "")
 CLUB_EVIDENCE_AZURE_CONNECTION_STRING = os.environ.get("CLUB_EVIDENCE_AZURE_CONNECTION_STRING", "")

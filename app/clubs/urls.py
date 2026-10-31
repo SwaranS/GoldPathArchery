@@ -1,9 +1,12 @@
 from django.urls import path
-from . import views, membership_views
+from . import views, membership_views, grant_views
 
 app_name = "clubs"
 urlpatterns = [
     path("", views.directory, name="directory"),
+    path("shared/", grant_views.shared, name="shared"),
+    path("athletes/<uuid:athlete_id>/sharing/", grant_views.manage, name="grants"),
+    path("athletes/<uuid:athlete_id>/shared/<slug:scope>/", grant_views.data, name="shared-data"),
     path("memberships/", membership_views.mine, name="memberships"),
     path("invitations/<uuid:action_id>/", membership_views.accept_invitation, name="invitation"),
     path("appointments/<uuid:action_id>/", membership_views.role_response, name="role-response"),

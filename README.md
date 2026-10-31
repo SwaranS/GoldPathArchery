@@ -50,3 +50,8 @@ See [advanced equipment](docs/advanced-equipment.md) for schema, permissions, pr
 See [Milestone 2 memberships](docs/clubs-memberships.md) for join requests, private
 invitations, role acceptance, guardian rules, home-club history and the separate
 feature flag. This increment requires migration review before local enablement.
+
+## Club data sharing
+
+See [club data permissions](docs/clubs-permissions.md) for scoped consent, revocation,
+recipient views, worker rechecks and current category limits.

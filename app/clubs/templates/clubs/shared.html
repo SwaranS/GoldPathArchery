@@ -1,0 +1,7 @@
+{% extends 'clubs/base.html' %}
+{% block title %}Shared athlete data{% endblock %}
+{% block club_content %}
+<h1>Shared athlete data</h1>
+<p>Only current, explicitly consented categories are available. Permissions are checked again whenever you open a link.</p>
+{% for scope, label, athletes in categories %}<h2>{{ label }}</h2><ul>{% for athlete in athletes %}<li><a href="{% url 'clubs:shared-data' athlete.pk scope %}">{{ athlete.display_name }}</a></li>{% empty %}<li>No shared athletes.</li>{% endfor %}</ul>{% endfor %}
+{% endblock %}

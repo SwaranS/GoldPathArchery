@@ -1,0 +1,12 @@
+{% extends 'clubs/base.html' %}
+{% block title %}Data sharing · {{ athlete.display_name }}{% endblock %}
+{% block club_content %}
+<h1>Data sharing for {{ athlete.display_name }}</h1>
+<p>Choose one named club coach or one club role and the categories they may access. Role grants apply to current and future active holders of that role in the selected club. No grant allows score changes, account changes, medical data, private notes or file downloads.</p>
+<p>Training draft permission allows requesting a new generated draft. It cannot activate, replace or change an existing plan.</p>
+<form method="post">{% csrf_token %}<input type="hidden" name="action" value="issue">{{ form.as_p }}<button type="submit">Grant access</button></form>
+<h2>Sharing history</h2>{{ revoke_form.errors }}
+<ul>{% for item in grants %}<li>{{ item.club.name }} · {% if item.grantee_id %}{{ item.grantee.username }}{% else %}{{ item.get_role_display }}{% endif %} · {{ item.scopes|join:', ' }} · {{ item.purpose }} · {{ item.starts_at }} to {{ item.expires_at }}
+{% if item.revoked_at %}<p>Revoked {{ item.revoked_at }}</p>{% else %}<form method="post">{% csrf_token %}<input type="hidden" name="action" value="revoke"><input type="hidden" name="grant" value="{{ item.pk }}"><input type="hidden" name="version" value="{{ item.version }}"><button type="submit">Revoke access</button></form>{% endif %}</li>{% empty %}<li>No data grants.</li>{% endfor %}</ul>
+<p><a href="{% url 'clubs:memberships' %}">My clubs</a></p>
+{% endblock %}
