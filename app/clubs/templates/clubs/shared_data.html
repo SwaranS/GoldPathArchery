@@ -1,0 +1,22 @@
+{% extends 'clubs/base.html' %}
+{% block title %}{{ scope }} · Shared data{% endblock %}
+{% block club_content %}
+<h1>{{ scope }}</h1>
+{% if scope_key == 'profile' %}
+<p>{{ payload.display_name }}</p><p>Disciplines: {{ payload.disciplines|join:', ' }}</p>
+{% elif scope_key == 'training' %}
+{% for plan in payload.plans %}<section><h2>Training draft · {{ plan.created_at }}</h2><p>{{ plan.roadmap.start_date }} to {{ plan.roadmap.target_date }}</p><p>Planned weekly arrows: {{ plan.roadmap.weekly_planned_arrows|join:', ' }}</p><p>Human review is required before use.</p>
+{% for week in plan.roadmap.microcycles %}<h3>Week {{ week.week_number }} · {{ week.target_arrows }} arrows{% if week.is_deload_week %} · Deload{% endif %}</h3>{% for session in week.sessions %}<details><summary>{{ session.scheduled_date }} · {{ session.duration_mins }} minutes · {{ session.max_distance_m }} m</summary><ul>{% for block in session.blocks %}<li>{{ block.drill.title|default:block.block_type }} · {{ block.prescribed_arrows }} arrows · {{ block.distance_m }} m{% if block.drill.instructions %}<p>{{ block.drill.instructions }}</p>{% endif %}</li>{% endfor %}</ul></details>{% endfor %}{% endfor %}
+</section>{% empty %}<p>No ready training drafts.</p>{% endfor %}
+{% elif scope_key == 'scoring' %}
+{% for session in payload.sessions %}<section><h2>Session · {{ session.started_at }}</h2><p>Status: {{ session.status }}</p><p>Arrows: {% for arrow in session.arrows %}{{ arrow.symbol }} ({{ arrow.points }}){% if not forloop.last %}, {% endif %}{% empty %}No arrows recorded.{% endfor %}</p></section>{% empty %}<p>No scoring sessions.</p>{% endfor %}
+{% elif scope_key == 'equipment' %}
+<h2>Equipment</h2><ul>{% for item in payload.items %}<li>{{ item.name }} · {{ item.kind }} · {{ item.division }}</li>{% empty %}<li>No legacy equipment.</li>{% endfor %}</ul>
+<h2>Components</h2><ul>{% for item in payload.components %}<li>{{ item.name }} · {{ item.category }} · {{ item.manufacturer }} {{ item.model }} · {{ item.status }}</li>{% empty %}<li>No components.</li>{% endfor %}</ul>
+<h2>Bow configurations</h2><ul>{% for item in payload.configurations %}<li>{{ item.name }} · {% if item.active %}Active{% else %}Inactive{% endif %}</li>{% empty %}<li>No configurations.</li>{% endfor %}</ul>
+{% elif scope_key == 'sight_marks' %}
+<ul>{% for mark in payload.marks %}<li>{{ mark.distance }} {{ mark.distance_unit }} · {{ mark.mark }}</li>{% empty %}<li>No sight marks.</li>{% endfor %}</ul>
+{% endif %}
+{% if can_generate %}<p><a href="{% url 'training-new' %}?athlete={{ athlete_id }}">Request a new training draft</a></p>{% endif %}
+<p><a href="{% url 'clubs:shared' %}">Shared athlete data</a></p>
+{% endblock %}

@@ -61,10 +61,16 @@ def can(user, athlete, operation):
     coach = CoachRelationship.objects.filter(
         athlete=athlete, coach=user, revoked_at__isnull=True
     ).first()
-    return bool(
+    personal = bool(
         coach
         and (operation == "view" or (operation == "edit_plan" and coach.plan_edit))
     )
+    if personal:
+        return True
+    if operation == "edit_plan":
+        from clubs.grants import allows
+        return allows(user, athlete, "training_edit")
+    return False
 
 
 def accessible_athletes(user):

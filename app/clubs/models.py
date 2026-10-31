@@ -219,3 +219,25 @@ class ClubSecurityEvent(Identity):
     action = models.CharField(max_length=60)
     correlation_id = models.UUIDField(default=uuid.uuid4, editable=False)
     source = models.CharField(max_length=20, default="web")
+
+
+class ClubDataGrant(Identity):
+    """Explicit athlete authority; never inferred from membership or account role."""
+    athlete = models.ForeignKey("accounts.AthleteProfile", on_delete=models.CASCADE)
+    club = models.ForeignKey(Club, on_delete=models.PROTECT)
+    grantee = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.CASCADE, related_name="club_data_grants")
+    role = models.CharField(max_length=20, blank=True, choices=[("admin", "Admin"), ("membership_manager", "Membership manager"), ("coach", "Coach")])
+    approved_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="approved_club_data_grants")
+    scopes = models.JSONField(default=list)
+    purpose = models.CharField(max_length=300)
+    starts_at = models.DateTimeField()
+    expires_at = models.DateTimeField()
+    revoked_at = models.DateTimeField(null=True, blank=True)
+    version = models.PositiveIntegerField(default=1)
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(condition=(Q(grantee__isnull=False, role="") | Q(grantee__isnull=True, role__in=["admin", "membership_manager", "coach"])), name="club_grant_one_recipient"),
+            models.CheckConstraint(condition=Q(expires_at__gt=models.F("starts_at")), name="club_grant_valid_window"),
+        ]
+        indexes = [models.Index(fields=["athlete", "club", "revoked_at"])]

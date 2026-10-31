@@ -312,6 +312,15 @@ def end_membership(actor, club_id, member_id, reason, version):
     member.roles.filter(revoked_at__isnull=True).update(revoked_at=timezone.now())
     ClubMembershipAction.objects.filter(membership=member, kind="role", state="pending").update(state="revoked", decided_at=timezone.now(), decided_by=actor)
     clear_home(actor, member)
+    from .models import ClubDataGrant
+    affected = Q(athlete_id=member.athlete_id) if member.athlete_id else Q(pk__in=[])
+    if member.user_id:
+        affected |= Q(grantee_id=member.user_id) | Q(athlete__account_id=member.user_id)
+    for grant in ClubDataGrant.objects.filter(affected, club=club, revoked_at__isnull=True):
+        grant.revoked_at = timezone.now()
+        grant.version += 1
+        grant.save(update_fields=["revoked_at", "version"])
+        services.audit(actor, None, "grant.membership_ended", grant.pk, club=club)
     services.audit(actor, None, "membership." + reason, member.pk, club=club)
     return member
 

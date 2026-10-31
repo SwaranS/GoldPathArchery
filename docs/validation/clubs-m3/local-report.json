@@ -1,0 +1,77 @@
+{
+  "synthetic_only": true,
+  "generated_at_utc": "2026-10-31T20:05:32.050141+00:00",
+  "source_revision": "d7fb4b9-dirty",
+  "source_database": "clubs_validation_e394b9bd744f",
+  "restore_database": "clubs_validation_e394b9bd744f_restore",
+  "disposable_databases_removed": true,
+  "passed": true,
+  "checks": {
+    "legacy_records_preserved_after_migration": true,
+    "browser_and_accessibility": true,
+    "legacy_records_preserved_after_browser_workflow": true,
+    "club_admin_has_no_private_athlete_access": true,
+    "guardian_managed_junior_stays_without_login": true,
+    "private_profile_exact_url_is_hidden": true,
+    "feature_off_rollback": true,
+    "legacy_records_preserved_before_backup": true,
+    "backup_restore_preserves_legacy_data": true,
+    "backup_restore_preserves_club_audit_relations": true,
+    "restore_mfa_key_recovery": true,
+    "cleanup_after_restore_is_idempotent": true,
+    "restore_cleanup_does_not_touch_source_blobs": true
+  },
+  "errors": [],
+  "legacy_baseline": {
+    "sha256": "cc6056dc01a677c5a0cd36a1fe4f84406bb08a4d9fdf20dfb67d1f1300369ffd",
+    "counts": {
+      "accounts.User": 1,
+      "accounts.AthleteProfile": 2,
+      "accounts.GuardianLink": 1,
+      "scoring.Equipment": 1,
+      "scoring.EquipmentRevision": 1,
+      "scoring.ScoringSession": 1,
+      "scoring.ArrowShot": 3,
+      "scoring.ScoreChangeAudit": 6,
+      "training.GeneratedPlan": 1
+    }
+  },
+  "club_state_baseline": {
+    "sha256": "dd8f4263ae37d9326b56c839431d4a268d5d8927c0fd2332b120821ef9f65e4c",
+    "counts": {
+      "clubs.Club": 2,
+      "clubs.ClubClaim": 2,
+      "clubs.ClubAuditEvent": 26,
+      "clubs.ClubVerificationEvidence": 2,
+      "clubs.ClubMembership": 4,
+      "clubs.ClubRoleAssignment": 3,
+      "clubs.ClubClaimDecision": 2,
+      "clubs.KnownClubListing": 1,
+      "clubs.ClubSecurityEvent": 6,
+      "clubs.EvidenceUpload": 0,
+      "mfa.Authenticator": 3,
+      "clubs.ClubMembershipAction": 3,
+      "clubs.AthleteHomeClub": 1,
+      "clubs.AthleteHomeClubHistory": 2,
+      "clubs.ClubDataGrant": 1
+    }
+  },
+  "backup_bytes": 282202,
+  "club_record_counts": {
+    "clubs.Club": 2,
+    "clubs.ClubClaim": 2,
+    "clubs.ClubAuditEvent": 26,
+    "clubs.ClubVerificationEvidence": 2,
+    "clubs.ClubMembership": 4,
+    "clubs.ClubRoleAssignment": 3,
+    "clubs.ClubClaimDecision": 2,
+    "clubs.KnownClubListing": 1,
+    "clubs.ClubSecurityEvent": 6,
+    "clubs.EvidenceUpload": 0,
+    "mfa.Authenticator": 3,
+    "clubs.ClubMembershipAction": 3,
+    "clubs.AthleteHomeClub": 1,
+    "clubs.AthleteHomeClubHistory": 2,
+    "clubs.ClubDataGrant": 1
+  }
+}

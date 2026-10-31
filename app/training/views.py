@@ -16,7 +16,10 @@ from .models import GeneratedPlan
 @relationship_errors
 def new(request):
     athletes = accessible_athletes(request.user)
-    editable = athletes.filter(pk__in=[a.pk for a in athletes if can(request.user, a, "edit_plan")])
+    from clubs.grants import shared_athletes
+    ids = {a.pk for a in athletes if can(request.user, a, "edit_plan")}
+    ids.update(shared_athletes(request.user, "training_edit").values_list("pk", flat=True))
+    editable = AthleteProfile.objects.filter(pk__in=ids)
     initial = {"athlete": request.GET.get("athlete")}
     form = GenerationForm(request.POST if request.method == "POST" else None, athletes=editable, initial=initial)
     if form.is_valid():
@@ -33,6 +36,9 @@ def new(request):
 @require_GET
 @relationship_errors
 def detail(request, pk):
-    job = get_object_or_404(GeneratedPlan, pk=pk, athlete__in=accessible_athletes(request.user))
+    job = get_object_or_404(GeneratedPlan, pk=pk)
+    if not can(request.user, job.athlete, "view"):
+        from clubs.grant_views import data
+        return data(request, job.athlete_id, "training")
     relationships.require(request.user, job.athlete, "view")
     return render(request, "training/detail.html", {"job": job})

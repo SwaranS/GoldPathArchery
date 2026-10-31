@@ -191,6 +191,7 @@ def main():
         report["legacy_baseline"] = baseline
         settings.CLUBS_ENABLED = True
         settings.CLUB_MEMBERSHIPS_ENABLED = True
+        settings.CLUB_DATA_SHARING_ENABLED = True
         fixture, actors = browser_fixture(output, athlete)
         from django.contrib.staticfiles.handlers import StaticFilesHandler
         from django.core.wsgi import get_wsgi_application
@@ -222,11 +223,11 @@ def main():
         report["checks"]["legacy_records_preserved_before_backup"] = fingerprint(scopes) == baseline
         from clubs.models import (Club, ClubClaim, ClubAuditEvent, ClubVerificationEvidence,
             ClubMembership, ClubRoleAssignment, ClubClaimDecision, KnownClubListing, ClubSecurityEvent, EvidenceUpload,
-            ClubMembershipAction, AthleteHomeClub, AthleteHomeClubHistory)
+            ClubMembershipAction, AthleteHomeClub, AthleteHomeClubHistory, ClubDataGrant)
         from allauth.mfa.models import Authenticator
         club_models = (Club, ClubClaim, ClubAuditEvent, ClubVerificationEvidence, ClubMembership,
             ClubRoleAssignment, ClubClaimDecision, KnownClubListing, ClubSecurityEvent, EvidenceUpload, Authenticator,
-            ClubMembershipAction, AthleteHomeClub, AthleteHomeClubHistory)
+            ClubMembershipAction, AthleteHomeClub, AthleteHomeClubHistory, ClubDataGrant)
         club_scopes = [(model._meta.label, list(model.objects.values_list("pk", flat=True))) for model in club_models]
         club_baseline = fingerprint(club_scopes)
         report["club_state_baseline"] = club_baseline

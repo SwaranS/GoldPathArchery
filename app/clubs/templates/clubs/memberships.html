@@ -13,9 +13,9 @@
 {% if member.can_manage %}<a href="{% url 'clubs:membership-manage' member.club_id %}">Manage memberships</a>{% endif %}
 {% if member.can_leave %}<a href="{% url 'clubs:leave' member.pk %}">Leave club</a>{% endif %}
 </li>{% empty %}<li>No club memberships yet.</li>{% endfor %}</ul>
-<h2>Home club</h2>
+{% if club_data_sharing_enabled %}<p><a href="{% url 'clubs:shared' %}">Shared athlete data</a></p>{% endif %}<h2>Home club</h2>
 <p>No club is automatically selected. Choose independently for each athlete you are authorized to represent.</p>
-<ul>{% for athlete in subjects %}<li><a href="{% url 'clubs:home-club' athlete.pk %}">{{ athlete.display_name }}: choose or clear home club</a></li>{% empty %}<li>No eligible athlete profiles available.</li>{% endfor %}</ul>
+<ul>{% for athlete in subjects %}<li><a href="{% url 'clubs:home-club' athlete.pk %}">{{ athlete.display_name }}: choose or clear home club</a>{% if club_data_sharing_enabled %} · <a href="{% url 'clubs:grants' athlete.pk %}">Manage data sharing</a>{% endif %}</li>{% empty %}<li>No eligible athlete profiles available.</li>{% endfor %}</ul>
 <h2>Requests and appointments</h2>
 <ul>{% for action in actions %}<li>{{ action.club.name }} · {{ action.get_kind_display }} · {{ action.get_state_display }}{% if action.kind == 'role' and action.state == 'pending' and action.target_user_id == request.user.pk %} · <a href="{% url 'clubs:role-response' action.pk %}">Respond to {{ action.role }} offer</a>{% endif %}</li>{% empty %}<li>No requests or role offers.</li>{% endfor %}</ul>
 <p><a href="{% url 'clubs:directory' %}">Find public clubs</a></p>
