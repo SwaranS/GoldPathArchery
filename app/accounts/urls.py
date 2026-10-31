@@ -19,6 +19,11 @@ urlpatterns = [
         name="athlete-detail",
     ),
     path(
+        "athletes/<uuid:athlete_id>/connections/",
+        athlete_views.athlete_connections,
+        name="athlete-connections",
+    ),
+    path(
         "athletes/<uuid:athlete_id>/today/",
         athlete_views.athlete_section,
         {"section": "today"},

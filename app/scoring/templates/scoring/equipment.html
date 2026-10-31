@@ -1,18 +1,58 @@
-{% extends 'base.html' %}{% load static %}
-{% block title %}{{ equipment_section_title }} — Equipment — {{ athlete.display_name }}{% endblock %}
+{% extends 'base.html' %}
+{% block title %}Equipment & Sight Marks — {{ athlete.display_name }}{% endblock %}
 {% block page_class %}workspace-page{% endblock %}
 {% block content %}
-<link rel="stylesheet" href="{% static 'scoring/equipment.css' %}">
-<section class="workspace-card" data-equipment-section="{{ equipment_section }}">
+<section class="workspace-card">
 {% include 'accounts/_athlete_header.html' %}
-<h1>{{ equipment_section_title }} — {{ athlete.display_name }}</h1>
-<nav aria-label="Equipment sections" class="equipment-section-nav">
-{% for key, title in equipment_sections %}{% if key != 'purchases' or private_purchase_access %}
-<a href="{% url 'athlete-equipment-section' athlete.id key %}" data-equipment-link="{{ key }}" {% if equipment_section == key %}aria-current="page"{% endif %}>{{ title }}</a>
-{% endif %}{% endfor %}</nav>
+<h1>Equipment & Sight Marks for {{ athlete.display_name }}</h1>
+<p><a href="{% url 'scoring-history' athlete.id %}">Scoring history</a></p>
+<p>Specifications are saved as revisions. Scores retain the setup recorded when the session began. Physical arrows keep their identity across set revisions. Archiving removes equipment from new selection and preserves history. Restoring a set leaves individually archived arrows archived.</p>
 {% if not writable %}<p>Equipment is read-only.</p>{% endif %}
 {% if action_error %}<p role="alert">{{ action_error }}</p>{% endif %}
-{% include equipment_section_template %}
-</section>
-<script src="{% static 'scoring/equipment.js' %}" defer></script>
-{% endblock %}
+{% if writable %}
+<details {% if form.is_bound or editing %}open{% endif %}>
+<summary>{% if editing %}Revise {{ editing.name }}{% else %}Add bow or arrow set{% endif %}</summary>
+<p>Use bow fields for bows and arrow fields for sets. Leave optional measurements and their units empty together. Notes describe your actual equipment.</p>
+{% if editing %}<p>Saving creates a new revision when specifications change. Older sight marks remain attached to their recorded setup. <a href="{% url 'scoring-equipment' athlete.id %}">Cancel revision</a></p>{% endif %}
+<form method="post">{% csrf_token %}<input type="hidden" name="action" value="{% if editing %}revise{% else %}equipment{% endif %}">{% if editing %}<input type="hidden" name="item" value="{{ editing.pk }}">{% endif %}{{ form.as_p }}<button type="submit">{% if editing %}Save new revision{% else %}Save equipment{% endif %}</button></form>
+</details>
+<details {% if arrow_form.is_bound %}open{% endif %}><summary>Identify a physical arrow</summary>
+<p>Choose a saved active set. Identifiers use letters and digits and must be unique within the set.</p>
+<form method="post">{% csrf_token %}<input type="hidden" name="action" value="arrow">{{ arrow_form.as_p }}<button type="submit">Save arrow</button></form></details>
+<details {% if mark_form.is_bound %}open{% endif %}><summary>Add sight mark</summary>
+<p>Choose the current bow revision and optional arrow-set revision. Marks are text, for example 5.25 or a scale reference. To correct a saved mark, archive it and record a replacement.</p>
+<form method="post">{% csrf_token %}<input type="hidden" name="action" value="mark">{{ mark_form.as_p }}<button type="submit">Save sight mark</button></form></details>
+{% endif %}
+<h2>Saved equipment</h2>
+{% for item in items %}
+<article class="workspace-card">
+<h3>{{ item.name }} · {{ item.get_kind_display }} {% if not item.active %}(Archived){% endif %}</h3>
+{% if item.current %}<p>Current revision {{ item.current.number }}</p>
+<dl>{% for label, value in item.specifications %}<dt>{{ label }}</dt><dd>{{ value|linebreaksbr }}</dd>{% endfor %}</dl>
+{% else %}<p>{{ item.details|linebreaksbr }}</p>{% endif %}
+{% if writable %}
+{% if item.active %}<p><a href="?edit={{ item.pk }}">Revise {{ item.name }}</a></p>{% endif %}
+<form method="post">{% csrf_token %}<input type="hidden" name="entity" value="equipment"><input type="hidden" name="item" value="{{ item.pk }}"><button name="action" value="{% if item.active %}archive{% else %}restore{% endif %}">{% if item.active %}Archive{% else %}Restore{% endif %} {{ item.name }}</button></form>
+{% endif %}
+{% if item.kind == 'arrow_set' %}
+<h4>Physical arrows</h4>
+{% for arrow in item.arrows.all %}<p>{{ item.name }} / {{ arrow.identifier }} {% if not arrow.active %}(Individually archived){% elif not item.active %}(Unavailable: set archived){% endif %}{% if arrow.notes %} — {{ arrow.notes }}{% endif %}</p>
+{% if writable %}{% if arrow.active or item.active %}<form method="post">{% csrf_token %}<input type="hidden" name="entity" value="arrow"><input type="hidden" name="item" value="{{ arrow.pk }}"><button name="action" value="{% if arrow.active %}archive{% else %}restore{% endif %}">{% if arrow.active %}Archive{% else %}Restore{% endif %} arrow {{ arrow.identifier }}</button></form>{% endif %}{% endif %}
+{% empty %}<p>No physical arrows saved in this set.</p>{% endfor %}
+{% endif %}
+<details><summary>Specification history</summary>{% for revision in item.history %}<h4>Revision {{ revision.number }} · {{ revision.created_at }}</h4><dl>{% for label, value in revision.specifications %}<dt>{{ label }}</dt><dd>{{ value|linebreaksbr }}</dd>{% endfor %}</dl>{% empty %}<p>No revision recorded yet.</p>{% endfor %}</details>
+</article>
+{% empty %}<p>No equipment saved for this athlete.{% if writable %} Add a bow or arrow set to begin.{% endif %}</p>{% endfor %}
+<h2>Sight marks by bow and distance</h2>
+<form method="get"><label for="filter-bow">Bow</label><select name="bow" id="filter-bow"><option value="">All bows</option>{% for bow in bows %}<option value="{{ bow.pk }}" {% if selected_bow == bow.pk|stringformat:'s' %}selected{% endif %}>{{ bow.name }}{% if not bow.active %} (Archived){% endif %}</option>{% endfor %}</select><button type="submit">Filter marks</button></form>
+{% regroup marks by bow_revision.equipment_id as bow_groups %}
+{% for group in bow_groups %}<h3>{{ group.list.0.bow_revision.equipment.name }}</h3>
+{% for mark in group.list %}<article>
+<h4>{{ mark.distance }} {{ mark.get_distance_unit_display }} · {{ mark.mark }}</h4>
+<p>{{ mark.bow_revision }}{% if mark.arrow_revision %} / {{ mark.arrow_revision }}{% endif %}</p>
+<p>{% if not mark.active %}Archived mark{% elif mark.current_setup %}Current setup{% else %}Historical setup — check against current equipment before use{% endif %}</p>
+{% if mark.sight_extension %}<p>Sight extension: {{ mark.sight_extension }}</p>{% endif %}{% if mark.windage %}<p>Windage: {{ mark.windage }}</p>{% endif %}{% if mark.date %}<p>Date: {{ mark.date }}</p>{% endif %}{% if mark.notes %}<p>{{ mark.notes|linebreaksbr }}</p>{% endif %}
+{% if writable %}<form method="post">{% csrf_token %}<input type="hidden" name="entity" value="mark"><input type="hidden" name="item" value="{{ mark.pk }}"><button name="action" value="{% if mark.active %}archive{% else %}restore{% endif %}">{% if mark.active %}Archive{% else %}Restore{% endif %} sight mark</button></form>{% endif %}
+</article>{% endfor %}
+{% empty %}<p>No sight marks saved for this selection.</p>{% endfor %}
+</section>{% endblock %}

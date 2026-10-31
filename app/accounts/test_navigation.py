@@ -36,7 +36,7 @@ class WorkspaceTests(TestCase):
         for label in ("My athletes", "Family", "Coaching"):
             self.assertNotIn(label, nav)
         self.assertRedirects(self.client.get(reverse("workspace", args=["archer"])+"?connections=1"),
-                             reverse("athlete-detail", args=[own.pk])+"#connections")
+                             reverse("athlete-connections", args=[own.pk]))
 
     def test_archer_setup_is_separate(self):
         self.roles("archer", "parent")
@@ -108,7 +108,7 @@ class WorkspaceTests(TestCase):
     def test_age_review_precedes_workspace_choice(self):
         self.roles("archer", "parent")
         own = self.athlete(account=self.user, transitioned_at=timezone.now(), parent_review_required=True)
-        self.assertRedirects(self.client.get(reverse("workspace-home")), reverse("athlete-detail", args=[own.pk]))
+        self.assertRedirects(self.client.get(reverse("workspace-home")), reverse("athlete-connections", args=[own.pk]))
 
     def test_closed_profile_has_no_duplicate_setup(self):
         self.roles("archer")

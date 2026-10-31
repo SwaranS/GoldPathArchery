@@ -1,5 +1,5 @@
 """Equipment boundary: stable identities, append-only specifications and live grants."""
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
@@ -70,8 +70,6 @@ def save_equipment(actor, athlete_id, data, *, item_id=None, expected_revision=N
     if previous and all(getattr(previous, field) == getattr(revision, field) for field in SPEC_FIELDS):
         return item
     revision.save()
-    from .advanced_equipment import activity
-    activity(actor, athlete, "legacy_equipment.revised", equipment=item.pk, revision=revision.number)
     return item
 
 
@@ -82,8 +80,6 @@ def save_arrow(actor, athlete_id, data):
     arrow = PhysicalArrow(arrow_set=item, identifier=data["identifier"], notes=data.get("notes", ""))
     arrow.full_clean()
     arrow.save()
-    from .advanced_equipment import activity
-    activity(actor, athlete, "arrow.created", arrow=arrow.pk)
     return arrow
 
 
@@ -98,19 +94,10 @@ def save_mark(actor, athlete_id, data):
             if revision.pk != current_revision(revision.equipment).pk:
                 raise ValidationError("The setup changed. Reload and choose its current revision.")
             revisions[field] = revision
-    if data.get("configuration_revision"):
-        from .models import ConfigurationRevision
-        from .advanced_equipment import configuration_available
-        revision = ConfigurationRevision.objects.select_related("configuration").get(pk=data["configuration_revision"], configuration__owner=athlete)
-        if revision.pk != revision.configuration.revisions.first().pk or not configuration_available(revision, athlete):
-            raise ValidationError("Choose the current available configuration version.")
-        revisions["configuration_revision"] = revision
     mark = SightMark(athlete=athlete, **revisions, **{key: data[key] for key in (
         "distance", "distance_unit", "mark", "sight_extension", "windage", "date", "notes") if key in data})
     mark.full_clean()
     mark.save()
-    from .advanced_equipment import activity
-    activity(actor, athlete, "mark.created", mark=mark.pk)
     return mark
 
 
@@ -129,12 +116,10 @@ def set_active(actor, athlete_id, entity, item_id, active):
         raise ValidationError("Unknown equipment action.")
     obj.active = active
     obj.save(update_fields=["active"])
-    from .advanced_equipment import activity
-    activity(actor, athlete, "legacy.status", entity=entity, identity=obj.pk, active=active)
     return obj
 
 
-def workspace(actor, athlete_id, *, bow=None, configuration_revision=None, arrow_revision=None, distance=None, distance_unit=None):
+def workspace(actor, athlete_id, *, bow=None):
     athlete = AthleteProfile.objects.get(pk=athlete_id)
     authorize(actor, athlete)
     items = list(Equipment.objects.filter(athlete=athlete).prefetch_related("revisions", "arrows").order_by("kind", "name", "pk"))
@@ -148,24 +133,12 @@ def workspace(actor, athlete_id, *, bow=None, configuration_revision=None, arrow
         for revision in revisions:
             revision.specifications = specification_rows(revision)
     marks = SightMark.objects.filter(athlete=athlete).select_related(
-        "bow_revision__equipment", "arrow_revision__equipment", "configuration_revision__configuration")
+        "bow_revision__equipment", "arrow_revision__equipment")
     if bow:
         # A foreign/invalid filter cannot disclose another athlete's setup.
         selected = Equipment.objects.get(pk=bow, athlete=athlete, kind="bow")
         marks = marks.filter(bow_revision__equipment=selected)
-    if configuration_revision:
-        marks = marks.filter(configuration_revision_id=configuration_revision)
-    if arrow_revision:
-        marks = marks.filter(arrow_revision_id=arrow_revision)
-    if distance:
-        try:
-            value = Decimal(distance)
-            if distance_unit not in ("m", "yd") or not value.is_finite() or not 0 < value < Decimal("100000"):
-                raise InvalidOperation
-        except InvalidOperation:
-            raise ValidationError("Filter distance needs a positive value below 100000 and metres or yards.") from None
-        marks = marks.filter(distance=distance, distance_unit=distance_unit)
-    rows = list(marks.filter(configuration_revision__isnull=True))
+    rows = list(marks)
     for mark in rows:
         mark.current_setup = (mark.bow_revision.equipment.active and
             current.get(mark.bow_revision.equipment_id) == mark.bow_revision_id and
@@ -173,13 +146,7 @@ def workspace(actor, athlete_id, *, bow=None, configuration_revision=None, arrow
              current.get(mark.arrow_revision.equipment_id) == mark.arrow_revision_id)))
     rows.sort(key=lambda mark: (mark.bow_revision.equipment_id,
         mark.distance * (Decimal("0.9144") if mark.distance_unit == "yd" else 1), -mark.pk))
-    advanced_marks = list(marks.filter(configuration_revision__isnull=False))
-    from .advanced_equipment import configuration_available
-    for mark in advanced_marks:
-        rev = mark.configuration_revision
-        mark.current_setup = (rev.pk == rev.configuration.revisions.first().pk and configuration_available(rev, athlete)
-            and (not mark.arrow_revision_id or (mark.arrow_revision.equipment.active and current.get(mark.arrow_revision.equipment_id) == mark.arrow_revision_id)))
-    return dict(athlete=training_fields(athlete), items=items, marks=rows, advanced_marks=advanced_marks,
+    return dict(athlete=training_fields(athlete), items=items, marks=rows,
         bows=[item for item in items if item.kind == "bow"], selected_bow=str(bow or ""),
         writable=can(actor, athlete, "edit_profile"), permissions={"edit_profile": can(actor, athlete, "edit_profile")},
         active_tab="equipment")

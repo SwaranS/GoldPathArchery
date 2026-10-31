@@ -4,11 +4,17 @@
 {% block content %}<section class="workspace-card">
 {% include 'accounts/_athlete_header.html' %}
 <p class="eyebrow">TRAINING PLANS</p><h1>Plans for {{ athlete.display_name }}</h1>
-<div class="workspace-panel"><h2>No plan yet</h2>
+<p><a href="{% url 'training-new' %}?athlete={{ athlete.id }}">Create or view generated training drafts</a></p>
+{% if generated_plans %}<div class="workspace-panel"><h2>Generated training drafts</h2>
+<p>Generated drafts require human review before use. No plan has been activated.</p>
+<ul>{% for plan in generated_plans %}<li><a href="{% url 'training-detail' plan.pk %}">Draft from {{ plan.created_at|date:"j M Y H:i" }}</a> — {% if plan.status == 'ready' %}Ready for review{% elif plan.status == 'queued' %}Queued for generation{% else %}Generation failed{% endif %}</li>{% endfor %}</ul>
+{% if latest_generated_plan %}<h3>Latest generated draft</h3>{% include 'training/_roadmap.html' with job=latest_generated_plan %}{% endif %}
+</div>{% endif %}
+<div class="workspace-panel"><h2>{% if generated_plans %}Planning brief{% else %}No plan yet{% endif %}</h2>
 <p>A planning brief helps prepare training around your goals, current workload and available time.</p>
 <p>Discipline: <strong>{{ athlete.discipline|title }}</strong>. This comes from the athlete profile.</p>
 {% if setup.submitted_at %}<p class="notice"><strong>Setup submitted</strong> on {{ setup.submitted_at|date:"j M Y" }}.</p>
-<p>Your planning brief is stored. Plan Manager assignment and plan generation are not connected yet, so preparation has not started. No training plan has been generated or activated.</p>
+{% if generated_plans %}<p>Your planning brief is stored separately from the generated drafts above. Submitting this brief does not activate a plan.</p>{% else %}<p>Your planning brief is stored. Automatic generation from this brief is not connected yet, so preparation has not started. No training plan has been generated or activated. Use the generated drafts link above to create a draft.</p>{% endif %}
 {% elif setup %}<p class="notice">Draft saved. You can return to finish it before submitting.</p>
 {% elif can_setup %}<a class="button" href="#plan-setup">Set up a training plan</a>
 {% else %}<p>This planning setup is read-only for you. An eligible athlete or parent with profile editing access can complete it.</p>{% endif %}

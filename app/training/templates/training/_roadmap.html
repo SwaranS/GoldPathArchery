@@ -1,0 +1,4 @@
+<p>Generated draft · {{ job.roadmap.start_date }} to {{ job.roadmap.target_date }}. Human review is required before use. Activation, session logging and recalibration are not connected yet.</p>
+{% for phase in job.roadmap.mesocycles %}<p>{{ phase.phase_name }}: weeks {{ phase.start_week }}–{{ phase.end_week }}</p>{% endfor %}
+{% for week in job.roadmap.microcycles %}<div class="workspace-panel"><h2>Week {{ week.week_number }} · {{ week.target_arrows }} arrows{% if week.is_deload_week %} · Deload{% endif %}</h2>
+{% for session in week.sessions %}<details><summary>{{ session.scheduled_date }} · {{ session.duration_mins }} minutes · {{ session.max_distance_m }} m</summary><ul>{% for block in session.blocks %}<li>{{ block.drill.title|default:block.block_type }} · {{ block.prescribed_arrows }} arrows · {{ block.distance_m }} m{% if block.drill.instructions %}<p>{{ block.drill.instructions }}</p>{% endif %}</li>{% endfor %}</ul></details>{% endfor %}</div>{% endfor %}

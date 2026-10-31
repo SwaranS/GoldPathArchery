@@ -513,6 +513,7 @@ class RelationshipTests(TestCase):
             set(response.context["athlete"]),
             {"id", "display_name", "discipline", "goals", "availability", "version"},
         )
+        response = self.client.get(reverse("athlete-connections", args=[self.adult.pk]))
         self.assertEqual(len(response.context["guardians"]), 0)
         self.assertNotIn("invitations", response.context)
 
@@ -765,7 +766,7 @@ class RelationshipTests(TestCase):
         )
         self.client.force_login(self.junior)
         response = self.client.get(reverse("account-profile"))
-        self.assertRedirects(response, reverse("athlete-detail", args=[self.child.pk]))
+        self.assertRedirects(response, reverse("athlete-connections", args=[self.child.pk]))
         detail = self.client.get(response.url)
         self.assertContains(detail, "Review each parent")
         response = self.client.post(
@@ -1002,7 +1003,7 @@ class RelationshipTests(TestCase):
         admin_response = self.client.get(reverse("admin-ops"))
         self.assertEqual(admin_response.status_code, 200)
         self.assertContains(admin_response, "Administrator Operations")
-        self.assertContains(admin_response, reverse("admin-ops"))
+        self.assertContains(admin_response, reverse("admin:index"))
         manager_response = self.client.get(reverse("manager-queue"))
         self.assertEqual(manager_response.status_code, 200)
         self.assertContains(manager_response, "Plan Manager Review Queue")

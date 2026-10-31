@@ -67,8 +67,13 @@ def start(actor, athlete, data):
                   ScoringRuleSet.objects.get(pk=data["rules"]), float(data["distance_m"]),
                   int(data["ends"]), int(data["arrows_per_end"]))]
         name, category, verification_required = "Custom training", data.get("category", ""), False
-    from .advanced_equipment import scoring_equipment
-    equipment = scoring_equipment(athlete, data, division)
+    equipment = {}
+    for field, kind in (("bow", "bow"), ("arrow_set", "arrow_set")):
+        if data.get(field):
+            item = Equipment.objects.get(pk=data[field], athlete=athlete, kind=kind, active=True)
+            if kind == "bow" and item.division != division:
+                raise ValidationError("Bow division must match the session.")
+            equipment[field] = revision_snapshot(item)
     snapshot = dict(evaluator=1, name=name, division=division, category=category,
                     verification_required=verification_required, stages=stages)
     session = ScoringSession.objects.create(athlete=athlete, mode=mode, context=context,

@@ -73,11 +73,3 @@ New scoring sessions copy current revision IDs, numbers and all specifications i
 Back up and review the migration before the normal release process applies it. Do not reverse this migration after recording new revisions or marks without exporting/preserving that new data: dropping the new tables loses those records. Existing shared/production databases have not been migrated by this implementation. The deployment startup script already applies pending Django migrations, so deployment itself must be explicitly authorized.
 
 Regression coverage: `scoring.test_equipment` covers structured validation, relationships/revocation/closure, cross-athlete references, history, stale revisions, sight-mark setup changes, individual archive/restore, both navigation routes and upgrade from the legacy scoring schema on a disposable test database. PostgreSQL row-lock behavior requires the normal PostgreSQL CI environment; local SQLite tests do not verify those locks.
-
-
-## Advanced configuration scoring
-Phase 2 equipment changes require a new session after the first arrow, including
-correction, pause/resume and reopen flows. Equipment segments are not supported.
-Before shooting, an equipment mutation may replace the selected setup atomically.
-Configuration snapshots store exact component revisions. Sight marks remain tied
-to exact versions; a later version never copies or endorses older marks.

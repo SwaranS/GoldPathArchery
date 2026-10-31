@@ -196,7 +196,7 @@ class EquipmentRevision(models.Model):
         return super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.name} Ã‚Â· revision {self.number}"
+        return f"{self.name} · revision {self.number}"
 
 
 class PhysicalArrow(models.Model):
@@ -215,8 +215,7 @@ class PhysicalArrow(models.Model):
 
 class SightMark(models.Model):
     athlete = models.ForeignKey("accounts.AthleteProfile", on_delete=models.CASCADE)
-    bow_revision = models.ForeignKey(EquipmentRevision, on_delete=models.PROTECT, related_name="bow_marks", null=True, blank=True)
-    configuration_revision = models.ForeignKey("ConfigurationRevision", on_delete=models.PROTECT, null=True, blank=True, related_name="sight_marks")
+    bow_revision = models.ForeignKey(EquipmentRevision, on_delete=models.PROTECT, related_name="bow_marks")
     arrow_revision = models.ForeignKey(EquipmentRevision, on_delete=models.PROTECT, related_name="arrow_marks", null=True, blank=True)
     distance = models.DecimalField(max_digits=8, decimal_places=3)
     distance_unit = models.CharField(max_length=2, choices=[("m", "m"), ("yd", "yards")])
@@ -233,10 +232,6 @@ class SightMark(models.Model):
             errors["distance"] = "Use a positive finite distance."
         if not isinstance(self.mark, str) or not self.mark.strip():
             errors["mark"] = "Enter a sight mark."
-        if bool(self.bow_revision_id) == bool(self.configuration_revision_id):
-            errors["bow_revision"] = "Choose either a legacy bow or exact configuration revision."
-        if self.configuration_revision_id and self.configuration_revision.configuration.owner_id != self.athlete_id:
-            errors["configuration_revision"] = "Choose this athlete's configuration."
         for field, kind in (("bow_revision", "bow"), ("arrow_revision", "arrow_set")):
             if getattr(self, field + "_id"):
                 item = getattr(self, field).equipment
