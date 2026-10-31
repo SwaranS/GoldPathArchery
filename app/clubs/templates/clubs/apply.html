@@ -1,0 +1,4 @@
+{% extends 'clubs/base.html' %}{% block title %}Club application · GoldPathArchery{% endblock %}
+{% block club_content %}<h1>Club application</h1><p>Search the directory first. A platform reviewer must independently verify your authority before club access is granted.</p><p><a href="{% url 'clubs:directory' %}">Search verified clubs</a></p>
+<form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit" name="action" value="draft" formnovalidate>Save draft</button> <button type="submit" name="action" value="submit">Submit for independent review</button></form>
+<h2>Your applications</h2><ul>{% for claim in claims %}<li><a href="{% url 'clubs:claim' claim.pk %}">{{ claim.name }}</a> · {{ claim.get_state_display }}</li>{% empty %}<li>No applications yet.</li>{% endfor %}</ul>{% endblock %}

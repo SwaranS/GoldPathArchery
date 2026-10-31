@@ -1,0 +1,8 @@
+{% extends 'clubs/base.html' %}
+{% block title %}Clubs · GoldPathArchery{% endblock %}
+{% block club_content %}
+<h1>Archery clubs</h1><p>Explore verified public clubs.</p>
+<form method="get"><label for="club-search">Club name or town</label><input id="club-search" name="q" maxlength="160" value="{{ request.GET.q }}"><button type="submit">Search</button></form>
+<p><a href="{% url 'clubs:apply' %}">Apply to register or administer a club</a></p>
+<ul>{% for club in clubs %}<li><a href="{% url 'clubs:profile' club.slug %}">{{ club.name }}</a> · {{ club.town }} {{ club.country }}</li>{% empty %}<li>No public clubs found.</li>{% endfor %}</ul>
+{% endblock %}
