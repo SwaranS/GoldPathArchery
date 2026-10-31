@@ -11,7 +11,7 @@ from allauth.account.models import EmailAddress
 from django.conf import settings
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, F
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -314,6 +314,12 @@ def end_membership(actor, club_id, member_id, reason, version):
     for group in member.facilityaccessgroup_set.all():
         services.audit(actor, None, "facility.group.membership_ended", group.pk, club=club)
     member.facilityaccessgroup_set.clear()
+    for group_member in member.training_groups.filter(state__in=["active", "invited"]):
+        group_member.state, group_member.version = "left", group_member.version+1
+        group_member.decided_at = timezone.now()
+        group_member.save()
+        group_member.assignments.filter(state="offered").update(state="cancelled", version=F("version")+1)
+        services.audit(actor, None, "programme.group.membership_ended", group_member.pk, club=club)
     ClubMembershipAction.objects.filter(membership=member, kind="role", state="pending").update(state="revoked", decided_at=timezone.now(), decided_by=actor)
     clear_home(actor, member)
     from .models import ClubDataGrant

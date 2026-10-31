@@ -25,6 +25,21 @@ function totp(secret, now = Date.now()) {
   return ((hash.readUInt32BE(offset) & 0x7fffffff) % 1000000).toString().padStart(6, '0');
 }
 
+async function freshCode() {
+  const remaining = 30000 - Date.now() % 30000;
+  if (remaining < 3000) await new Promise(resolve => setTimeout(resolve, remaining + 100));
+  return totp(fixture.totpSecret);
+}
+
+async function openWithMfa(page, url) {
+  await page.goto(url);
+  if (new URL(page.url()).pathname.includes('reauthenticate')) {
+    await page.locator('[name="code"]').fill(await freshCode());
+    await page.locator('form:has(input[name="code"]) button[type="submit"]').click();
+    await page.waitForURL(url);
+  }
+}
+
 async function actor(name, viewport = { width: 1365, height: 900 }) {
   const context = await browser.newContext({ viewport, locale: 'en-GB', timezoneId: 'Europe/Dublin' });
   await context.route('**/*', route => route.request().url().startsWith(`${fixture.origin}/`)
@@ -102,7 +117,7 @@ try {
   await reviewer.page.locator('form:has(input[name="code"]) button[type="submit"]').click();
   assert.match(new URL(reviewer.page.url()).pathname, /reauthenticate/);
   assert.match(await reviewer.page.locator('main').innerText(), /Incorrect code/);
-  await reviewer.page.locator('[name="code"]').fill(totp(fixture.totpSecret));
+  await reviewer.page.locator('[name="code"]').fill(await freshCode());
   await reviewer.page.locator('form:has(input[name="code"]) button[type="submit"]').click();
   if (new URL(reviewer.page.url()).pathname !== '/clubs/verification/') throw new Error('Reviewer MFA form: ' + await reviewer.page.locator('.errorlist').allTextContents());
   await reviewer.page.waitForURL(`${fixture.origin}/clubs/verification/`);
@@ -152,7 +167,7 @@ try {
   await applicant.page.getByRole('link', { name: 'Club dashboard' }).click();
   assert.match(new URL(applicant.page.url()).pathname, /reauthenticate/);
   await audit(applicant.page, 'club-admin-mfa-mobile');
-  await applicant.page.locator('[name="code"]').fill(totp(fixture.totpSecret));
+  await applicant.page.locator('[name="code"]').fill(await freshCode());
   await applicant.page.locator('form:has(input[name="code"]) button[type="submit"]').click();
   await applicant.page.waitForURL(new URL(manageHref, fixture.origin).href);
   report.checks.push('First club administrator completes MFA before private dashboard access');
@@ -219,7 +234,7 @@ try {
   await memberRow.getByRole('button', { name: 'Offer role for acceptance' }).click();
   await outsider.page.goto(`${fixture.origin}/clubs/memberships/`);
   await outsider.page.getByRole('link', { name: 'Respond to admin offer' }).click();
-  await outsider.page.locator('[name="code"]').fill(totp(fixture.totpSecret));
+  await outsider.page.locator('[name="code"]').fill(await freshCode());
   await outsider.page.locator('form:has(input[name="code"]) button[type="submit"]').click();
   await outsider.page.waitForURL(/\/clubs\/appointments\//);
   await outsider.page.locator('[name="decision"]').selectOption('accept');
@@ -346,6 +361,112 @@ try {
   report.checks.push('Normalized private-storage facility photo works through controlled URL; archival revokes it');
   await applicant.page.goto(facilityManage);
   await audit(applicant.page, 'facility-admin-mobile');
+  report.stage = 'M5 group programmes';
+  const programmeCoach = await actor('coach');
+  const groupCreate = `${fixture.origin}/clubs/${fixture.publicClub}/training-groups/new/`;
+  await openWithMfa(applicant.page, groupCreate);
+  await applicant.page.locator('[name="name"]').fill('Synthetic M5 coaching group');
+  await applicant.page.locator('[name="description"]').fill('Synthetic group instruction space');
+  await applicant.page.locator('[name="discipline"]').selectOption('recurve');
+  await applicant.page.locator('[name="coach_role"]').selectOption(fixture.programmeCoachRole);
+  await applicant.page.locator('[name="active"]').check();
+  await applicant.page.getByRole('button', { name:'Save training group', exact:true }).click();
+  await applicant.page.waitForURL(/\/clubs\/training-groups\/[a-f0-9-]+\/$/);
+  const groupUrl = applicant.page.url();
+  await openWithMfa(programmeCoach.page, groupUrl);
+  await programmeCoach.page.getByRole('link', { name:'Invite a club member to the group' }).click();
+  await programmeCoach.page.locator('[name="membership"]').selectOption({ label:'Synthetic new member' });
+  await programmeCoach.page.getByRole('button', { name:'Invite club member', exact:true }).click();
+  await outsider.page.goto(`${fixture.origin}/clubs/programmes/`);
+  await outsider.page.getByRole('link', { name:'Respond or leave group', exact:true }).click();
+  await outsider.page.locator('[name="decision"]').selectOption('accept');
+  await outsider.page.getByRole('button', { name:'Confirm group response', exact:true }).click();
+  await outsider.page.waitForURL(`${fixture.origin}/clubs/programmes/`);
+  await programmeCoach.page.goto(groupUrl);
+  await programmeCoach.page.getByRole('link', { name:'Create a programme template' }).click();
+  await programmeCoach.page.locator('[name="title"]').fill('Synthetic M5 programme');
+  await programmeCoach.page.locator('[name="instructions"]').fill('Synthetic group guidance retained as a source copy.');
+  await programmeCoach.page.locator('[name="start_date"]').fill(fixture.programmeStart);
+  await programmeCoach.page.locator('[name="duration_days"]').fill('84');
+  await programmeCoach.page.locator('[name="archetype"]').selectOption('stamina_builder');
+  await programmeCoach.page.locator('[name="round_format"]').selectOption('wa_720_70m');
+  await programmeCoach.page.locator('[name="sessions-0-weekday"]').selectOption('0');
+  await programmeCoach.page.locator('[name="sessions-0-start_time"]').fill('18:00');
+  await programmeCoach.page.locator('[name="sessions-0-duration_mins"]').fill('90');
+  await programmeCoach.page.locator('[name="sessions-0-description"]').fill('Synthetic technical practice');
+  await programmeCoach.page.getByRole('button', { name:'Add another weekly session' }).click();
+  await programmeCoach.page.locator('[name="sessions-1-weekday"]').selectOption('2');
+  await programmeCoach.page.locator('[name="sessions-1-start_time"]').fill('18:00');
+  await programmeCoach.page.locator('[name="sessions-1-duration_mins"]').fill('60');
+  await programmeCoach.page.locator('[name="sessions-1-description"]').fill('Synthetic focus practice');
+  await audit(programmeCoach.page, 'programme-template-desktop');
+  await programmeCoach.page.setViewportSize({ width:390, height:844 });
+  await audit(programmeCoach.page, 'programme-template-mobile');
+  await programmeCoach.page.getByRole('button', { name:'Save template revision', exact:true }).click();
+  await programmeCoach.page.waitForURL(/\/clubs\/programmes\/[a-f0-9-]+\/$/);
+  const programmeUrl = programmeCoach.page.url();
+  await programmeCoach.page.locator('[name="action"]').selectOption('publish');
+  await programmeCoach.page.getByRole('button', { name:'Confirm programme action', exact:true }).click();
+  await programmeCoach.page.getByRole('link', { name:'Offer programme to an accepted group member' }).click();
+  await programmeCoach.page.locator('[name="member"]').selectOption({ label:'Synthetic new member' });
+  await programmeCoach.page.getByRole('button', { name:'Offer programme for consent', exact:true }).click();
+  await outsider.page.goto(`${fixture.origin}/clubs/programmes/`);
+  await outsider.page.getByRole('link', { name:'Synthetic M5 programme', exact:true }).click();
+  const assignmentUrl = outsider.page.url();
+  const assignmentId = new URL(assignmentUrl).pathname.split('/').at(-2);
+  await audit(outsider.page, 'programme-consent-mobile');
+  await outsider.page.locator('[name="decision"]').selectOption('accept');
+  await outsider.page.locator('[name="private_note"]').fill('PRIVATE SYNTHETIC CUSTOMIZATION');
+  await outsider.page.locator('[name="individual-competition_tier"]').selectOption('A');
+  await outsider.page.locator('[name="individual-current_draw_weight"]').fill('30');
+  await outsider.page.locator('[name="individual-weekly_arrows"]').fill('200');
+  await outsider.page.locator('[name="individual-days"][value="5"]').check();
+  await outsider.page.getByRole('button', { name:'Confirm programme response', exact:true }).click();
+  await outsider.page.waitForURL(assignmentUrl);
+  assert.deepEqual(await outsider.page.locator('.errorlist').allTextContents(), [], 'Programme response has validation errors');
+  for (let attempt=0; attempt<60; attempt++) {
+    await outsider.page.goto(assignmentUrl);
+    if (/Version 1[^]*ready/.test(await outsider.page.locator('main').innerText())) break;
+    await new Promise(resolve => setTimeout(resolve, 500));
+  }
+  assert.match(await outsider.page.locator('main').innerText(), /Version 1[^]*ready/);
+  await outsider.page.getByRole('link', { name:'Open personal draft version 1', exact:true }).click();
+  const personalPlanUrl = outsider.page.url();
+  assert.match(await outsider.page.locator('main').innerText(), /Accepted group programme/);
+  await audit(outsider.page, 'programme-personal-draft-mobile');
+  await outsider.page.goto(assignmentUrl);
+  await outsider.page.locator('[name="progress-completed_sessions"]').fill('1');
+  await outsider.page.locator('[name="progress-private_note"]').fill('PRIVATE SYNTHETIC PROGRESS NOTE');
+  await outsider.page.getByRole('button', { name:'Save private progress report' }).click();
+  await outsider.page.waitForURL(assignmentUrl);
+  await audit(outsider.page, 'programme-progress-owner-mobile');
+  const progressUrl = `${fixture.origin}/clubs/programme-assignments/${assignmentId}/coach-progress/?format=json`;
+  assert.equal((await programmeCoach.context.request.get(progressUrl)).status(), 404);
+  assert.equal((await programmeCoach.context.request.get(assignmentUrl)).status(), 404);
+  assert.equal((await programmeCoach.context.request.get(personalPlanUrl)).status(), 404);
+  await outsider.page.goto(`${fixture.origin}/clubs/athletes/${fixture.memberAthlete}/sharing/`);
+  await outsider.page.locator('[name="club"]').selectOption(fixture.publicClub);
+  await outsider.page.locator('[name="grantee"]').selectOption(fixture.programmeCoachUser);
+  await outsider.page.locator('input[name="scopes"][value="programme_progress"]').check();
+  await outsider.page.locator('[name="purpose"]').fill('Synthetic session-count review only');
+  await outsider.page.locator('[name="starts_at"]').fill(fixture.checkedAt);
+  await outsider.page.locator('[name="expires_at"]').fill(fixture.expiresAt);
+  await outsider.page.getByRole('button', { name:'Grant access', exact:true }).click();
+  const progressResponse = await programmeCoach.context.request.get(progressUrl);
+  assert.equal(progressResponse.status(), 200);
+  const progressBody = await progressResponse.text();
+  assert.doesNotMatch(progressBody, /PRIVATE SYNTHETIC/);
+  assert.equal(JSON.parse(progressBody).progress[0].completed_sessions, 1);
+  report.checks.push('Programme acceptance generates an independent personal draft; private notes stay owner-only and progress requires separate consent');
+  await outsider.page.goto(assignmentUrl);
+  await outsider.page.locator('[name="decision"]').selectOption('withdraw');
+  await outsider.page.getByRole('button', { name:'Confirm programme response', exact:true }).click();
+  assert.equal((await programmeCoach.context.request.get(progressUrl)).status(), 404);
+  await openWithMfa(programmeCoach.page, programmeUrl);
+  await programmeCoach.page.locator('[name="action"]').selectOption('archive');
+  await programmeCoach.page.getByRole('button', { name:'Confirm programme action', exact:true }).click();
+  assert.equal((await outsider.context.request.get(personalPlanUrl)).status(), 200);
+  report.checks.push('Withdrawal revokes programme progress access and archival preserves the athlete-owned draft');
 } catch (error) {
   report.errors.push(`${report.stage || 'M1'} ${error.name}: ${error.message.split('\n')[0]}`);
 } finally {

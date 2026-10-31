@@ -1,0 +1,3 @@
+<h2>{{ snapshot.title }}</h2><p>{{ snapshot.instructions|linebreaksbr }}</p>
+<p>{{ snapshot.start_date }} to {{ snapshot.target_date }} · {{ snapshot.discipline|title }} · {{ snapshot.timezone }}</p>
+<h3>Group session reference</h3><ul>{% for session in snapshot.sessions %}<li>{% include 'clubs/_programme_weekday.html' with weekday=session.weekday %} · {{ session.start_time }} · {{ session.duration_mins }} minutes · {{ session.description }}</li>{% endfor %}</ul>

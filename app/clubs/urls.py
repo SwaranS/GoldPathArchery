@@ -1,9 +1,22 @@
 from django.urls import path
-from . import views, membership_views, grant_views, facility_views
+from . import views, membership_views, grant_views, facility_views, programme_views
 
 app_name = "clubs"
 urlpatterns = [
     path("", views.directory, name="directory"),
+    path("programmes/", programme_views.index, name="programmes"),
+    path("<uuid:club_id>/training-groups/new/", programme_views.group_settings, name="training-group-new"),
+    path("<uuid:club_id>/training-groups/<uuid:group_id>/settings/", programme_views.group_settings, name="training-group-settings"),
+    path("training-groups/<uuid:group_id>/", programme_views.group, name="training-group"),
+    path("training-groups/<uuid:group_id>/invite/", programme_views.invite, name="training-group-invite"),
+    path("training-group-members/<uuid:member_id>/respond/", programme_views.member_response, name="group-member-response"),
+    path("training-group-members/<uuid:member_id>/remove/", programme_views.remove_member, name="group-member-remove"),
+    path("training-groups/<uuid:group_id>/programmes/new/", programme_views.template, name="programme-new"),
+    path("training-groups/<uuid:group_id>/programmes/<uuid:programme_id>/edit/", programme_views.template, name="programme-edit"),
+    path("programmes/<uuid:programme_id>/", programme_views.programme, name="programme"),
+    path("programmes/<uuid:programme_id>/offer/", programme_views.offer, name="programme-offer"),
+    path("programme-assignments/<uuid:assignment_id>/", programme_views.assignment, name="programme-assignment"),
+    path("programme-assignments/<uuid:assignment_id>/coach-progress/", programme_views.coach_progress, name="programme-coach-progress"),
     path("facilities/<uuid:facility_id>/", facility_views.detail, name="facility"),
     path("areas/<uuid:area_id>/availability/", facility_views.calendar, name="facility-calendar"),
     path("facility-photos/<uuid:photo_id>/", facility_views.photo, name="facility-photo"),

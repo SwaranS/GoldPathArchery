@@ -16,6 +16,8 @@
 <h2>Bow configurations</h2><ul>{% for item in payload.configurations %}<li>{{ item.name }} · {% if item.active %}Active{% else %}Inactive{% endif %}</li>{% empty %}<li>No configurations.</li>{% endfor %}</ul>
 {% elif scope_key == 'sight_marks' %}
 <ul>{% for mark in payload.marks %}<li>{{ mark.distance }} {{ mark.distance_unit }} · {{ mark.mark }}</li>{% empty %}<li>No sight marks.</li>{% endfor %}</ul>
+{% elif scope_key == 'programme_progress' %}
+<ul>{% for progress in payload.progress %}<li>{{ progress.programme }} · {{ progress.completed_sessions }} self-reported completed sessions · updated {{ progress.updated_at }}</li>{% empty %}<li>No currently shared programme progress.</li>{% endfor %}</ul>
 {% endif %}
 {% if can_generate %}<p><a href="{% url 'training-new' %}?athlete={{ athlete_id }}">Request a new training draft</a></p>{% endif %}
 <p><a href="{% url 'clubs:shared' %}">Shared athlete data</a></p>

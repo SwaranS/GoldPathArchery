@@ -25,6 +25,9 @@ class GrantForm(forms.Form):
 
     def __init__(self, *args, athlete, **kwargs):
         super().__init__(*args, **kwargs)
+        from . import programmes
+        self.fields["scopes"].choices = [(key, label) for key, label in grants.SCOPES.items()
+            if key != "programme_progress" or programmes.enabled()]
         clubs = memberships.home_options(athlete)
         self.fields["club"].queryset = clubs
         ids = ClubRoleAssignment.objects.filter(membership__club__in=clubs, membership__active=True,
@@ -72,7 +75,9 @@ def manage(request, athlete_id):
 def shared(request):
     if not grants.enabled():
         raise Http404
-    rows = [(scope, label, grants.shared_athletes(request.user, scope)) for scope, label in grants.SCOPES.items() if scope != "training_edit"]
+    from . import programmes
+    rows = [(scope, label, grants.shared_athletes(request.user, scope)) for scope, label in grants.SCOPES.items()
+        if scope != "training_edit" and (scope != "programme_progress" or programmes.enabled())]
     return render(request, "clubs/shared.html", {"categories": rows})
 
 

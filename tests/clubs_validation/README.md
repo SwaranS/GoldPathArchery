@@ -85,3 +85,19 @@ root. The browser creates a venue, access group, area, daily/seasonal hours, pri
 closure and controlled photo. It checks exact-location redaction in HTML/JSON and
 photo URL revocation. Restore fingerprints include group membership links and
 private facility photo blobs, separately from verification evidence.
+
+## Milestone 5 coverage
+
+The isolated server also enables group programmes and starts a durable generation
+worker restricted to its fresh synthetic database. Separate admin, coach and
+athlete sessions exercise group invitation consent, human-friendly weekly session
+authoring, publication, an individual offer, personal-baseline acceptance and a
+ready draft. The browser checks that the coach cannot open the private assignment
+or personal draft, then verifies count-only progress sharing through an explicit
+grant. Withdrawal blocks the saved progress URL; archival preserves the personal
+draft. Desktop/mobile programme forms participate in the accessibility checks.
+
+Restore fingerprints include all seven M5 models and every generated plan, and
+the worker is stopped before switching to the restored database. All four actors'
+synthetic MFA factors are checked after restore. Neither the running application
+database nor its worker or local accounts are changed.

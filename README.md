@@ -61,3 +61,9 @@ recipient views, worker rechecks and current category limits.
 See [facilities and availability](docs/clubs-facilities.md) for venue management,
 private location controls, photos, access groups, seasonal hours and exceptions.
 The M4 feature flag defaults off and its migration needs review before enablement.
+
+## Club group programmes
+
+See [group training programmes](docs/clubs-training.md) for coach-led groups,
+versioned templates, individual consent and private progress sharing. The M5 flag
+defaults off; migration review and a staging walkthrough precede enablement.

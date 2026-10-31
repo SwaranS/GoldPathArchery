@@ -1,0 +1,9 @@
+{% extends 'clubs/base.html' %}
+{% block title %}{{ programme.name }} · Programme{% endblock %}
+{% block club_content %}<h1>{{ programme.name }}</h1>
+<p>{% if programme.active %}{% if programme.published_revision %}Published revision {{ programme.published_revision }}{% else %}Unpublished draft{% endif %}{% else %}Archived{% endif %}</p>
+{% if revision %}<p>Showing revision {{ revision.number }}.</p>{% include 'clubs/_programme_snapshot.html' with snapshot=revision.snapshot %}{% endif %}
+{% if can_edit and programme.active %}<p><a href="{% url 'clubs:programme-edit' programme.group_id programme.pk %}">Create a revised template</a>{% if programme.published_revision %} · <a href="{% url 'clubs:programme-offer' programme.pk %}">Offer programme to an accepted group member</a>{% endif %}</p>{% endif %}
+{% if form and programme.active %}<form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Confirm programme action</button></form>{% endif %}
+{% if can_edit or is_group_admin %}<h2>Assignment decisions</h2><p>Individual baselines, private notes and adherence are not shown here. Reading progress requires an explicit programme-progress grant.</p><ul>{% for assignment in assignments %}<li>{{ assignment.athlete.display_name }} · source revision {{ assignment.revision.number }} · {{ assignment.get_state_display }}{% if can_edit and assignment.state == 'accepted' %} · <a href="{% url 'clubs:programme-coach-progress' assignment.pk %}">Open consented progress</a>{% endif %}</li>{% empty %}<li>No assignments offered.</li>{% endfor %}</ul>{% endif %}
+<p><a href="{% url 'clubs:training-group' programme.group_id %}">Back to group</a></p>{% endblock %}

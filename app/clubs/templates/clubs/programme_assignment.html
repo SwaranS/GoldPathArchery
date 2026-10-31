@@ -1,0 +1,12 @@
+{% extends 'clubs/base.html' %}
+{% block title %}Programme for {{ assignment.athlete.display_name }}{% endblock %}
+{% block club_content %}<h1>Programme for {{ assignment.athlete.display_name }}</h1>
+<p>Status: {{ assignment.get_state_display }} · source revision {{ assignment.revision.number }}</p>
+{% if assignment.state == 'offered' %}<p>Respond by {{ assignment.expires_at }}. Expired or cancelled offers cannot create plans.</p>{% endif %}
+{% include 'clubs/_programme_snapshot.html' %}
+<p>Acceptance requests a new personal draft using your declared baseline and availability. Existing plans remain unchanged. Review the generated draft before use; it is not activated automatically.</p>
+{% if response_form %}<form method="post">{% csrf_token %}<input type="hidden" name="action" value="response">{{ response_form.as_p }}{% if show_planning %}<h2>Your individual training inputs</h2><p>Complete these fields for acceptance or a new personal draft version. They are not sent to the group coach. You may leave them blank when declining or withdrawing.</p>{{ planning_form.as_p }}{% endif %}<button type="submit" formnovalidate>Confirm programme response</button></form>{% endif %}
+<h2>Personal draft versions</h2><ul>{% for version in plans %}<li>Version {{ version.number }} · {{ version.created_at }}{% if version.plan %} · {{ version.plan.status }} · <a href="{% url 'training-detail' version.plan_id %}">Open personal draft version {{ version.number }}</a>{% endif %}{% if version.private_note %}<p>Private customization note: {{ version.private_note }}</p>{% endif %}</li>{% empty %}<li>No personal draft has been requested.</li>{% endfor %}</ul>
+{% if progress_form %}<h2>Self-reported programme progress</h2><p>This is a personal report, not an official score or session log. Only your session count is shared if you explicitly grant programme-progress access.</p><form method="post">{% csrf_token %}<input type="hidden" name="action" value="progress">{{ progress_form.as_p }}<button type="submit">Save private progress report</button></form>{% endif %}
+{% if progress %}<p>Self-reported completed sessions: {{ progress.completed_sessions }}</p>{% if progress.private_note %}<p>Private note: {{ progress.private_note }}</p>{% endif %}{% endif %}
+<p><a href="{% url 'clubs:programmes' %}">My group programmes</a></p>{% endblock %}
