@@ -101,7 +101,7 @@ def browser_fixture(output, athlete):
     from PIL import Image
     actors = {}
     sessions = {}
-    for name in ("applicant", "reviewer", "outsider"):
+    for name in ("applicant", "reviewer", "outsider", "coach"):
         user = actors[name] = User.objects.create_user(username=f"synthetic-{name}", email=f"{name}@example.test",
             is_staff=name == "reviewer")
         EmailAddress.objects.create(user=user, email=user.email, verified=True, primary=True)
@@ -114,6 +114,7 @@ def browser_fixture(output, athlete):
     TOTP.activate(reviewer, secret)
     TOTP.activate(actors["applicant"], secret)
     TOTP.activate(actors["outsider"], secret)
+    TOTP.activate(actors["coach"], secret)
     from accounts.models import AthleteProfile
     member_athlete = AthleteProfile.objects.create(account=actors["outsider"], display_name="Synthetic new member", birth_date=date(1990, 1, 1), discipline="recurve")
     listing = KnownClubListing.objects.create(name="Synthetic known validation club", country="Ireland",
@@ -128,10 +129,18 @@ def browser_fixture(output, athlete):
     claim.refresh_from_db()
     club = services.decide_claim(reviewer, claim.pk, decision="approved", reason="Synthetic local fixture only",
         expected_version=claim.version, duplicates_reviewed=True).club
+    # Synthetic accepted coach appointment; production role flows remain unchanged.
+    from clubs import memberships
+    invitation, token = memberships.invite(actors["applicant"], club.pk, actors["coach"].email)
+    coach_member = memberships.accept_invite(actors["coach"], invitation.pk, token).membership
+    offer = memberships.offer_role(actors["applicant"], club.pk, coach_member.pk, "coach", coach_member.version)
+    memberships.accept_role(actors["coach"], offer.pk, True, offer.version)
+    coach_role = coach_member.roles.get(role="coach", revoked_at__isnull=True)
     image = output / "synthetic-evidence.png"
     Image.new("RGB", (64, 48), color="#17343b").save(image)
     return dict(sessions=sessions, cookieName=settings.SESSION_COOKIE_NAME, listing=str(listing.pk),
-        publicSlug=club.slug, publicClub=str(club.pk), memberAthlete=str(member_athlete.pk), totpSecret=secret, evidenceImage=str(image), output=str(output),
+        publicSlug=club.slug, publicClub=str(club.pk), programmeCoachRole=str(coach_role.pk),
+        programmeCoachUser=str(actors["coach"].pk), programmeStart=timezone.localdate().isoformat(), memberAthlete=str(member_athlete.pk), totpSecret=secret, evidenceImage=str(image), output=str(output),
         checkedAt=timezone.localtime(timezone.now()-timedelta(hours=1)).replace(tzinfo=None).isoformat(timespec="minutes"),
         expiresAt=timezone.localtime(timezone.now()+timedelta(days=1)).replace(tzinfo=None).isoformat(timespec="minutes")), actors
 
@@ -163,6 +172,8 @@ def main():
     admin = psycopg.connect(host="127.0.0.1", port=55440, user=database["USER"], password=database["PASSWORD"], dbname="postgres", autocommit=True)
     created = []
     server = None
+    worker = None
+    worker_stop = threading.Event()
     try:
         admin.execute(sql.SQL("CREATE DATABASE {}").format(db_identifier(source)))
         created.append(source)
@@ -193,9 +204,23 @@ def main():
         settings.CLUB_MEMBERSHIPS_ENABLED = True
         settings.CLUB_DATA_SHARING_ENABLED = True
         settings.CLUB_FACILITIES_ENABLED = True
+        settings.CLUB_PROGRAMMES_ENABLED = True
         settings.CLUB_FACILITY_PHOTO_BACKEND = "local"
         settings.CLUB_FACILITY_PHOTO_ROOT = str(output / "private-facility-photos")
         fixture, actors = browser_fixture(output, athlete)
+        def run_programme_worker():
+            from django.db import connections, close_old_connections
+            from training.management.commands.generate_training import process_next
+            try:
+                while not worker_stop.is_set():
+                    close_old_connections()
+                    if not process_next():
+                        worker_stop.wait(0.2)
+            finally:
+                connections.close_all()
+        worker = threading.Thread(target=run_programme_worker, daemon=True)
+        worker.start()
+
         from django.contrib.staticfiles.handlers import StaticFilesHandler
         from django.core.wsgi import get_wsgi_application
         server = make_server("127.0.0.1", 0, StaticFilesHandler(get_wsgi_application()), server_class=ThreadedServer, handler_class=QuietHandler)
@@ -220,6 +245,11 @@ def main():
                 fixture["origin"] + f"/clubs/{private_club.slug}/", timeout=10).status_code == 404
         with override_settings(CLUBS_ENABLED=False):
             report["checks"]["feature_off_rollback"] = Client(HTTP_HOST="localhost").get("/clubs/").status_code == 404 and fingerprint(scopes) == baseline
+        worker_stop.set()
+        worker.join(timeout=30)
+        if worker.is_alive():
+            raise RuntimeError("Disposable training worker did not stop before restore")
+        worker = None
         server.shutdown()
         server.server_close()
         server = None
@@ -227,12 +257,15 @@ def main():
         from clubs.models import (Club, ClubClaim, ClubAuditEvent, ClubVerificationEvidence,
             ClubMembership, ClubRoleAssignment, ClubClaimDecision, KnownClubListing, ClubSecurityEvent, EvidenceUpload,
             ClubMembershipAction, AthleteHomeClub, AthleteHomeClubHistory, ClubDataGrant,
-            ClubFacility, ShootingArea, FacilityAvailabilityRule, FacilityAvailabilityException, FacilityPhoto, FacilityPhotoUpload, FacilityAccessGroup)
+            ClubFacility, ShootingArea, FacilityAvailabilityRule, FacilityAvailabilityException, FacilityPhoto, FacilityPhotoUpload, FacilityAccessGroup,
+            ClubTrainingGroup, ClubTrainingGroupMember, ClubProgramme, ClubProgrammeRevision, ClubProgrammeAssignment, ClubAssignmentPlan, ClubProgrammeProgress)
         from allauth.mfa.models import Authenticator
+        from training.models import GeneratedPlan
         club_models = (Club, ClubClaim, ClubAuditEvent, ClubVerificationEvidence, ClubMembership,
             ClubRoleAssignment, ClubClaimDecision, KnownClubListing, ClubSecurityEvent, EvidenceUpload, Authenticator,
             ClubMembershipAction, AthleteHomeClub, AthleteHomeClubHistory, ClubDataGrant,
-            ClubFacility, ShootingArea, FacilityAvailabilityRule, FacilityAvailabilityException, FacilityPhoto, FacilityPhotoUpload, FacilityAccessGroup, FacilityAccessGroup.members.through)
+            ClubFacility, ShootingArea, FacilityAvailabilityRule, FacilityAvailabilityException, FacilityPhoto, FacilityPhotoUpload, FacilityAccessGroup, FacilityAccessGroup.members.through,
+            ClubTrainingGroup, ClubTrainingGroupMember, ClubProgramme, ClubProgrammeRevision, ClubProgrammeAssignment, ClubAssignmentPlan, ClubProgrammeProgress, GeneratedPlan)
         club_scopes = [(model._meta.label, list(model.objects.values_list("pk", flat=True))) for model in club_models]
         club_baseline = fingerprint(club_scopes)
         report["club_state_baseline"] = club_baseline
@@ -253,8 +286,8 @@ def main():
         report["checks"]["backup_restore_preserves_legacy_data"] = restored_legacy == baseline
         report["checks"]["backup_restore_preserves_club_audit_relations"] = fingerprint(club_scopes) == club_baseline
         from allauth.mfa.adapter import get_adapter
-        restored_factors = Authenticator.objects.filter(user_id__in=[actors["applicant"].pk, actors["reviewer"].pk], type="totp")
-        report["checks"]["restore_mfa_key_recovery"] = restored_factors.count() == 2 and all(
+        restored_factors = Authenticator.objects.filter(user_id__in=[user.pk for user in actors.values()], type="totp")
+        report["checks"]["restore_mfa_key_recovery"] = restored_factors.count() == len(actors) and all(
             get_adapter().decrypt(auth.data["secret"]) == fixture["totpSecret"] for auth in restored_factors)
         report["backup_bytes"] = dump.stat().st_size
         report["club_record_counts"] = restored_counts
@@ -291,6 +324,9 @@ def main():
     except Exception as exc:
         report["errors"].append(type(exc).__name__ + ": " + str(exc).splitlines()[0])
     finally:
+        worker_stop.set()
+        if worker:
+            worker.join(timeout=30)
         if server:
             server.shutdown()
             server.server_close()

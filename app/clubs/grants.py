@@ -21,6 +21,7 @@ SCOPES = {
     "scoring": "Scoring sessions and arrow values (read)",
     "equipment": "Equipment inventory (read)",
     "sight_marks": "Sight marks (read)",
+    "programme_progress": "Programme progress (self-reported session counts only)",
 }
 
 
@@ -37,6 +38,8 @@ def athlete_is_member(athlete, club):
 
 
 def valid(grant, actor, scope):
+    if scope == "programme_progress" and not getattr(settings, "CLUB_PROGRAMMES_ENABLED", False):
+        return False
     now = timezone.now()
     if (not enabled() or scope not in SCOPES or scope not in grant.scopes or
             grant.revoked_at or not grant.starts_at <= now < grant.expires_at or
@@ -52,11 +55,13 @@ def valid(grant, actor, scope):
     return memberships.has_role(actor, grant.club, {grant.role})
 
 
-def allows(actor, athlete, scope):
+def allows(actor, athlete, scope, *, club_id=None):
     if not enabled() or scope not in SCOPES or not eligible_actor(actor, write=True):
         return False
     candidates = ClubDataGrant.objects.filter(athlete=athlete, revoked_at__isnull=True).filter(
         Q(grantee=actor) | Q(grantee__isnull=True)).select_related("club", "athlete", "approved_by")
+    if club_id is not None:
+        candidates = candidates.filter(club_id=club_id)
     return any(valid(grant, actor, scope) for grant in candidates)
 
 
@@ -84,6 +89,8 @@ def issue(actor, athlete_id, *, club_id, grantee_id=None, role="", scopes, purpo
         raise ValidationError("Choose an active verified club membership.")
     if not isinstance(scopes, list) or not scopes or any(not isinstance(s, str) or s not in SCOPES for s in scopes) or len(scopes) != len(set(scopes)):
         raise ValidationError("Choose valid, distinct data categories.")
+    if "programme_progress" in scopes and not getattr(settings, "CLUB_PROGRAMMES_ENABLED", False):
+        raise ValidationError("Programme progress sharing is not enabled.")
     if "training_edit" in scopes and "training" not in scopes:
         raise ValidationError("Training draft generation also requires training read consent.")
     if not purpose.strip() or len(purpose) > 300:
@@ -130,6 +137,9 @@ def shared_athletes(actor, scope):
 def shared_payload(actor, athlete_id, scope):
     athlete = get_object_or_404(AthleteProfile, pk=athlete_id)
     require(actor, athlete, scope)
+    if scope == "programme_progress":
+        from .programmes import shared_progress
+        return shared_progress(actor, athlete_id)
     # Never serialize whole models, input contexts, equipment snapshots, notes,
     # account emails, birth dates or media URLs into this category response.
     if scope == "profile":

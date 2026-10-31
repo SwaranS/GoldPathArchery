@@ -364,3 +364,90 @@ class FacilityPhoto(Identity):
 
 class FacilityPhotoUpload(Identity):
     storage_key = models.CharField(max_length=100, unique=True)
+
+
+class ClubTrainingGroup(Identity):
+    club = models.ForeignKey(Club, on_delete=models.PROTECT, related_name="training_groups")
+    coach_role = models.ForeignKey(ClubRoleAssignment, on_delete=models.PROTECT)
+    name = models.CharField(max_length=160)
+    description = models.TextField(blank=True, max_length=4000)
+    discipline = models.CharField(max_length=12, choices=[(v, v.title()) for v in ("recurve", "compound", "barebow")])
+    active = models.BooleanField(default=True)
+    version = models.PositiveIntegerField(default=1)
+
+    def __str__(self):
+        return self.name
+
+
+class ClubTrainingGroupMember(Identity):
+    group = models.ForeignKey(ClubTrainingGroup, on_delete=models.PROTECT, related_name="members")
+    membership = models.ForeignKey(ClubMembership, on_delete=models.PROTECT, related_name="training_groups")
+    state = models.CharField(max_length=12, default="invited", choices=[(v, v.title()) for v in ("invited", "active", "declined", "left", "removed")])
+    invited_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
+    invited_at = models.DateTimeField()
+    expires_at = models.DateTimeField()
+    decided_at = models.DateTimeField(null=True, blank=True)
+    version = models.PositiveIntegerField(default=1)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["group", "membership"], name="training_group_member_unique"),
+            models.CheckConstraint(condition=Q(state__in=["invited", "active", "declined", "left", "removed"]), name="training_group_member_state")]
+
+
+class ClubProgramme(Identity):
+    group = models.ForeignKey(ClubTrainingGroup, on_delete=models.PROTECT, related_name="programmes")
+    owner_role = models.ForeignKey(ClubRoleAssignment, on_delete=models.PROTECT)
+    name = models.CharField(max_length=160)
+    active = models.BooleanField(default=True)
+    published_revision = models.PositiveIntegerField(default=0)
+    version = models.PositiveIntegerField(default=1)
+
+
+class ClubProgrammeRevision(Identity):
+    programme = models.ForeignKey(ClubProgramme, on_delete=models.PROTECT, related_name="revisions")
+    number = models.PositiveIntegerField()
+    snapshot = models.JSONField()
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["programme", "number"], name="programme_revision_unique")]
+
+    def save(self, *args, **kwargs):
+        if not self._state.adding:
+            raise ValueError("Programme revisions are immutable; create a new revision.")
+        return super().save(*args, **kwargs)
+
+
+class ClubProgrammeAssignment(Identity):
+    revision = models.ForeignKey(ClubProgrammeRevision, on_delete=models.PROTECT, related_name="assignments")
+    group_member = models.ForeignKey(ClubTrainingGroupMember, on_delete=models.PROTECT, related_name="assignments")
+    athlete = models.ForeignKey("accounts.AthleteProfile", on_delete=models.CASCADE)
+    group_member_version = models.PositiveIntegerField()
+    offered_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="offered_programmes")
+    accepted_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="accepted_programmes")
+    expires_at = models.DateTimeField()
+    state = models.CharField(max_length=12, default="offered", choices=[(v, v.title()) for v in ("offered", "accepted", "declined", "withdrawn", "cancelled")])
+    current_plan_number = models.PositiveIntegerField(default=0)
+    version = models.PositiveIntegerField(default=1)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["revision", "group_member", "group_member_version"], condition=Q(state__in=["offered", "accepted"]), name="programme_assignment_unique"),
+            models.CheckConstraint(condition=Q(state__in=["offered", "accepted", "declined", "withdrawn", "cancelled"]), name="programme_assignment_state")]
+
+
+class ClubAssignmentPlan(Identity):
+    assignment = models.ForeignKey(ClubProgrammeAssignment, on_delete=models.CASCADE, related_name="plans")
+    plan = models.OneToOneField("training.GeneratedPlan", null=True, on_delete=models.SET_NULL)
+    number = models.PositiveIntegerField()
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
+    private_note = models.TextField(blank=True, max_length=1000)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["assignment", "number"], name="assignment_plan_number_unique")]
+
+
+class ClubProgrammeProgress(Identity):
+    assignment = models.OneToOneField(ClubProgrammeAssignment, on_delete=models.CASCADE, related_name="progress")
+    completed_sessions = models.PositiveIntegerField(default=0)
+    private_note = models.TextField(blank=True, max_length=2000)
+    updated_at = models.DateTimeField(auto_now=True)
+    version = models.PositiveIntegerField(default=1)

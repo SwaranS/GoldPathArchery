@@ -120,6 +120,7 @@ CLUBS_ENABLED = os.environ.get("CLUBS_ENABLED", "0") == "1"
 CLUB_MEMBERSHIPS_ENABLED = os.environ.get("CLUB_MEMBERSHIPS_ENABLED", "0") == "1"
 CLUB_DATA_SHARING_ENABLED = os.environ.get("CLUB_DATA_SHARING_ENABLED", "0") == "1"
 CLUB_FACILITIES_ENABLED = os.environ.get("CLUB_FACILITIES_ENABLED", "0") == "1"
+CLUB_PROGRAMMES_ENABLED = os.environ.get("CLUB_PROGRAMMES_ENABLED", "0") == "1"
 # Facility photos are private and isolated from verification evidence retention.
 CLUB_FACILITY_PHOTO_BACKEND = os.environ.get("CLUB_FACILITY_PHOTO_BACKEND", "disabled")
 CLUB_FACILITY_PHOTO_ROOT = os.environ.get("CLUB_FACILITY_PHOTO_ROOT", "")

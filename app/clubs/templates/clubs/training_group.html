@@ -1,0 +1,10 @@
+{% extends 'clubs/base.html' %}
+{% block title %}{{ group.name }} · Group programmes{% endblock %}
+{% block club_content %}<h1>{{ group.name }}</h1>
+<p>{{ group.club.name }} · {{ group.get_discipline_display }}{% if not group.active %} · Archived{% endif %}</p><p>{{ group.description|linebreaksbr }}</p>
+{% if is_group_admin or is_coach %}<p><a href="{% url 'clubs:training-group-settings' group.club_id group.pk %}">Edit group settings</a></p>{% endif %}
+{% if is_coach or is_group_admin %}<p><a href="{% url 'clubs:training-group-invite' group.pk %}">Invite a club member to the group</a></p>{% endif %}
+{% if is_coach %}<p><a href="{% url 'clubs:programme-new' group.pk %}">Create a programme template</a></p>{% endif %}
+<h2>Programmes</h2><ul>{% for programme in programmes %}<li><a href="{% url 'clubs:programme' programme.pk %}">{{ programme.name }}</a> · {% if programme.active %}{% if programme.published_revision %}Published revision {{ programme.published_revision }}{% else %}Draft{% endif %}{% else %}Archived{% endif %}</li>{% empty %}<li>No programmes available.</li>{% endfor %}</ul>
+{% if is_coach or is_group_admin %}<h2>Group membership</h2><p>Membership status does not share individual training inputs or progress.</p><ul>{% for member in members %}<li>{% if member.membership.athlete %}{{ member.membership.athlete.display_name }}{% else %}{{ member.membership.user.username }}{% endif %} · {{ member.get_state_display }}{% if member.state == 'active' or member.state == 'invited' %} · <a href="{% url 'clubs:group-member-remove' member.pk %}">Remove from group</a>{% endif %}</li>{% empty %}<li>No invited or accepted members.</li>{% endfor %}</ul>{% endif %}
+<p><a href="{% url 'clubs:programmes' %}">My group programmes</a></p>{% endblock %}

@@ -1,0 +1,9 @@
+{% extends 'clubs/base.html' %}
+{% block title %}My group programmes{% endblock %}
+{% block club_content %}<h1>My group programmes</h1>
+<p>Joining a group and accepting a programme are separate choices. No individual plan is created until you or your authorized guardian accepts an assignment.</p>
+<h2>Groups</h2><ul>{% for group in groups %}<li><a href="{% url 'clubs:training-group' group.pk %}">{{ group.name }}</a> · {{ group.club.name }}</li>{% empty %}<li>No available groups.</li>{% endfor %}</ul>
+{% if authoring_clubs %}<h2>Coach and administrator tools</h2><ul>{% for club in authoring_clubs %}<li><a href="{% url 'clubs:training-group-new' club.pk %}">Create a training group for {{ club.name }}</a></li>{% endfor %}</ul>{% endif %}
+<h2>Group invitations and memberships</h2><ul>{% for member in memberships %}<li>{{ member.group.name }} · {{ member.get_state_display }}{% if member.state == 'invited' or member.state == 'active' %} · <a href="{% url 'clubs:group-member-response' member.pk %}">Respond or leave group</a>{% endif %}</li>{% empty %}<li>No group invitations.</li>{% endfor %}</ul>
+<h2>Individual programme assignments</h2><ul>{% for assignment in assignments %}<li><a href="{% url 'clubs:programme-assignment' assignment.pk %}">{{ assignment.revision.snapshot.title }}</a> · {{ assignment.athlete.display_name }} · {{ assignment.get_state_display }} · source revision {{ assignment.revision.number }}</li>{% empty %}<li>No programme assignments.</li>{% endfor %}</ul>
+<p><a href="{% url 'clubs:memberships' %}">My clubs</a></p>{% endblock %}

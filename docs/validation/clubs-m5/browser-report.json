@@ -1,0 +1,362 @@
+{
+  "syntheticOnly": true,
+  "pages": [
+    {
+      "label": "directory-desktop",
+      "viewport": {
+        "width": 1365,
+        "height": 900
+      },
+      "horizontalOverflow": false,
+      "title": "Clubs · GoldPathArchery",
+      "duplicateIds": [],
+      "violations": []
+    },
+    {
+      "label": "application-desktop",
+      "viewport": {
+        "width": 1365,
+        "height": 900
+      },
+      "horizontalOverflow": false,
+      "title": "Club application · GoldPathArchery",
+      "duplicateIds": [],
+      "violations": []
+    },
+    {
+      "label": "application-mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "horizontalOverflow": false,
+      "title": "Club application · GoldPathArchery",
+      "duplicateIds": [],
+      "violations": []
+    },
+    {
+      "label": "application-status-mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "horizontalOverflow": false,
+      "title": "Synthetic private validation club application · GoldPathArchery",
+      "duplicateIds": [],
+      "violations": []
+    },
+    {
+      "label": "mfa-challenge",
+      "viewport": {
+        "width": 1365,
+        "height": 900
+      },
+      "horizontalOverflow": false,
+      "title": "Confirm Access · GoldPathArchery",
+      "duplicateIds": [],
+      "violations": []
+    },
+    {
+      "label": "queue-desktop",
+      "viewport": {
+        "width": 1365,
+        "height": 900
+      },
+      "horizontalOverflow": false,
+      "title": "Club verification queue · GoldPathArchery",
+      "duplicateIds": [],
+      "violations": []
+    },
+    {
+      "label": "review-desktop",
+      "viewport": {
+        "width": 1365,
+        "height": 900
+      },
+      "horizontalOverflow": false,
+      "title": "Review club claim · GoldPathArchery",
+      "duplicateIds": [],
+      "violations": []
+    },
+    {
+      "label": "review-mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "horizontalOverflow": false,
+      "title": "Review club claim · GoldPathArchery",
+      "duplicateIds": [],
+      "violations": []
+    },
+    {
+      "label": "club-admin-mfa-mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "horizontalOverflow": false,
+      "title": "Confirm Access · GoldPathArchery",
+      "duplicateIds": [],
+      "violations": []
+    },
+    {
+      "label": "private-dashboard-mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "horizontalOverflow": false,
+      "title": "Club administration · GoldPathArchery",
+      "duplicateIds": [],
+      "violations": []
+    },
+    {
+      "label": "public-profile-desktop",
+      "viewport": {
+        "width": 1365,
+        "height": 900
+      },
+      "horizontalOverflow": false,
+      "title": "Synthetic public validation club · GoldPathArchery",
+      "duplicateIds": [],
+      "violations": []
+    },
+    {
+      "label": "public-profile-mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "horizontalOverflow": false,
+      "title": "Synthetic public validation club · GoldPathArchery",
+      "duplicateIds": [],
+      "violations": []
+    },
+    {
+      "label": "membership-join-desktop",
+      "viewport": {
+        "width": 1365,
+        "height": 900
+      },
+      "horizontalOverflow": false,
+      "title": "Request to join Synthetic public validation club · GoldPathArchery",
+      "duplicateIds": [],
+      "violations": []
+    },
+    {
+      "label": "membership-manager-desktop",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "horizontalOverflow": false,
+      "title": "Memberships · Synthetic public validation club",
+      "duplicateIds": [],
+      "violations": []
+    },
+    {
+      "label": "membership-manager-mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "horizontalOverflow": false,
+      "title": "Memberships · Synthetic public validation club",
+      "duplicateIds": [],
+      "violations": []
+    },
+    {
+      "label": "home-club-desktop",
+      "viewport": {
+        "width": 1365,
+        "height": 900
+      },
+      "horizontalOverflow": false,
+      "title": "Home club for Synthetic new member · GoldPathArchery",
+      "duplicateIds": [],
+      "violations": []
+    },
+    {
+      "label": "my-clubs-mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "horizontalOverflow": false,
+      "title": "My clubs · GoldPathArchery",
+      "duplicateIds": [],
+      "violations": []
+    },
+    {
+      "label": "sharing-owner-mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "horizontalOverflow": false,
+      "title": "Data sharing · Synthetic new member",
+      "duplicateIds": [],
+      "violations": []
+    },
+    {
+      "label": "shared-scoring-mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "horizontalOverflow": false,
+      "title": "Scoring sessions and arrow values (read) · Shared data",
+      "duplicateIds": [],
+      "violations": []
+    },
+    {
+      "label": "facility-create-mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "horizontalOverflow": false,
+      "title": "Edit facility · Synthetic public validation club",
+      "duplicateIds": [],
+      "violations": []
+    },
+    {
+      "label": "facility-calendar-mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "horizontalOverflow": false,
+      "title": "Availability · Synthetic 70m line",
+      "duplicateIds": [],
+      "violations": []
+    },
+    {
+      "label": "facility-calendar-desktop",
+      "viewport": {
+        "width": 1365,
+        "height": 900
+      },
+      "horizontalOverflow": false,
+      "title": "Availability · Synthetic 70m line",
+      "duplicateIds": [],
+      "violations": []
+    },
+    {
+      "label": "facility-public-desktop",
+      "viewport": {
+        "width": 1365,
+        "height": 900
+      },
+      "horizontalOverflow": false,
+      "title": "Synthetic public venue · Facilities",
+      "duplicateIds": [],
+      "violations": []
+    },
+    {
+      "label": "facility-public-mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "horizontalOverflow": false,
+      "title": "Synthetic public venue · Facilities",
+      "duplicateIds": [],
+      "violations": []
+    },
+    {
+      "label": "facility-admin-mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "horizontalOverflow": false,
+      "title": "Facilities administration · Synthetic public validation club",
+      "duplicateIds": [],
+      "violations": []
+    },
+    {
+      "label": "programme-template-desktop",
+      "viewport": {
+        "width": 1365,
+        "height": 900
+      },
+      "horizontalOverflow": false,
+      "title": "Programme template · Synthetic M5 coaching group",
+      "duplicateIds": [],
+      "violations": []
+    },
+    {
+      "label": "programme-template-mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "horizontalOverflow": false,
+      "title": "Programme template · Synthetic M5 coaching group",
+      "duplicateIds": [],
+      "violations": []
+    },
+    {
+      "label": "programme-consent-mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "horizontalOverflow": false,
+      "title": "Programme for Synthetic new member",
+      "duplicateIds": [],
+      "violations": []
+    },
+    {
+      "label": "programme-personal-draft-mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "horizontalOverflow": false,
+      "title": "Training draft - GoldPathArchery",
+      "duplicateIds": [],
+      "violations": []
+    },
+    {
+      "label": "programme-progress-owner-mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "horizontalOverflow": false,
+      "title": "Programme for Synthetic new member",
+      "duplicateIds": [],
+      "violations": []
+    }
+  ],
+  "checks": [
+    "Keyboard skip link reaches main content",
+    "Draft remains private to the applicant",
+    "Real invalid/valid TOTP challenge gates the verification queue",
+    "Evidence download requires reviewer MFA and never caches publicly",
+    "Approval without selected-target confirmation is rejected",
+    "First club administrator completes MFA before private dashboard access",
+    "Approved admin alone can open private dashboard",
+    "Verified public profile works without signing in",
+    "Member requests to join and administrator approves with real CSRF",
+    "Recipient accepts private invitation and explicitly switches home club",
+    "Additional club admin accepts appointment after real MFA",
+    "Explicit scoring consent excludes equipment and legacy profile; revocation denies saved links",
+    "Named facility access group is created from current club memberships",
+    "Facilities support multiple daily slots and seasonal priority with local/UTC times",
+    "Private precise location and hidden closure reasons stay absent from public HTML and JSON",
+    "Normalized private-storage facility photo works through controlled URL; archival revokes it",
+    "Programme acceptance generates an independent personal draft; private notes stay owner-only and progress requires separate consent",
+    "Withdrawal revokes programme progress access and archival preserves the athlete-owned draft"
+  ],
+  "errors": [],
+  "privateClaim": "/clubs/claims/50fc2a42-4f2b-4a74-b3a3-ce2f2bea5dc6/",
+  "privateManage": "/clubs/86b0a2db-c8ea-4070-af0f-2d30ed17a658/manage/",
+  "stage": "M5 group programmes",
+  "accessibilityViolations": 0,
+  "layoutFailures": [],
+  "passed": true
+}

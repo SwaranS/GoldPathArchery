@@ -1,0 +1,14 @@
+{% extends 'clubs/base.html' %}
+{% load static %}
+{% block title %}{{ title }}{% endblock %}
+{% block club_content %}<h1>{{ title }}</h1>
+<form method="post">{% csrf_token %}{{ form.as_p }}
+{% if session_forms %}<h2>Weekly group sessions</h2><p>Times use the club's local timezone. Each athlete will confirm their own availability when accepting a programme.</p>
+{{ session_forms.management_form }}{{ session_forms.non_form_errors }}
+<div id="programme-session-rows">{% for session in session_forms %}<fieldset><legend>Weekly session {{ forloop.counter }}</legend>{{ session.as_p }}</fieldset>{% endfor %}</div>
+<template id="programme-session-empty"><fieldset><legend>Additional weekly session</legend>{{ session_forms.empty_form.as_p }}</fieldset></template>
+<button type="button" id="programme-add-session">Add another weekly session</button>
+{% endif %}
+<button type="submit">{{ button }}</button></form>
+<p><a href="{% url 'clubs:programmes' %}">My group programmes</a></p>{% endblock %}
+{% block extra_body %}{% if session_forms %}<script src="{% static 'clubs/programme_sessions.js' %}" defer></script>{% endif %}{% endblock %}

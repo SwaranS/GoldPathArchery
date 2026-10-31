@@ -13,7 +13,7 @@
 {% if member.can_manage %}<a href="{% url 'clubs:membership-manage' member.club_id %}">Manage memberships</a>{% endif %}
 {% if club_facilities_enabled and member.active %}<a href="{% url 'clubs:facilities' member.club_id %}">Facilities</a>{% endif %}{% if member.can_leave %}<a href="{% url 'clubs:leave' member.pk %}">Leave club</a>{% endif %}
 </li>{% empty %}<li>No club memberships yet.</li>{% endfor %}</ul>
-{% if club_data_sharing_enabled %}<p><a href="{% url 'clubs:shared' %}">Shared athlete data</a></p>{% endif %}<h2>Home club</h2>
+{% if club_data_sharing_enabled %}<p><a href="{% url 'clubs:shared' %}">Shared athlete data</a></p>{% endif %}{% if club_programmes_enabled %}<p><a href="{% url 'clubs:programmes' %}">My group programmes</a></p>{% endif %}<h2>Home club</h2>
 <p>No club is automatically selected. Choose independently for each athlete you are authorized to represent.</p>
 <ul>{% for athlete in subjects %}<li><a href="{% url 'clubs:home-club' athlete.pk %}">{{ athlete.display_name }}: choose or clear home club</a>{% if club_data_sharing_enabled %} · <a href="{% url 'clubs:grants' athlete.pk %}">Manage data sharing</a>{% endif %}</li>{% empty %}<li>No eligible athlete profiles available.</li>{% endfor %}</ul>
 <h2>Requests and appointments</h2>
